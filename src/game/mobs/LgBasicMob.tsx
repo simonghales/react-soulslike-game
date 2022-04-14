@@ -3,8 +3,13 @@ import {SyncComponent, useAddBody} from "react-three-physics";
 import {componentSyncKeys} from "../data/keys";
 import {useWorld} from "../../worker/WorldProvider";
 import {Body, Circle, Vec2} from "planck";
+import {COLLISION_FILTER_GROUPS} from "../data/collisions";
 
-export const LgBasicMob: React.FC = () => {
+export const LgBasicMob: React.FC<{
+    id: string,
+    x?: number,
+    y?: number,
+}> = ({id, x, y}) => {
 
     const world = useWorld()
 
@@ -23,23 +28,30 @@ export const LgBasicMob: React.FC = () => {
 
         const body = world.createBody(bodyDef)
 
-        body.setPosition(new Vec2(2, 2))
+        body.setPosition(new Vec2(x ?? 2, y ?? 2))
 
         const circleShape = Circle(0.5)
 
+        console.log('mask bits', COLLISION_FILTER_GROUPS.player | COLLISION_FILTER_GROUPS.playerRange)
+
         const fixture = body.createFixture({
             shape: circleShape,
-        } as any)
+            filterCategoryBits: COLLISION_FILTER_GROUPS.npcs,
+            filterMaskBits: COLLISION_FILTER_GROUPS.player | COLLISION_FILTER_GROUPS.playerRange,
+            userData: {
+                collisionId: id,
+            }
+        })
 
         setBody(body)
 
-        return addBody('basicMob-0', body)
+        return addBody(id, body)
 
     }, [])
 
     return (
         <>
-            <SyncComponent id={'basicMob-0'} componentId={componentSyncKeys.basicMob}/>
+            <SyncComponent id={id} componentId={componentSyncKeys.basicMob}/>
         </>
     )
 }

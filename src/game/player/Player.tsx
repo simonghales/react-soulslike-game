@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from "react"
-import {Box, Cylinder, Html} from "@react-three/drei";
+import {Box, Circle, Cylinder, Html} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
 import {usePhysicsRef, useSyncData} from "react-three-physics";
 import {PlayerCamera} from "./PlayerCamera";
 import {useSetPlayerRef} from "../state/misc";
 import {PlayerAttackStateType, syncKeys} from "../data/keys";
 import {setPlayerEnergyUsage} from "../state/player";
+import {playerConfig} from "./config";
 
 export const Player: React.FC = () => {
 
@@ -61,6 +62,15 @@ export const Player: React.FC = () => {
                 <Cylinder args={[0.5, 0.5, 1.5, 16]}
                           position={[0, 0, 0.75]}
                           rotation={[degToRad(90), 0, 0]}/>
+                <Box position={[1.75, 0, 0]} args={[4, 3, 0.4]}>
+                    <meshBasicMaterial color={'white'} transparent opacity={0.25}/>
+                </Box>
+                <Circle args={[playerConfig.sensors.mediumRangeRadius, 32]}>
+                    <meshBasicMaterial color={'yellow'} transparent opacity={0.25}/>
+                </Circle>
+                <Circle args={[playerConfig.sensors.largeRangeRadius, 32]}>
+                    <meshBasicMaterial color={'pink'} transparent opacity={0.25}/>
+                </Circle>
                 <Html center>
                     <div>
                         {attackCompleted ? "complete" : playerAttackState.type}
@@ -68,10 +78,10 @@ export const Player: React.FC = () => {
                 </Html>
             </group>
             <group ref={combatBodyRef}>
-                <Box position={[0.75, 0, 0]} args={[1.5, 0.5, 0.5]}>
+                <Box position={[playerConfig.sensors.shortAttack.x, 0, 0]} args={[playerConfig.sensors.shortAttack.w, playerConfig.sensors.shortAttack.h, 0.5]}>
                     <meshBasicMaterial color={'red'} transparent opacity={0.5}/>
                 </Box>
-                <Box position={[1, 0, 0]} args={[2, 0.75, 0.45]}>
+                <Box position={[playerConfig.sensors.longAttack.x, 0, 0]} args={[playerConfig.sensors.longAttack.w, playerConfig.sensors.longAttack.h, 0.45]}>
                     <meshBasicMaterial color={'orange'} transparent opacity={0.5}/>
                 </Box>
             </group>

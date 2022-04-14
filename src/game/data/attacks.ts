@@ -1,0 +1,2 @@
+export const SHORT_ATTACK_DURATION = 175
+export const LONG_ATTACK_DURATION = 275

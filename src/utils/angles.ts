@@ -10,3 +10,6 @@ export const lerpRadians = (A: number, B: number, w: number) => {
     return Math.atan2(SN,CS);
 }
 
+export const calculateAngleBetweenVectors = (x1: number, x2: number, y1: number, y2: number): number => {
+    return Math.atan2((x1 - x2), (y1 - y2))
+}

@@ -7,6 +7,7 @@ export enum PlayerAttackStateType {
     CHARGING = 'CHARGING',
     SHORT = 'SHORT',
     LONG = 'LONG',
+    IDLE = 'IDLE',
 }
 
 export const componentSyncKeys = {
