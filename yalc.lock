@@ -2,7 +2,7 @@
   "version": "v1",
   "packages": {
     "react-three-physics": {
-      "signature": "c39ade28a4862cc7f90114fd9e131634",
+      "signature": "221fbbb0d3f2a378b1993099317b95b4",
       "link": true,
       "replaced": "file:.yalc/react-three-physics"
     }

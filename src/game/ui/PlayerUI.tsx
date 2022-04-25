@@ -2,11 +2,32 @@ import React from "react"
 import styled from "styled-components";
 import {useSnapshot} from "valtio";
 import {playerStateProxy} from "../state/player";
+import {playerConfig} from "../player/config";
 
 const StyledContainer = styled.div`
   position: fixed;
   top: 0;
   left: 0;
+`
+
+const StyledHealthContainer = styled.div`
+  width: 320px;
+  height: 18px;
+  background-color: white;
+  position: relative;
+  overflow: hidden;
+`
+
+const StyledHealthAmount = styled.div<{
+    percent: number,
+}>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: red;
+  transform: translateX(-${props => props.percent}%);
 `
 
 const StyledEnergyContainer = styled.div`
@@ -31,14 +52,22 @@ const StyledEnergyAmount = styled.div<{
 
 export const PlayerUI: React.FC = () => {
 
-    const energyUsage = useSnapshot(playerStateProxy).energyUsage
+    const {
+        energyUsage,
+        healthRemaining,
+    } = useSnapshot(playerStateProxy)
 
     const maxEnergy = 150
 
     const energyAmount = Math.ceil((energyUsage / maxEnergy) * 100)
 
+    const healthAmount = 100 - Math.ceil((healthRemaining / playerConfig.defaultHealth) * 100)
+
     return (
         <StyledContainer>
+            <StyledHealthContainer>
+                <StyledHealthAmount percent={healthAmount}/>
+            </StyledHealthContainer>
             <StyledEnergyContainer>
                 <StyledEnergyAmount energyAmount={energyAmount}/>
             </StyledEnergyContainer>

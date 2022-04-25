@@ -11,7 +11,7 @@ import {KEYS} from "../input/keys";
 import {Body, Box, Circle, Vec2} from "planck";
 import {useWorld} from "../../worker/WorldProvider";
 import {PlayerAttackStateType, syncKeys} from "../data/keys";
-import {calculateAngleBetweenVectors, lerpRadians, v2ToAngleDegrees} from "../../utils/angles";
+import {angleToV2, calculateAngleBetweenVectors, lerpRadians, v2ToAngleDegrees} from "../../utils/angles";
 import {degToRad, lerp} from "three/src/math/MathUtils";
 import {useEffectRef} from "../../utils/hooks";
 import {normalize} from "../../utils/numbers";
@@ -21,6 +21,12 @@ import {calculateVectorsDistance} from "../../utils/vectors";
 import {playerConfig} from "./config";
 import {halve, getFixtureCollisionId, getFixtureCollisionType} from "../../utils/physics";
 import {useAttackCollisionsHandler} from "./AttackCollisionsHandler";
+import {attacksConfig} from "../data/attacks";
+import {useSetBody} from "../state/bodies";
+import {useEventsHandler} from "./events";
+import {EventsHandler} from "./EventsHandler";
+import {PlayerContext, usePlayerContext} from "./PlayerContext";
+import {getPowerGraph} from "../../utils/graphs";
 
 let right = false
 let left = false
@@ -36,14 +42,19 @@ let roll = false
 let prevRoll = false
 let prevTargetKey = false
 let isRolling = false
+let isBackwards = false
 let isRunning = false
 let targetKey = false
+let isAttacking = false
+let isCharging = false
 
 const walkSpeed = 2.4
 const rollSpeed = walkSpeed * 1.25
 const runSpeed = walkSpeed * 1.45
+const backwardsSpeed = runSpeed * 2.5
 
 const rollDuration = 500
+const backDuration = 85
 
 const energyRegenerationDelay = 1500
 
@@ -269,11 +280,43 @@ export const useCollisionsHandler = (setTarget: any) => {
 
 }
 
+const aV2 = new Vec2()
+
+export type AttackState = {
+    type: string,
+    time: number,
+    xDir: number,
+    yDir: number,
+}
+
+let progress = 0
+let morphed = 0
+let timeElapsed = 0
+
+const getAttackingMomentum = (attackState: AttackState) => {
+    progress = 0
+    timeElapsed = Date.now() - attackState.time
+    if (attackState.type === PlayerAttackStateType.SHORT) {
+        progress = normalize(timeElapsed, attacksConfig.short.duration,0)
+        morphed = getPowerGraph(progress, 2)
+        return progress < 0.5 ? lerp(0.25, 1.25, morphed) : lerp(0.15, 1.25, morphed)
+    } else if (attackState.type === PlayerAttackStateType.LONG) {
+        progress = normalize(timeElapsed, attacksConfig.long.duration,25)
+        morphed = getPowerGraph(progress, 4)
+        return progress < 0.5 ? lerp(0, 1, morphed) : lerp(0.05, 1, morphed)
+    }
+    return 0
+}
+
 const Controller: React.FC<{
     body: Body,
     combatBody: Body,
     fixtures: PlayerFixtures,
 }> = ({body, combatBody, fixtures}) => {
+
+    const {
+        setPlayerRolled,
+    } = usePlayerContext()
 
     const [spacePressed, setSpacePressed] = useState(false)
     const [shiftPressed, setShiftPressed] = useState(false)
@@ -286,12 +329,24 @@ const Controller: React.FC<{
         lastAttackType: '' as AttackType | '',
         prevAngle: 0,
         lastTargetDown: 0,
+        prevX: 0,
+        prevY: 0,
     })
 
     const [target, setTarget] = useState(null  as null | {
         id: string,
         body: Body,
     })
+
+    useEffect(() => {
+        if (!target) return
+        const interval = setInterval(() => {
+            // console.log('target position', target.body.getPosition())
+        }, 50)
+        return () => {
+            clearInterval(interval)
+        }
+    }, [target])
 
     const activeCollisions = useCollisionsHandler(setTarget)
 
@@ -305,7 +360,34 @@ const Controller: React.FC<{
     const [attackState, setAttackState] = useState({
         type: '',
         time: 0,
+        xDir: 0,
+        yDir: 0,
     })
+
+    useEffect(() => {
+        if (!attackState.type || attackState.type === PlayerAttackStateType.CHARGING) return
+
+        const clear = () => {
+            setAttackState({
+                type: '',
+                time: 0,
+                xDir: 0,
+                yDir: 0,
+            })
+        }
+
+        const delay = attackState.type === PlayerAttackStateType.SHORT ? attacksConfig.short.duration + attacksConfig.short.cooldown : attacksConfig.long.duration + attacksConfig.long.cooldown
+
+        const timeRemaining = (attackState.time + delay) - Date.now()
+        if (timeRemaining > 0) {
+            const timeout = setTimeout(clear, timeRemaining)
+            return () => {
+                clearTimeout(timeout)
+            }
+        } else {
+            clear()
+        }
+    }, [attackState])
 
     const [energyUsage, setEnergyUsage] = useState(0)
 
@@ -339,7 +421,7 @@ const Controller: React.FC<{
 
             const decrease = () => {
                 setEnergyUsage(state => {
-                    const update = state - 3
+                    const update = state - playerConfig.rechargeAmount
                     if (update < 0) return 0
                     return update
                 })
@@ -372,9 +454,17 @@ const Controller: React.FC<{
         rollingStart: 0,
         rollXVel: 0,
         rollYVel: 0,
+        isBackwards: false,
+        backwardsStart: 0,
+        backwardsXVel: 0,
+        backwardsYVel: 0,
     })
 
     const [rolling, setRolling] = useState(false)
+
+    const OLDisAttacking = !!attackState.type && attackState.type !== PlayerAttackStateType.IDLE
+
+    const OLDisAttackingRef = useEffectRef(OLDisAttacking)
 
     const onPhysicsUpdate = useCallback((delta: number) => {
 
@@ -390,6 +480,9 @@ const Controller: React.FC<{
         targetKey = isKeyPressed(KEYS.Q)
         prevTargetKey = prevKeysRef.current.target
         prevKeysRef.current.target = targetKey
+
+        isAttacking = attackStateRef.current.type === PlayerAttackStateType.LONG || attackStateRef.current.type === PlayerAttackStateType.SHORT
+        isCharging = attackStateRef.current.type === PlayerAttackStateType.CHARGING
 
         if (targetKey && !prevTargetKey) {
             selectNextTarget()
@@ -407,15 +500,27 @@ const Controller: React.FC<{
         setShiftPressed(shift)
 
         isRolling = rollingStateRef.current.isRolling
+        isBackwards = rollingStateRef.current.isBackwards
 
         isMoving = right || left || up || down
 
         xDir = right ? 1 : left ? -1 : 0
         yDir = up ? 1 : down ? -1 : 0
+
+        if (isMoving) {
+            localStateRef.current.prevX = xDir
+            localStateRef.current.prevY = yDir
+        }
+
+        if (isAttacking) {
+            xDir = attackStateRef.current.xDir
+            yDir = attackStateRef.current.yDir
+        }
+
         v2.set(xDir, yDir)
         v2.normalize()
 
-        if (roll && !prevRoll && hasEnergyRemainingRef.current && !isRolling && isMoving) {
+        if (roll && !prevRoll && hasEnergyRemainingRef.current && !isRolling && isMoving && !isBackwards) {
             isRolling = true
             rollingStateRef.current.isRolling = true
             rollingStateRef.current.rollingStart = Date.now()
@@ -423,6 +528,32 @@ const Controller: React.FC<{
             rollingStateRef.current.rollYVel = v2.y
             setRolling(true)
             increaseEnergyUsage(40)
+            setPlayerRolled(Date.now())
+        } else {
+            if (!isRolling && roll && !prevRoll && !isMoving && !isBackwards) {
+                const currentAngle = body.getAngle() - degToRad(180)
+                angleToV2(currentAngle, aV2)
+                isBackwards = true
+                rollingStateRef.current.isBackwards = true
+                rollingStateRef.current.backwardsStart = Date.now()
+                rollingStateRef.current.backwardsXVel = aV2.x
+                rollingStateRef.current.backwardsYVel = aV2.y
+                increaseEnergyUsage(20)
+            }
+        }
+
+        if (isBackwards) {
+
+            if (Date.now() > rollingStateRef.current.backwardsStart + backDuration) {
+                rollingStateRef.current.isBackwards = false
+                isBackwards = false
+            } else {
+                v2.x = lerp(rollingStateRef.current.backwardsXVel, v2.x, 0.15)
+                v2.y = lerp(rollingStateRef.current.backwardsYVel, v2.y, 0.15)
+                v2.normalize()
+                console.log('move backwards...')
+            }
+
         }
 
         if (isRolling) {
@@ -444,9 +575,9 @@ const Controller: React.FC<{
 
         }
 
-        isRunning = (shift && hasEnergyRemainingRef.current && !isRolling) && isMoving
+        isRunning = (shift && hasEnergyRemainingRef.current && !isRolling) && isMoving && (!isAttacking && !isCharging)
 
-        speed = isRunning ? runSpeed : isRolling ? rollSpeed : walkSpeed
+        speed = isRolling ? rollSpeed : isBackwards ? backwardsSpeed : isRunning ? runSpeed  : walkSpeed
 
         if (space) {
             setSpacePressed(true)
@@ -459,18 +590,33 @@ const Controller: React.FC<{
         }
 
         if (target) {
-            angle = calculateAngleBetweenVectors(body.getPosition().x, target.body.getPosition().x, target.body.getPosition().y, body.getPosition().y)
+            const targetPosition = target.body.getPosition()
+            const targetX = targetPosition.x
+            const targetY = targetPosition.y
+            const bodyX = body.getPosition().x
+            const bodyY = body.getPosition().y
+            angle = calculateAngleBetweenVectors(bodyX, targetX, targetY, bodyY)
             angle += Math.PI / 2
+            if (isCharging) {
+                angle = lerpRadians(angle, localStateRef.current.prevAngle, 0.5)
+            }
             localStateRef.current.prevAngle = angle
             body.setAngle(angle)
         } else if (isMoving) {
             angle = degToRad(v2ToAngleDegrees(v2.x, v2.y))
-            angle = lerpRadians(angle, localStateRef.current.prevAngle, 0.5)
+            angle = lerpRadians(angle, localStateRef.current.prevAngle, isCharging ? 0.6 : 0.5)
             localStateRef.current.prevAngle = angle
             body.setAngle(angle)
         }
 
         v2.mul(delta * speed)
+
+        if (isCharging) {
+            v2.mul(0.25)
+        } else if (isAttacking) {
+            console.log('getAttackingMomentum', getAttackingMomentum(attackStateRef.current))
+            v2.mul(getAttackingMomentum(attackStateRef.current))
+        }
 
         body.applyLinearImpulse(v2, plainV2)
 
@@ -509,6 +655,8 @@ const Controller: React.FC<{
             setAttackState({
                 type: pendingAttackState.type,
                 time: Date.now(),
+                xDir: localStateRef.current.prevX,
+                yDir: localStateRef.current.prevY,
             })
         }
 
@@ -548,8 +696,6 @@ const Controller: React.FC<{
             wait: executionDelay,
         })
 
-        // if it's been long enough since last release...
-
         return () => {
 
             if (!hasEnergyRemainingRef.current) {
@@ -568,7 +714,7 @@ const Controller: React.FC<{
 
             if (timeDown <= 250) {
 
-                increaseEnergyUsage(20)
+                increaseEnergyUsage(attacksConfig.short.energyUsage)
 
                 setPendingAttackState({
                     type: PlayerAttackStateType.SHORT,
@@ -576,7 +722,7 @@ const Controller: React.FC<{
                 })
             } else {
 
-                increaseEnergyUsage(75)
+                increaseEnergyUsage(attacksConfig.long.energyUsage)
 
                 if (timeDown <= 500) {
                     const diff = 500 - timeDown
@@ -599,7 +745,11 @@ const Controller: React.FC<{
         }
     }, [spacePressed])
 
-    useAttackCollisionsHandler(attackState)
+    const getCurrentPosition = () => {
+        return body.getPosition()
+    }
+
+    useAttackCollisionsHandler(attackState, getCurrentPosition)
 
     return null
 
@@ -671,12 +821,13 @@ export const LgPlayer: React.FC = () => {
             },
         })
 
-        console.log('COLLISION_FILTER_GROUPS.player', COLLISION_FILTER_GROUPS)
-
         const fixture = body.createFixture({
             shape: circleShape,
             filterCategoryBits: COLLISION_FILTER_GROUPS.player,
-            // filterMaskBits: COLLISION_FILTER_GROUPS.barrier,
+            userData: {
+                collisionId: playerConfig.collisionIds.player,
+                collisionType: PlayerRangeCollisionTypes.PLAYER,
+            },
         } as any)
 
         const rollingFixture = body.createFixture({
@@ -750,11 +901,36 @@ export const LgPlayer: React.FC = () => {
 
     }, [])
 
+    useSetBody('player', body)
+
+    const [playerDamage, setPlayerDamage] = useState(0)
+    const [playerRolled, setPlayerRolled] = useState(0)
+
+    let healthRemaining = playerConfig.defaultHealth - playerDamage
+
+    if (healthRemaining < 0) {
+        healthRemaining = 0
+    }
+
+    useTransmitData(syncKeys.playerState, {
+        healthRemaining,
+    })
+
+    const increasePlayerDamage = useCallback((damage: number) => {
+        setPlayerDamage(state => state + damage)
+    }, [])
+
     if (!body || !combatBody || !fixtures) return null
 
     return (
-        <>
+        <PlayerContext.Provider value={{
+            playerDamage,
+            increasePlayerDamage,
+            playerRolled,
+            setPlayerRolled,
+        }}>
             <Controller fixtures={fixtures} body={body} combatBody={combatBody}/>
-        </>
+            <EventsHandler/>
+        </PlayerContext.Provider>
     )
 }

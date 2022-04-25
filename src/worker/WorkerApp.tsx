@@ -4,6 +4,7 @@ import {KeysConsumer, PlanckjsCollisions, PlanckjsPhysicsProvider, SyncableCompo
 import {LgPlayer} from "../game/player/LgPlayer";
 import {WorldProvider} from "./WorldProvider";
 import {LgBasicMob} from "../game/mobs/LgBasicMob";
+import {MobsHandler} from "../game/mobs/MobsHandler";
 
 export const WorkerApp: React.FC<{
     worker: Worker
@@ -17,15 +18,13 @@ export const WorkerApp: React.FC<{
     if (!world) return null
 
     return (
-        <PlanckjsPhysicsProvider worker={worker} world={world}>
+        <PlanckjsPhysicsProvider worker={worker} world={world} lerpUpdates={false} manualSteps>
             <WorldProvider world={world}>
                 <KeysConsumer>
                     <PlanckjsCollisions world={world}>
                         <SyncableComponents components={{}}>
                             <LgPlayer/>
-                            <LgBasicMob id={'basicMob--0'} x={-2}/>
-                            <LgBasicMob id={'basicMob--1'}/>
-                            <LgBasicMob id={'basicMob--2'} x={0} y={-5}/>
+                            <MobsHandler/>
                         </SyncableComponents>
                     </PlanckjsCollisions>
                 </KeysConsumer>

@@ -1,6 +1,6 @@
 import {Box, OrbitControls, Plane} from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import React from "react"
+import React, {useEffect} from "react"
 import styled from "styled-components";
 import {Player} from "./player/Player";
 import {Engine} from "./Engine";
@@ -19,6 +19,16 @@ const StyledContainer = styled.div`
 `
 
 export const Game: React.FC = () => {
+
+    useEffect(() => {
+        window.addEventListener('blur', () => {
+            console.log('blur???')
+        })
+        window.addEventListener('focus', () => {
+            console.log('focus...')
+        })
+    }, [])
+
     return (
         <StyledContainer>
             <Canvas>

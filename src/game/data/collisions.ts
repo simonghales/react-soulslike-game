@@ -17,12 +17,18 @@ export const COLLISION_FILTER_GROUPS = {
     npcs: BIT_FLAGS["5"],
 }
 
+export enum MobCollisionTypes {
+    ATTACK_RANGE = 'ATTACK_RANGE',
+    ATTACK_BOX = 'ATTACK_BOX',
+}
+
 export enum PlayerAttackCollisionTypes {
     QUICK_ATTACK = 'QUICK_ATTACK',
     LONG_ATTACK = 'LONG_ATTACK',
 }
 
 export enum PlayerRangeCollisionTypes {
+    PLAYER = 'PLAYER',
     PLAYER_RANGE = 'PLAYER_RANGE',
     PLAYER_MEDIUM_RANGE = 'PLAYER_MEDIUM_RANGE',
     PLAYER_LONG_RANGE = 'PLAYER_LONG_RANGE',

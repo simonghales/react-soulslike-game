@@ -1,6 +1,11 @@
 export const syncKeys = {
+    playerState: 'playerState',
     playerAttackState: 'playerAttackState',
     playerEnergyUsage: 'playerEnergyUsage',
+}
+
+export const getMobSyncKey = (id: string) => {
+    return `mob--${id}`
 }
 
 export enum PlayerAttackStateType {
