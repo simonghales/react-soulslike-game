@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useState} from "react"
-import {Goal, GoalType} from "./MobBrain";
 import {useMobContext} from "./MobContext";
 import {MobCollisionTypes} from "../data/collisions";
 import {emitPlayerDamaged} from "../events/player";
 import {mobsConfig} from "../data/mobs";
 import {mobAttacksConfig} from "../data/attacks";
+import {Goal, GoalType} from "./types";
+import {lerp} from "three/src/math/MathUtils";
 
 const CollidedDamageHandler: React.FC<{
     id: string,
@@ -63,8 +64,7 @@ const AttackDamageHandler: React.FC = () => {
 
 export const AttackHandler: React.FC<{
     goal: Goal,
-    enemiesInAttackRange: boolean,
-}> = ({goal, enemiesInAttackRange}) => {
+}> = ({goal}) => {
 
     const {
         attackingState,
@@ -73,12 +73,34 @@ export const AttackHandler: React.FC<{
         damageZoneActive,
         setMovementRestricted,
         damageCooldown,
+        collisionStates,
     } = useMobContext()
 
     const [attackCooldown, setAttackCooldown] = useState(0)
 
-    const canAttack = enemiesInAttackRange && goal.type === GoalType.ATTACK_ENTITY && !attackCooldown && !damageCooldown
+    const canAttack = collisionStates.enemiesInAttackRange && goal.type === GoalType.ATTACK_ENTITY && !attackCooldown && !damageCooldown
     const movementRestricted = !!attackCooldown || !!damageCooldown
+
+    const mayConsiderAttacking = (!canAttack && !attackCooldown && !attackingState)
+
+    const considerAttacking = mayConsiderAttacking && goal.type === GoalType.ATTACK_ENTITY
+
+    const [recentlyConsiderAttacking, setRecentlyConsiderAttacking] = useState(considerAttacking)
+
+    const attackRegardless = recentlyConsiderAttacking && mayConsiderAttacking
+
+    useEffect(() => {
+        if (considerAttacking) {
+            setRecentlyConsiderAttacking(true)
+        } else {
+            const timeout = setTimeout(() => {
+                setRecentlyConsiderAttacking(false)
+            }, 1500)
+            return () => {
+                clearTimeout(timeout)
+            }
+        }
+    }, [considerAttacking])
 
     useEffect(() => {
         setMovementRestricted(movementRestricted)
@@ -99,7 +121,7 @@ export const AttackHandler: React.FC<{
         }
         const timeout = setTimeout(() => {
             setDamageZoneActive(true)
-        }, 400)
+        }, mobAttacksConfig.basic.damageDelay)
         return () => {
             clearTimeout(timeout)
         }
@@ -160,6 +182,20 @@ export const AttackHandler: React.FC<{
         }
 
     }, [canAttack, beginAttack])
+
+    useEffect(() => {
+
+        if (!attackRegardless) return
+
+        const delay = lerp(4000, 10000, Math.random())
+
+        const timeout = setTimeout(beginAttack, delay)
+
+        return () => {
+            clearTimeout(timeout)
+        }
+
+    }, [attackRegardless])
 
     return (
         <>

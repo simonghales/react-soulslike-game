@@ -8,24 +8,41 @@ export type MobState = {
     isDead?: boolean,
 }
 
+let mobCount = 0
+
+const generateMob = (x: number, y: number) => {
+    return {
+        id: `basicMob--${mobCount++}`,
+        x: x,
+        y: y,
+    }
+}
+
+const generateMobs = () => {
+
+    const mobs: any = {}
+
+    const addMob = (x: number, y: number) => {
+        const mob = generateMob(x, y)
+        mobs[mob.id] = mob
+    }
+
+    addMob(-2, 2)
+    addMob(2, 2)
+    addMob(0, -5)
+    // addMob(5, -5)
+    // addMob(-5, -5)
+    // addMob(5, 5)
+    // addMob(-5, 5)
+    // addMob(5, 0)
+    // addMob(-5, 0)
+
+    return mobs
+
+}
+
 export const gameStateProxy = proxy({
-    mobs: {
-        ['basicMob--0']: {
-            id: 'basicMob--0',
-            x: -2,
-            y: 2,
-        },
-        ['basicMob--1']: {
-            id: 'basicMob--1',
-            x: 2,
-            y: 2,
-        },
-        ['basicMob--2']: {
-            id: 'basicMob--2',
-            x: 0,
-            y: -5,
-        },
-    } as Record<string, MobState>,
+    mobs: generateMobs() as Record<string, MobState>,
 })
 
 export const setMobDead = (id: string) => {

@@ -3,21 +3,21 @@ export const LONG_ATTACK_DURATION = 275
 
 export const attacksConfig = {
     short: {
-        energyUsage: 20,
+        energyUsage: 75,
         duration: 175,
-        cooldown: 75,
+        cooldown: 250,
         baseDamage: 6,
     },
     long: {
-        energyUsage: 75,
+        energyUsage: 110,
       duration: 275,
-        cooldown: 150,
+        cooldown: 500,
       baseDamage: 17,
     },
 }
 
-const BASIC_WARMUP_DURATION = 200
-const BASIC_ANIMATION_DELAY = 100
+const BASIC_WARMUP_DURATION = 250
+const BASIC_ANIMATION_DELAY = 750
 const BASIC_DAMAGE_DURATION = 100
 
 export const mobAttacksConfig = {
@@ -25,7 +25,7 @@ export const mobAttacksConfig = {
         warmupDuration: BASIC_WARMUP_DURATION,
         damageDelay: BASIC_ANIMATION_DELAY,
         damageDuration: BASIC_ANIMATION_DELAY + BASIC_DAMAGE_DURATION,
-        attackDuration: BASIC_ANIMATION_DELAY + BASIC_DAMAGE_DURATION + 300,
-        cooldown: 1500,
+        attackDuration: BASIC_ANIMATION_DELAY + BASIC_DAMAGE_DURATION + 100,
+        cooldown: 2000,
     },
 }

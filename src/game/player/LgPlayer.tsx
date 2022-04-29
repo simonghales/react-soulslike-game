@@ -48,19 +48,21 @@ let targetKey = false
 let isAttacking = false
 let isCharging = false
 
-const walkSpeed = 2.4
+const walkSpeed = 2.2
 const rollSpeed = walkSpeed * 1.25
-const runSpeed = walkSpeed * 1.45
+const runSpeed = walkSpeed * 1.35
 const backwardsSpeed = runSpeed * 2.5
 
 const rollDuration = 500
 const backDuration = 85
 
-const energyRegenerationDelay = 1500
+const energyRegenerationDelay = 250
+const zeroEnergyRegenerationDelay = 500
 
 let speed = walkSpeed
 
 const v2 = new Vec2()
+const dirV2 = new Vec2()
 const plainV2 = new Vec2()
 
 export enum AttackType {
@@ -297,13 +299,15 @@ const getAttackingMomentum = (attackState: AttackState) => {
     progress = 0
     timeElapsed = Date.now() - attackState.time
     if (attackState.type === PlayerAttackStateType.SHORT) {
+        if (timeElapsed > attacksConfig.short.duration) return 0
         progress = normalize(timeElapsed, attacksConfig.short.duration,0)
         morphed = getPowerGraph(progress, 2)
-        return progress < 0.5 ? lerp(0.25, 1.25, morphed) : lerp(0.15, 1.25, morphed)
+        return progress < 0.5 ? lerp(0.25, 2.25, morphed) : lerp(0.15, 2.25, morphed)
     } else if (attackState.type === PlayerAttackStateType.LONG) {
+        if (timeElapsed > attacksConfig.long.duration) return 0
         progress = normalize(timeElapsed, attacksConfig.long.duration,25)
         morphed = getPowerGraph(progress, 4)
-        return progress < 0.5 ? lerp(0, 1, morphed) : lerp(0.05, 1, morphed)
+        return progress < 0.5 ? lerp(0, 2.5, morphed) : lerp(0.05, 2.5, morphed)
     }
     return 0
 }
@@ -329,7 +333,7 @@ const Controller: React.FC<{
         lastAttackType: '' as AttackType | '',
         prevAngle: 0,
         lastTargetDown: 0,
-        prevX: 0,
+        prevX: 1,
         prevY: 0,
     })
 
@@ -357,23 +361,39 @@ const Controller: React.FC<{
         wait: 0,
     })
 
-    const [attackState, setAttackState] = useState({
-        type: '',
-        time: 0,
-        xDir: 0,
-        yDir: 0,
+    const [currentAttack, setCurrentAttack] = useState(null as null | {
+        type: AttackType,
+        time: number,
+        xDir: number,
+        yDir: number,
     })
+
+    const attackState = useMemo(() => {
+        if (!currentAttack) {
+            return {
+                type: spacePressed ? PlayerAttackStateType.CHARGING : '',
+                time: 0,
+                xDir: 0,
+                yDir: 0,
+            }
+        }
+        return currentAttack
+    }, [currentAttack, spacePressed])
+
+    const [pendingAttack, setPendingAttack] = useState('' as '' | AttackType)
+
+    const currentAttackRef = useEffectRef(currentAttack)
 
     useEffect(() => {
         if (!attackState.type || attackState.type === PlayerAttackStateType.CHARGING) return
 
         const clear = () => {
-            setAttackState({
-                type: '',
-                time: 0,
-                xDir: 0,
-                yDir: 0,
-            })
+            // setAttackState({
+            //     type: '',
+            //     time: 0,
+            //     xDir: 0,
+            //     yDir: 0,
+            // })
         }
 
         const delay = attackState.type === PlayerAttackStateType.SHORT ? attacksConfig.short.duration + attacksConfig.short.cooldown : attacksConfig.long.duration + attacksConfig.long.cooldown
@@ -392,6 +412,7 @@ const Controller: React.FC<{
     const [energyUsage, setEnergyUsage] = useState(0)
 
     const [energyLastUsed, setEnergyLastUsed] = useState(0)
+
 
     const energyCap = 150
 
@@ -431,7 +452,7 @@ const Controller: React.FC<{
 
             intervalId = setInterval(decrease, 75)
 
-        }, energyRegenerationDelay)
+        }, hasEnergyRemainingRef.current ? energyRegenerationDelay : zeroEnergyRegenerationDelay)
 
         return () => {
             clearTimeout(timeout)
@@ -521,13 +542,14 @@ const Controller: React.FC<{
         v2.normalize()
 
         if (roll && !prevRoll && hasEnergyRemainingRef.current && !isRolling && isMoving && !isBackwards) {
+            // todo - check has enough energy remaining...
             isRolling = true
             rollingStateRef.current.isRolling = true
             rollingStateRef.current.rollingStart = Date.now()
             rollingStateRef.current.rollXVel = v2.x
             rollingStateRef.current.rollYVel = v2.y
             setRolling(true)
-            increaseEnergyUsage(40)
+            increaseEnergyUsage(45)
             setPlayerRolled(Date.now())
         } else {
             if (!isRolling && roll && !prevRoll && !isMoving && !isBackwards) {
@@ -538,7 +560,7 @@ const Controller: React.FC<{
                 rollingStateRef.current.backwardsStart = Date.now()
                 rollingStateRef.current.backwardsXVel = aV2.x
                 rollingStateRef.current.backwardsYVel = aV2.y
-                increaseEnergyUsage(20)
+                increaseEnergyUsage(30)
             }
         }
 
@@ -586,7 +608,7 @@ const Controller: React.FC<{
         }
 
         if (isRunning) {
-            increaseEnergyUsage(delta * 0.5)
+            increaseEnergyUsage(delta * 0.55)
         }
 
         if (target) {
@@ -595,6 +617,13 @@ const Controller: React.FC<{
             const targetY = targetPosition.y
             const bodyX = body.getPosition().x
             const bodyY = body.getPosition().y
+            dirV2.set(targetPosition)
+            dirV2.sub(body.getPosition())
+            dirV2.normalize()
+
+            localStateRef.current.prevX = dirV2.x
+            localStateRef.current.prevY = dirV2.y
+
             angle = calculateAngleBetweenVectors(bodyX, targetX, targetY, bodyY)
             angle += Math.PI / 2
             if (isCharging) {
@@ -614,7 +643,6 @@ const Controller: React.FC<{
         if (isCharging) {
             v2.mul(0.25)
         } else if (isAttacking) {
-            console.log('getAttackingMomentum', getAttackingMomentum(attackStateRef.current))
             v2.mul(getAttackingMomentum(attackStateRef.current))
         }
 
@@ -624,7 +652,7 @@ const Controller: React.FC<{
             attackStateRef.current.type === PlayerAttackStateType.SHORT ||
             attackStateRef.current.type === PlayerAttackStateType.LONG) {
             const isShort = attackStateRef.current.type === PlayerAttackStateType.SHORT
-            const from = attackStateRef.current.time
+            const from = attackStateRef.current.time + (isShort ? 150 : 250)
             const duration = isShort ? 150 : 250
             const to = from + duration
             const progress = normalize(Date.now(), to, from)
@@ -652,12 +680,12 @@ const Controller: React.FC<{
         if (!pendingAttackState.type) return
 
         const process = () => {
-            setAttackState({
-                type: pendingAttackState.type,
-                time: Date.now(),
-                xDir: localStateRef.current.prevX,
-                yDir: localStateRef.current.prevY,
-            })
+            // setAttackState({
+            //     type: pendingAttackState.type,
+            //     time: Date.now(),
+            //     xDir: localStateRef.current.prevX,
+            //     yDir: localStateRef.current.prevY,
+            // })
         }
 
         if (pendingAttackState.wait) {
@@ -675,75 +703,159 @@ const Controller: React.FC<{
     }, [pendingAttackState])
 
     useEffect(() => {
-        if (!spacePressed) return
+        if (currentAttack || !pendingAttack) return
+        setCurrentAttack({
+            type: pendingAttack,
+            time: Date.now(),
+            xDir: localStateRef.current.prevX,
+            yDir: localStateRef.current.prevY,
+        })
+        setPendingAttack('')
+    }, [currentAttack, pendingAttack])
 
-
-        let spaceDown = Date.now()
-        const cooldownRemaining = localStateRef.current.cooldown - spaceDown
-
-
-        let executionDelay = 0
-
-        if (cooldownRemaining > 150) {
-            console.log('cooldownRemaining is too big, so ignoring this one...', cooldownRemaining)
+    useEffect(() => {
+        if (!currentAttack) return
+        let cooldown = 0
+        if (currentAttack.type === AttackType.SHORT) {
+            cooldown = attacksConfig.short.duration + attacksConfig.short.cooldown + 50
+        } else {
+            cooldown = attacksConfig.long.duration + attacksConfig.long.cooldown + 50
+        }
+        const timeRemaining = currentAttack.time + cooldown - Date.now()
+        const clear = () => {
+            setCurrentAttack(null)
+        }
+        if (timeRemaining <= 0) {
+            clear()
             return
-        } else if (cooldownRemaining > 0) {
-            executionDelay = cooldownRemaining
+        }
+        const timeout = setTimeout(clear, timeRemaining)
+        return () => {
+            clearTimeout(timeout)
+        }
+    }, [currentAttack])
+
+    const beginAttack = useCallback((attackType: AttackType) => {
+
+        if (currentAttackRef.current) {
+            setPendingAttack(attackType)
+            return
         }
 
-        setPendingAttackState({
-            type: PlayerAttackStateType.CHARGING,
-            wait: executionDelay,
+        setCurrentAttack({
+            type: attackType,
+            time: Date.now(),
+            xDir: localStateRef.current.prevX,
+            yDir: localStateRef.current.prevY,
         })
+
+    }, [])
+
+    useEffect(() => {
+
+        if (!spacePressed) return
+
+        let spaceDown = Date.now()
+        let released = false
+
+        const onRelease = () => {
+            if (released) return
+            released = true
+            if (!hasEnergyRemainingRef.current) return
+            let timeElapsed = Date.now() - spaceDown
+            let attackType
+
+            if (timeElapsed <= 250) {
+                attackType =  AttackType.SHORT
+                increaseEnergyUsage(attacksConfig.short.energyUsage)
+            } else {
+                attackType =  AttackType.LONG
+                increaseEnergyUsage(attacksConfig.long.energyUsage)
+            }
+            beginAttack(attackType)
+        }
+
+        const timeout = setTimeout(onRelease, 1000)
 
         return () => {
 
-            if (!hasEnergyRemainingRef.current) {
-                setPendingAttackState({
-                    type: PlayerAttackStateType.IDLE,
-                    wait: 0,
-                })
-                return
-            }
+            clearTimeout(timeout)
+            onRelease()
 
-            const now = Date.now()
-
-            const timeDown = now - spaceDown
-
-            let cooldown = 300
-
-            if (timeDown <= 250) {
-
-                increaseEnergyUsage(attacksConfig.short.energyUsage)
-
-                setPendingAttackState({
-                    type: PlayerAttackStateType.SHORT,
-                    wait: executionDelay,
-                })
-            } else {
-
-                increaseEnergyUsage(attacksConfig.long.energyUsage)
-
-                if (timeDown <= 500) {
-                    const diff = 500 - timeDown
-                    executionDelay += diff
-                }
-                cooldown = 1000
-                setPendingAttackState({
-                    type: PlayerAttackStateType.LONG,
-                    wait: executionDelay,
-                })
-            }
-
-            const cooldownDelay = now + executionDelay + cooldown
-
-            localStateRef.current.cooldown = cooldownDelay
-
-            // console.log('execution delay', executionDelay)
-
-            // ...
         }
+
     }, [spacePressed])
+
+    // useEffect(() => {
+    //     if (!spacePressed) return
+    //
+    //
+    //     let spaceDown = Date.now()
+    //     const cooldownRemaining = localStateRef.current.cooldown - spaceDown
+    //
+    //
+    //     let executionDelay = 0
+    //
+    //     if (cooldownRemaining > 150) {
+    //         console.log('cooldownRemaining is too big, so ignoring this one...', cooldownRemaining)
+    //         return
+    //     } else if (cooldownRemaining > 0) {
+    //         executionDelay = cooldownRemaining
+    //     }
+    //
+    //     setPendingAttackState({
+    //         type: PlayerAttackStateType.CHARGING,
+    //         wait: executionDelay,
+    //     })
+    //
+    //     return () => {
+    //
+    //         if (!hasEnergyRemainingRef.current) {
+    //             setPendingAttackState({
+    //                 type: PlayerAttackStateType.IDLE,
+    //                 wait: 0,
+    //             })
+    //             return
+    //         }
+    //
+    //         const now = Date.now()
+    //
+    //         const timeDown = now - spaceDown
+    //
+    //         let cooldown = 50
+    //
+    //         if (timeDown <= 250) {
+    //
+    //             increaseEnergyUsage(attacksConfig.short.energyUsage)
+    //
+    //             setPendingAttackState({
+    //                 type: PlayerAttackStateType.SHORT,
+    //                 wait: executionDelay,
+    //             })
+    //         } else {
+    //
+    //             increaseEnergyUsage(attacksConfig.long.energyUsage)
+    //
+    //             if (timeDown <= 500) {
+    //                 const diff = 500 - timeDown
+    //                 executionDelay += diff
+    //             }
+    //             // cooldown = 100
+    //             setPendingAttackState({
+    //                 type: PlayerAttackStateType.LONG,
+    //                 wait: executionDelay,
+    //             })
+    //         }
+    //
+    //         const cooldownDelay = now + executionDelay + cooldown
+    //
+    //         localStateRef.current.cooldown = cooldownDelay
+    //
+    //         // console.log('execution delay', executionDelay)
+    //
+    //         // ...
+    //     }
+    // }, [spacePressed])
 
     const getCurrentPosition = () => {
         return body.getPosition()
@@ -808,6 +920,46 @@ export const LgPlayer: React.FC = () => {
             userData: {
                 collisionId: playerConfig.collisionIds.player,
                 collisionType: PlayerRangeCollisionTypes.PLAYER_MEDIUM_RANGE,
+            },
+        })
+
+        const smallCombatRangeFixture = body.createFixture({
+            shape: Circle(playerConfig.sensors.smallCombatRadius),
+            isSensor: true,
+            filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            userData: {
+                collisionId: playerConfig.collisionIds.player,
+                collisionType: PlayerRangeCollisionTypes.PLAYER_SMALL_COMBAT_RANGE,
+            },
+        })
+
+        const mediumCombatRangeFixture = body.createFixture({
+            shape: Circle(playerConfig.sensors.mediumCombatRadius),
+            isSensor: true,
+            filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            userData: {
+                collisionId: playerConfig.collisionIds.player,
+                collisionType: PlayerRangeCollisionTypes.PLAYER_MEDIUM_COMBAT_RANGE,
+            },
+        })
+
+        const largeCombatRangeFixture = body.createFixture({
+            shape: Circle(playerConfig.sensors.largeCombatRadius),
+            isSensor: true,
+            filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            userData: {
+                collisionId: playerConfig.collisionIds.player,
+                collisionType: PlayerRangeCollisionTypes.PLAYER_LARGE_COMBAT_RANGE,
+            },
+        })
+
+        const extraLargeCombatRangeFixture = body.createFixture({
+            shape: Circle(playerConfig.sensors.extraLargeCombatRadius),
+            isSensor: true,
+            filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            userData: {
+                collisionId: playerConfig.collisionIds.player,
+                collisionType: PlayerRangeCollisionTypes.PLAYER_EXTRA_LARGE_COMBAT_RANGE,
             },
         })
 

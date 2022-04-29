@@ -1,4 +1,4 @@
-import {Box, OrbitControls, Plane} from "@react-three/drei";
+import {Box, OrbitControls, Plane, Stats} from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import React, {useEffect} from "react"
 import styled from "styled-components";
@@ -39,6 +39,7 @@ export const Game: React.FC = () => {
                         {/*<OrbitControls/>*/}
                     </SyncableComponents>
                 </Engine>
+                <Stats/>
             </Canvas>
             <GameUI/>
         </StyledContainer>

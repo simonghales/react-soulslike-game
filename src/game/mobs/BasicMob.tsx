@@ -5,6 +5,7 @@ import {usePhysicsRef, useSyncData} from "react-three-physics";
 import styled from "styled-components";
 import {getMobSyncKey} from "../data/keys";
 import {mobsConfig} from "../data/mobs";
+import {GoalType} from "./types";
 
 const StyledContainer = styled.div`
   width: 90px;
@@ -34,9 +35,15 @@ export const BasicMob: React.FC<{
     const {
         healthRemaining,
         attackingState,
+        hasAttackToken,
+        goal,
     } = useSyncData(getMobSyncKey(id), {
         healthRemaining: 1000,
         attackingState: null,
+        hasAttackToken: false,
+        goal: {
+            type: GoalType.IDLE,
+        }
     })
 
     const targetPosition = useSyncData(`mob-${id}-targetPosition`, null)
@@ -51,13 +58,25 @@ export const BasicMob: React.FC<{
 
     const healthPercent = (100 - (healthRemaining / mobsConfig.basic.health) * 100)
 
+    const isAttackGoal = goal?.type === GoalType.ATTACK_ENTITY
+
+    let color = 'purple'
+
+    // if (isAttackGoal) {
+    //     color = 'red'
+    // } else {
+    //     if (goal?.data?.hasStandbyToken) {
+    //         color = 'orange'
+    //     }
+    // }
+
     return (
         <>
             <group ref={ref}>
                 <Cylinder args={[0.5, 0.5, 1.5, 16]}
                           position={[0, 0, 0.75]}
                           rotation={[degToRad(90), 0, 0]}>
-                    <meshBasicMaterial color={'purple'}/>
+                    <meshBasicMaterial color={color}/>
                 </Cylinder>
                 <Box position={[mobsConfig.basic.sensors.attackRange.x, 0, 0]} args={[mobsConfig.basic.sensors.attackRange.w, mobsConfig.basic.sensors.attackRange.h, 0.4]}>
                     <meshBasicMaterial color={isAttacking ? 'red' : 'white'} transparent opacity={0.25}/>

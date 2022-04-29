@@ -26,9 +26,59 @@ export const useAttackCollisionsHandler = (attackState: {
 
     const collisionsRef = useEffectRef(collisions)
 
+    const [damageZoneActive, setDamageZoneActive] = useState(false)
+
+    const damageZoneActiveRef = useEffectRef(damageZoneActive)
+
     useEffect(() => {
+        setDamageZoneActive(false)
         currentAttackRef.current.collisions = {}
         if (attackState.type !== AttackType.SHORT && attackState.type !== AttackType.LONG) return
+        let timeout: any
+        let inactiveTimeout: any
+
+        const activeTime = attackState.time + (attackState.type === AttackType.SHORT ? 150 : 250) - 25
+        const inactiveTime = activeTime + (attackState.type === AttackType.SHORT ? attacksConfig.short.duration + 25 : attacksConfig.long.duration + 25)
+
+        const setActive = () => {
+            setDamageZoneActive(true)
+        }
+
+        const setInActive = () => {
+            setDamageZoneActive(false)
+        }
+
+        const timeUntilActive = activeTime - Date.now()
+        const timeUntilInactive = inactiveTime - Date.now()
+
+        if (timeUntilActive > 0) {
+            timeout = setTimeout(setActive, timeUntilActive)
+        } else {
+            setActive()
+        }
+
+        if (timeUntilInactive > 0) {
+            inactiveTimeout = setTimeout(setInActive, timeUntilInactive)
+        } else {
+            setInActive()
+        }
+
+        return () => {
+            if (timeout) {
+                clearTimeout(timeout)
+            }
+            if (inactiveTimeout) {
+                clearTimeout(inactiveTimeout)
+            }
+        }
+
+    }, [attackState])
+
+    const attackStateRef = useEffectRef(attackState)
+
+    useEffect(() => {
+        if (!damageZoneActive) return
+        const attackState = attackStateRef.current
         if (attackState.type === AttackType.SHORT) {
             Object.keys(collisionsRef.current?.[PlayerAttackCollisionTypes.QUICK_ATTACK] ?? {}).forEach((id) => {
                 currentAttackRef.current.collisions[id] = Date.now()
@@ -41,15 +91,11 @@ export const useAttackCollisionsHandler = (attackState: {
                 emitMobDamaged(id, attacksConfig.long.baseDamage, getCurrentPosition())
             })
         }
-    }, [attackState])
-
-    const attackStateRef = useEffectRef(attackState)
+    }, [damageZoneActive])
 
     useEffect(() => {
         if (attackStateRef.current.type !== AttackType.SHORT && attackStateRef.current.type !== AttackType.LONG) return
-        const timeSinceAttack = Date.now() - attackStateRef.current.time
         if (attackStateRef.current.type === AttackType.SHORT) {
-            if (timeSinceAttack > SHORT_ATTACK_DURATION) return
             Object.keys(collisions?.[PlayerAttackCollisionTypes.QUICK_ATTACK] ?? {}).forEach((id) => {
                 if (!currentAttackRef.current.collisions[id]) {
                     currentAttackRef.current.collisions[id] = Date.now()
@@ -59,7 +105,6 @@ export const useAttackCollisionsHandler = (attackState: {
             return
         }
         if (attackStateRef.current.type === AttackType.LONG) {
-            if (timeSinceAttack > LONG_ATTACK_DURATION) return
             Object.keys(collisions?.[PlayerAttackCollisionTypes.LONG_ATTACK] ?? {}).forEach((id) => {
                 if (!currentAttackRef.current.collisions[id]) {
                     currentAttackRef.current.collisions[id] = Date.now()

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from "react"
-import {SyncComponent, useAddBody, useSyncData, useTransmitData} from "react-three-physics";
+import {SyncComponent, useAddBody, useTransmitData} from "react-three-physics";
 import {componentSyncKeys, getMobSyncKey} from "../data/keys";
 import {useWorld} from "../../worker/WorldProvider";
 import {Body, Box, Circle, Vec2} from "planck";
@@ -12,7 +12,8 @@ import {normalize} from "../../utils/numbers";
 import {MobBrain} from "./MobBrain";
 import {MobContext} from "./MobContext";
 import {halve} from "../../utils/physics";
-import {useCollisionsHandler} from "./CollisionsHandler";
+import {useCollisionsHandler, useCollisionStates} from "./CollisionsHandler";
+import {Goal, GoalType} from "./types";
 
 const v2 = new Vec2()
 
@@ -53,6 +54,7 @@ export const LgBasicMob: React.FC<{
             density: 10,
             userData: {
                 collisionId: id,
+                collisionType: MobCollisionTypes.BODY,
             }
         })
 
@@ -146,19 +148,29 @@ export const LgBasicMob: React.FC<{
 
     const collisions = useCollisionsHandler(id)
 
+    const collisionStates = useCollisionStates(collisions)
+
     const [attackingState, setAttackingState] = useState(null as null | {
         started: number,
     })
 
+    const [hasAttackToken, setHasAttackToken] = useState(false)
+
     const [damageZoneActive, setDamageZoneActive] = useState(false)
 
     const [movementRestricted, setMovementRestricted] = useState(false)
+
+    const [goal, setGoal] = useState({
+        type: GoalType.IDLE,
+    } as Goal)
 
     useOnMobEvents(id, onMobEvents)
 
     useTransmitData(getMobSyncKey(id), {
         healthRemaining,
         attackingState,
+        hasAttackToken,
+        goal,
     })
 
     if (!body) {
@@ -171,6 +183,7 @@ export const LgBasicMob: React.FC<{
             id,
             body,
             collisions,
+            collisionStates,
             attackingState,
             setAttackingState,
             damageZoneActive,
@@ -178,9 +191,12 @@ export const LgBasicMob: React.FC<{
             movementRestricted,
             setMovementRestricted,
             damageCooldown,
+            setHasAttackToken,
+            goal,
+            setGoal,
         }}>
             <SyncComponent id={id} componentId={componentSyncKeys.basicMob}/>
-            <MobBrain body={body}/>
+            <MobBrain id={id} body={body}/>
         </MobContext.Provider>
     )
 }
