@@ -27,9 +27,9 @@ const generateMobs = () => {
         mobs[mob.id] = mob
     }
 
-    addMob(-2, 2)
-    addMob(2, 2)
-    addMob(0, -5)
+    addMob(-4, 4)
+    // addMob(4, 4)
+    // addMob(0, -5)
     // addMob(5, -5)
     // addMob(-5, -5)
     // addMob(5, 5)

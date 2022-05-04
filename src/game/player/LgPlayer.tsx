@@ -302,12 +302,12 @@ const getAttackingMomentum = (attackState: AttackState) => {
         if (timeElapsed > attacksConfig.short.duration) return 0
         progress = normalize(timeElapsed, attacksConfig.short.duration,0)
         morphed = getPowerGraph(progress, 2)
-        return progress < 0.5 ? lerp(0.25, 2.25, morphed) : lerp(0.15, 2.25, morphed)
+        return progress < 0.5 ? lerp(0.25, 1.75, morphed) : lerp(0.15, 1.75, morphed)
     } else if (attackState.type === PlayerAttackStateType.LONG) {
         if (timeElapsed > attacksConfig.long.duration) return 0
         progress = normalize(timeElapsed, attacksConfig.long.duration,25)
         morphed = getPowerGraph(progress, 4)
-        return progress < 0.5 ? lerp(0, 2.5, morphed) : lerp(0.05, 2.5, morphed)
+        return progress < 0.5 ? lerp(0, 2, morphed) : lerp(0.05, 2, morphed)
     }
     return 0
 }
@@ -920,6 +920,16 @@ export const LgPlayer: React.FC = () => {
             userData: {
                 collisionId: playerConfig.collisionIds.player,
                 collisionType: PlayerRangeCollisionTypes.PLAYER_MEDIUM_RANGE,
+            },
+        })
+
+        const extraSmallCombatRangeFixture = body.createFixture({
+            shape: Circle(playerConfig.sensors.extraSmallCombatRadius),
+            isSensor: true,
+            filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            userData: {
+                collisionId: playerConfig.collisionIds.player,
+                collisionType: PlayerRangeCollisionTypes.PLAYER_EXTRA_SMALL_COMBAT_RANGE,
             },
         })
 

@@ -8,10 +8,12 @@ export const playerConfig = {
     sensors: {
         mediumRangeRadius: 5.5,
         largeRangeRadius: 8,
-        extraLargeCombatRadius: 7.75,
-        largeCombatRadius: 5.5,
-        mediumCombatRadius: 3.25,
-        smallCombatRadius: 1.5,
+        farCombatRadius: 12,
+        extraLargeCombatRadius: 12,
+        largeCombatRadius: 7.75,
+        mediumCombatRadius: 5.5,
+        smallCombatRadius: 3.25,
+        extraSmallCombatRadius: 1.75,
         shortAttack: {
             w: 1.8,
             h: 0.5,

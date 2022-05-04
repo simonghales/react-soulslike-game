@@ -1,6 +1,6 @@
 import {Box, OrbitControls, Plane, Stats} from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import React, {useEffect} from "react"
+import React, {Suspense, useEffect} from "react"
 import styled from "styled-components";
 import {Player} from "./player/Player";
 import {Engine} from "./Engine";
@@ -35,7 +35,9 @@ export const Game: React.FC = () => {
                 <Engine>
                     <SyncableComponents components={mainSyncableComponents}>
                         <Scenery/>
-                        <Player/>
+                        <Suspense fallback={null}>
+                            <Player/>
+                        </Suspense>
                         {/*<OrbitControls/>*/}
                     </SyncableComponents>
                 </Engine>

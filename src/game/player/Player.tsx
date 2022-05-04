@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react"
-import {Box, Circle, Cylinder, Html} from "@react-three/drei";
+import {Box, Circle, Cylinder, Html, useTexture} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
 import {usePhysicsRef, useSyncData} from "react-three-physics";
 import {PlayerCamera} from "./PlayerCamera";
@@ -65,12 +65,14 @@ export const Player: React.FC = () => {
 
     }, [playerAttackState])
 
+    const texture = useTexture("assets/rat-sword.png")
+
     return (
         <>
             <group ref={ref}>
-                <Cylinder args={[0.5, 0.5, 1.5, 16]}
-                          position={[0, 0, 0.75]}
-                          rotation={[degToRad(90), 0, 0]}/>
+                {/*<Cylinder args={[0.5, 0.5, 1.5, 16]}*/}
+                {/*          position={[0, 0, 0.75]}*/}
+                {/*          rotation={[degToRad(90), 0, 0]}/>*/}
                 <Box position={[1, 0, 0]} args={[2, 0.2, 0.4]}>
                     <meshBasicMaterial color={'white'} transparent opacity={0.25}/>
                 </Box>
@@ -88,6 +90,9 @@ export const Player: React.FC = () => {
                 {/*        {attackCompleted ? "complete" : playerAttackState.type}*/}
                 {/*    </div>*/}
                 {/*</Html>*/}
+                <Circle args={[playerConfig.sensors.extraSmallCombatRadius, 32]}>
+                    <meshBasicMaterial color={'pink'} transparent opacity={0.25}/>
+                </Circle>
                 <Circle args={[playerConfig.sensors.smallCombatRadius, 32]}>
                     <meshBasicMaterial color={'pink'} transparent opacity={0.25}/>
                 </Circle>
@@ -100,6 +105,9 @@ export const Player: React.FC = () => {
                 <Circle args={[playerConfig.sensors.extraLargeCombatRadius, 32]}>
                     <meshBasicMaterial color={'pink'} transparent opacity={0.25}/>
                 </Circle>
+                <sprite scale={[1.5, 1.5, 1.5]} position={[0, 0, 0.10001]}>
+                    <spriteMaterial map={texture} depthWrite={false} depthTest={false}/>
+                </sprite>
             </group>
             <group ref={combatBodyRef}>
                 <Box position={[playerConfig.sensors.shortAttack.x, 0, 0]} args={[playerConfig.sensors.shortAttack.w, playerConfig.sensors.shortAttack.h, 0.5]}>

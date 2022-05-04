@@ -12,7 +12,16 @@ export const angleToV2 = (angle: number, v2: Vec2) => {
     v2.y = Math.sin(angle)
 }
 
+export const roundAngleDegrees = (angle: number, round: number) => {
+    return Math.round((angle / round)) * round
+}
+
 export const lerpRadians = (A: number, B: number, w: number) => {
+    if (w > 1) {
+        w = 1
+    } else if (w < 0) {
+        w = 0
+    }
     let CS = (1-w)*Math.cos(A) + w*Math.cos(B);
     let SN = (1-w)*Math.sin(A) + w*Math.sin(B);
     return Math.atan2(SN,CS);

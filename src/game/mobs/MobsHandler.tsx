@@ -3,6 +3,8 @@ import {useMobs} from "../state/game";
 import {LgBasicMob} from "./LgBasicMob";
 import {useEffectRef} from "../../utils/hooks";
 import {MobsManagerContext} from "./MobsManagerContext";
+import {LgMob} from "./LgMob";
+import {MobsGroupHandler} from "./MobsGroupHandler";
 
 export const ATTACK_TOKEN_LIMIT = 2
 export const STANDBY_TOKEN_LIMIT = 2
@@ -427,15 +429,17 @@ const MobsManager: React.FC = ({children}) => {
 export const MobsHandler: React.FC = () => {
     const mobs = useMobs()
     return (
-        <MobsManager>
-            {
-                Object.entries(mobs).map(([id, mob]) => {
-                    if (mob.isDead) return null
-                    return (
-                        <LgBasicMob id={id} x={mob.x} y={mob.y} key={id}/>
-                    )
-                })
-            }
-        </MobsManager>
+        <MobsGroupHandler>
+            <MobsManager>
+                {
+                    Object.entries(mobs).map(([id, mob]) => {
+                        if (mob.isDead) return null
+                        return (
+                            <LgMob id={id} x={mob.x} y={mob.y} key={id}/>
+                        )
+                    })
+                }
+            </MobsManager>
+        </MobsGroupHandler>
     )
 }

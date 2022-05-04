@@ -9,7 +9,7 @@ import {setMobDead} from "../state/game";
 import {mobsConfig} from "../data/mobs";
 import {lerp} from "three/src/math/MathUtils";
 import {normalize} from "../../utils/numbers";
-import {MobBrain} from "./MobBrain";
+import {OLDMobBrain} from "./OLDMobBrain";
 import {MobContext} from "./MobContext";
 import {halve} from "../../utils/physics";
 import {useCollisionsHandler, useCollisionStates} from "./CollisionsHandler";
@@ -196,7 +196,7 @@ export const LgBasicMob: React.FC<{
             setGoal,
         }}>
             <SyncComponent id={id} componentId={componentSyncKeys.basicMob}/>
-            <MobBrain id={id} body={body}/>
+            <OLDMobBrain id={id} body={body}/>
         </MobContext.Provider>
     )
 }
