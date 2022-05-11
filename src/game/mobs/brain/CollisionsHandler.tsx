@@ -63,7 +63,10 @@ export const CollisionsHandler: React.FC = () => {
             }
         }
 
-        let enemiesInAttackRange = Object.keys(collisions[MobCollisionTypes.ATTACK_RANGE] ?? {}).length > 0
+        const attackRangeEnemies = Object.keys(collisions[MobCollisionTypes.ATTACK_RANGE] ?? {})
+
+        let enemiesInAttackRange = attackRangeEnemies.length > 0
+
 
         return {
             isInExtraSmallCombatRange,
@@ -72,6 +75,7 @@ export const CollisionsHandler: React.FC = () => {
             isInLargeCombatRange,
             isInExtraLargeCombatRange,
             enemiesInAttackRange,
+            attackRangeEnemies,
         }
 
     }, [collisions])

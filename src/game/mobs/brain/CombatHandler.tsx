@@ -1,14 +1,158 @@
 import React, {useCallback, useEffect, useState} from "react"
 import {useEffectRef} from "../../../utils/hooks";
-import {Tokens, useMobsGroupContext} from "../MobsGroupHandler";
+import {PositionDistance, Tokens, useMobsGroupContext} from "../MobsGroupHandler";
 import {useMobBrainContext} from "../mobBrainContext";
 import {AttackGoalSubGoal, AttackGoalSubGoalTypes} from "./types";
 import {DamageGoalHandler} from "./DamageGoalHandler";
 import {lerp} from "three/src/math/MathUtils";
+import {Vec2} from "planck";
+
+const v2 = new Vec2()
 
 export const useHasBeenGrantedAttackToken = (id: string, grantedAttackTokens: Tokens) => {
     return !!grantedAttackTokens[id]
 }
+
+export const isMobAllowedClose = (positionToken: string) => {
+    return positionToken === PositionDistance.CLOSE
+}
+
+export const isMobAllowedMedium = (positionToken: string) => {
+    return positionToken === PositionDistance.MEDIUM
+}
+
+export const usePresenceState = (considerAttacking: boolean) => {
+
+    const {
+        collisionsState,
+        positionToken,
+    } = useMobBrainContext()
+
+    const [smallRangeAwhile, setSmallRangeAwhile] = useState(false)
+    const [mediumRangeAwhile, setMediumRangeAwhile] = useState(false)
+    const [largeRangeAwhile, setLargeRangeAwhile] = useState(false)
+
+    const inExtraSmallRange = collisionsState.isInExtraSmallCombatRange
+    const inSmallRange = collisionsState.isInSmallCombatRange
+    const inMediumRange = collisionsState.isInMediumCombatRange
+    const inLargeRange = collisionsState.isInLargeCombatRange
+
+    const isAllowedClose = isMobAllowedClose(positionToken)
+    const isAllowedMedium = isMobAllowedMedium(positionToken)
+
+    const inSmallRangeAndAllowedClose = inSmallRange && isAllowedClose
+    const inMediumRangeAndAllowedClose = inMediumRange && isAllowedClose
+    const inMediumRangeAndAllowedMedium = inMediumRange && isAllowedMedium
+
+    useEffect(() => {
+        if (inSmallRangeAndAllowedClose && considerAttacking) {
+            const delay = lerp(250, 750, Math.random())
+            const timeout = setTimeout(() => {
+                setSmallRangeAwhile(true)
+            }, delay)
+            return () => {
+                clearTimeout(timeout)
+            }
+        }
+    }, [inSmallRangeAndAllowedClose, considerAttacking])
+
+    useEffect(() => {
+        if (inSmallRange && considerAttacking) {
+            const delay = lerp(2000, 4000, Math.random())
+            const timeout = setTimeout(() => {
+                setSmallRangeAwhile(true)
+            }, delay)
+            return () => {
+                clearTimeout(timeout)
+            }
+        } else {
+            const delay = 200
+            const timeout = setTimeout(() => {
+                setSmallRangeAwhile(false)
+            }, delay)
+            return () => {
+                clearTimeout(timeout)
+            }
+        }
+    }, [inSmallRange, considerAttacking])
+
+    useEffect(() => {
+        if (inMediumRangeAndAllowedClose && considerAttacking) {
+            const delay = lerp(1500, 7500, Math.random())
+            const timeout = setTimeout(() => {
+                setMediumRangeAwhile(true)
+            }, delay)
+            return () => {
+                clearTimeout(timeout)
+            }
+        }
+    }, [inMediumRangeAndAllowedClose, considerAttacking])
+
+    useEffect(() => {
+        if (inMediumRangeAndAllowedMedium && considerAttacking) {
+            const delay = lerp(5000, 10000, Math.random())
+            const timeout = setTimeout(() => {
+                setMediumRangeAwhile(true)
+            }, delay)
+            return () => {
+                clearTimeout(timeout)
+            }
+        }
+    }, [inMediumRangeAndAllowedMedium, considerAttacking])
+
+    useEffect(() => {
+        if (inMediumRange && considerAttacking) {
+            const delay = lerp(10000, 15000, Math.random())
+            const timeout = setTimeout(() => {
+                setMediumRangeAwhile(true)
+            }, delay)
+            return () => {
+                clearTimeout(timeout)
+            }
+        } else {
+            const delay = 500
+            const timeout = setTimeout(() => {
+                setMediumRangeAwhile(false)
+            }, delay)
+            return () => {
+                clearTimeout(timeout)
+            }
+        }
+    }, [inMediumRange, considerAttacking])
+
+    useEffect(() => {
+        if (inLargeRange && considerAttacking) {
+            const delay = lerp(5000, 8000, Math.random())
+            const timeout = setTimeout(() => {
+                setLargeRangeAwhile(true)
+            }, delay)
+            return () => {
+                clearTimeout(timeout)
+            }
+        } else {
+            const delay = 1000
+            const timeout = setTimeout(() => {
+                setLargeRangeAwhile(false)
+            }, delay)
+            return () => {
+                clearTimeout(timeout)
+            }
+        }
+    }, [inLargeRange, considerAttacking])
+
+    return {
+        inExtraSmallRange,
+        smallRangeAwhile,
+        setSmallRangeAwhile,
+        mediumRangeAwhile,
+        setMediumRangeAwhile,
+        largeRangeAwhile,
+        setLargeRangeAwhile,
+    }
+
+}
+
+const CAPPED_DISTANCE = Math.pow(20, 2)
 
 export const CombatHandler: React.FC<{
     subGoal: AttackGoalSubGoal,
@@ -18,11 +162,16 @@ export const CombatHandler: React.FC<{
     const {
         id,
         collisionsState,
+        body,
+        targetBody,
+        damageRecentlyTaken,
     } = useMobBrainContext()
 
     const {
         requestAttackToken,
         grantedAttackTokens,
+        requestPositionToken,
+        setHasManualToken,
     } = useMobsGroupContext()
 
     const grantedAttackToken = useHasBeenGrantedAttackToken(id, grantedAttackTokens)
@@ -48,84 +197,48 @@ export const CombatHandler: React.FC<{
 
     }, [grantedAttackToken])
 
+    const [recentlyAttacked, setRecentlyAttacked] = useState(false)
+
     const calculateAttackWeight = useCallback(() => {
-        return 1
-    }, [])
+        if (!targetBody) return 1000
+        if (recentlyAttacked) return 1000
+        const distance = v2.lengthSquared()
+        v2.set(body.getPosition())
+        v2.sub(targetBody.getPosition())
+        return distance
+    }, [targetBody, body, recentlyAttacked])
 
     const calculateAttackWeightRef = useEffectRef(calculateAttackWeight)
 
-    const [smallRangeAwhile, setSmallRangeAwhile] = useState(false)
-    const [mediumRangeAwhile, setMediumRangeAwhile] = useState(false)
-    const [largeRangeAwhile, setLargeRangeAwhile] = useState(false)
+    const calculatePositionWeight = useCallback(() => {
+        if (!targetBody) return 1000
+        const distance = v2.lengthSquared()
+        v2.set(body.getPosition())
+        v2.sub(targetBody.getPosition())
+        return distance
+    }, [targetBody, body, recentlyAttacked])
 
-    const inSmallRange = collisionsState.isInSmallCombatRange
-    const inMediumRange = collisionsState.isInMediumCombatRange
-    const inLargeRange = collisionsState.isInLargeCombatRange
-
-    useEffect(() => {
-        if (inSmallRange) {
-            const delay = lerp(500, 750, Math.random())
-            const timeout = setTimeout(() => {
-                setSmallRangeAwhile(true)
-            }, delay)
-            return () => {
-                clearTimeout(timeout)
-            }
-        } else {
-            const delay = 200
-            const timeout = setTimeout(() => {
-                setSmallRangeAwhile(false)
-            }, delay)
-            return () => {
-                clearTimeout(timeout)
-            }
-        }
-    }, [inSmallRange])
+    const calculatePositionWeightRef = useEffectRef(calculatePositionWeight)
 
     useEffect(() => {
-        if (inMediumRange) {
-            const delay = lerp(1500, 2500, Math.random())
-            const timeout = setTimeout(() => {
-                setMediumRangeAwhile(true)
-            }, delay)
-            return () => {
-                clearTimeout(timeout)
-            }
-        } else {
-            const delay = 500
-            const timeout = setTimeout(() => {
-                setMediumRangeAwhile(false)
-            }, delay)
-            return () => {
-                clearTimeout(timeout)
-            }
-        }
-    }, [inMediumRange])
+        return requestPositionToken(id, calculatePositionWeightRef)
+    }, [])
 
-    useEffect(() => {
-        if (inLargeRange) {
-            const delay = lerp(5000, 8000, Math.random())
-            const timeout = setTimeout(() => {
-                setLargeRangeAwhile(true)
-            }, delay)
-            return () => {
-                clearTimeout(timeout)
-            }
-        } else {
-            const delay = 1000
-            const timeout = setTimeout(() => {
-                setLargeRangeAwhile(false)
-            }, delay)
-            return () => {
-                clearTimeout(timeout)
-            }
-        }
-    }, [inLargeRange])
+    const considerAttacking = !recentlyAttacked
+
+    const {
+        smallRangeAwhile,
+        setSmallRangeAwhile,
+        mediumRangeAwhile,
+        setMediumRangeAwhile,
+        largeRangeAwhile,
+        setLargeRangeAwhile,
+        inExtraSmallRange,
+    } = usePresenceState(considerAttacking)
 
     const [lastAttacked, setLastAttacked] = useState(0)
-    const [recentlyAttacked, setRecentlyAttacked] = useState(false)
 
-    const wantsToAttack = (smallRangeAwhile || mediumRangeAwhile || largeRangeAwhile) && !recentlyAttacked
+    const wantsToAttack = (smallRangeAwhile || mediumRangeAwhile) && !damageRecentlyTaken
 
     useEffect(() => {
         if (!wantsToAttack) return
@@ -134,7 +247,14 @@ export const CombatHandler: React.FC<{
 
     const isAttackingSubGoal = subGoal.type === AttackGoalSubGoalTypes.DAMAGE
 
-    const shouldAttack = !isAttackingSubGoal && hasAttackToken && wantsToAttack
+    const manualAttackToken = (inExtraSmallRange || smallRangeAwhile) && wantsToAttack
+
+    const shouldAttack = !isAttackingSubGoal && (hasAttackToken || manualAttackToken) && wantsToAttack
+
+    useEffect(() => {
+        if (!manualAttackToken) return
+        return setHasManualToken(id)
+    }, [manualAttackToken])
 
     useEffect(() => {
         if (!shouldAttack) return
@@ -148,6 +268,9 @@ export const CombatHandler: React.FC<{
     const onAttack = useCallback(() => {
         setLastAttacked(Date.now())
         setRecentlyAttacked(true)
+        setLargeRangeAwhile(false)
+        setMediumRangeAwhile(false)
+        setSmallRangeAwhile(false)
     }, [])
 
     useEffect(() => {

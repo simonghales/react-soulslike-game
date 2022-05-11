@@ -1,10 +1,15 @@
 import {Vec2} from "planck";
 import {lerp} from "three/src/math/MathUtils";
 
+export const v2ToAngle = (x: number, y: number) => {
+    return Math.atan2(y, x);
+}
+
 export const v2ToAngleDegrees = (x: number, y: number) => {
     var angle = Math.atan2(y, x);
     var degrees = 180 * angle / Math.PI;
-    return (360 + Math.round(degrees)) % 360;
+    return degrees
+    // return (360 + Math.round(degrees)) % 360;
 }
 
 export const angleToV2 = (angle: number, v2: Vec2) => {

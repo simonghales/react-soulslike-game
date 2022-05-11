@@ -6,6 +6,9 @@ export type Tokens = Record<string, number>
 export const MobsGroupContext = createContext(null! as {
     requestAttackToken: (id: string, ref: MutableRefObject<() => number>) => () => void,
     grantedAttackTokens: Tokens,
+    requestPositionToken: (id: string, ref: MutableRefObject<() => number>) => () => void,
+    positionTokens: any,
+    setHasManualToken: any,
 })
 
 export const useMobsGroupContext = () => {
@@ -14,11 +17,77 @@ export const useMobsGroupContext = () => {
 
 export const MAX_ATTACK_TOKENS = 2
 
+const MAX_POSITION_CLOSE_TOKENS = 2
+const MAX_POSITION_MEDIUM_TOKENS = 3
+const MAX_POSITION_LARGE_TOKENS = 8
+
+export enum PositionDistance {
+    CLOSE = 'CLOSE',
+    MEDIUM = 'MEDIUM',
+    LONG = 'LONG',
+    FAR = 'FAR',
+}
+
 export const usePositioningHandler = () => {
 
     const [positionTokensQueue, setPositionsTokenQueue] = useState({} as Record<string, MutableRefObject<() => number>>)
+    const [positionTokens, setPositionTokens] = useState({} as Record<string, string>)
 
+    const positionTokensQueueRef = useEffectRef(positionTokensQueue)
 
+    useEffect(() => {
+        const update = () => {
+
+            const positionTokensQueue = positionTokensQueueRef.current
+
+            const sortedQueue = Object.entries(positionTokensQueue).sort(([,refA], [,refB]) => {
+                return refB.current() - refA.current()
+            })
+
+            const tokens: Record<string, string> = {}
+
+            sortedQueue.forEach(([id], index) => {
+                let token = PositionDistance.FAR
+                if (index < MAX_POSITION_CLOSE_TOKENS) {
+                    token = PositionDistance.CLOSE
+                } else if (index < (MAX_POSITION_CLOSE_TOKENS + MAX_POSITION_MEDIUM_TOKENS)) {
+                    token = PositionDistance.MEDIUM
+                } else if (index < (MAX_POSITION_CLOSE_TOKENS + MAX_POSITION_MEDIUM_TOKENS + MAX_POSITION_LARGE_TOKENS)) {
+                    token = PositionDistance.LONG
+                }
+                tokens[id] = token
+            })
+
+            setPositionTokens(tokens)
+
+        }
+        update()
+        const interval = setInterval(update, 1000)
+        return () => {
+            clearInterval(interval)
+        }
+    }, [])
+
+    const requestPositionToken = useCallback((id: string, ref: MutableRefObject<() => number>) => {
+        setPositionsTokenQueue(prevState => ({
+            ...prevState,
+            [id]: ref,
+        }))
+        return () => {
+            setPositionsTokenQueue(prevState => {
+                const update = {
+                    ...prevState,
+                }
+                delete update[id]
+                return update
+            })
+        }
+    }, [])
+
+    return {
+        positionTokens,
+        requestPositionToken,
+    }
 
 }
 
@@ -117,9 +186,26 @@ export const useCombatHandler = () => {
         }
     }, [])
 
+    const setHasManualToken = useCallback((id: string) => {
+        setManualAttackTokens(prevState => ({
+            ...prevState,
+            [id]: Date.now(),
+        }))
+        return () => {
+            setManualAttackTokens(prevState => {
+                const update = {
+                    ...prevState,
+                }
+                delete update[id]
+                return update
+            })
+        }
+    }, [])
+
     return {
         requestAttackToken,
         grantedAttackTokens,
+        setHasManualToken,
     }
 
 }
@@ -129,12 +215,21 @@ export const MobsGroupHandler: React.FC = ({children}) => {
     const {
         requestAttackToken,
         grantedAttackTokens,
+        setHasManualToken,
     } = useCombatHandler()
+
+    const {
+        requestPositionToken,
+        positionTokens,
+    } = usePositioningHandler()
 
     return (
         <MobsGroupContext.Provider value={{
             requestAttackToken,
             grantedAttackTokens,
+            requestPositionToken,
+            positionTokens,
+            setHasManualToken,
         }}>
             {children}
         </MobsGroupContext.Provider>

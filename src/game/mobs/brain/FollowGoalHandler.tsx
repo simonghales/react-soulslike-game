@@ -5,10 +5,12 @@ import {useMobBrainContext} from "../mobBrainContext";
 import {getPosition} from "./MoveGoalHandler";
 import {Vec2} from "planck";
 import {AttackGoalSubGoalTypes} from "./types";
+import {useEffectRef} from "../../../utils/hooks";
+import {PositionDistance} from "../MobsGroupHandler";
 
 export const FollowGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGoal}) => {
 
-    useGoalLimitReset(subGoal, setSubGoal)
+    useGoalLimitReset(subGoal, setSubGoal, 5)
 
     const {
         collisionsState,
@@ -17,7 +19,10 @@ export const FollowGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGo
         movementStateRef,
         setDebugData,
         setRunning,
+        positionToken,
     } = useMobBrainContext()
+
+    const positionTokenRef = useEffectRef(positionToken)
 
     const [reachedTarget, setReachedTarget] = useState(false)
 
@@ -35,7 +40,17 @@ export const FollowGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGo
             const targetBody = targetBodyRef.current
             if (!targetBody) return
 
-            let idealDistance = 3
+            const positionToken = positionTokenRef.current
+
+            let idealDistance = 7
+
+            if (positionToken === PositionDistance.CLOSE) {
+                idealDistance = 3
+            } else if (positionToken === PositionDistance.MEDIUM) {
+                idealDistance = 5
+            } else if (positionToken === PositionDistance.LONG) {
+                idealDistance = 6
+            }
 
             const {
                 v2,

@@ -25,6 +25,10 @@ export const MobBrainContext = createContext(null! as {
     setAttackState: any,
     attackState: any,
     attackStateRef: any,
+    positionToken: string,
+    onDamage: any,
+    damageRecentlyTaken: boolean,
+    stunned: boolean,
 })
 
 export const useMobBrainContext = () => {

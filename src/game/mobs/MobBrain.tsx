@@ -1,4 +1,4 @@
-import React, {useRef, useState} from "react"
+import React, {useEffect, useMemo, useRef, useState} from "react"
 import {Body, Vec2} from "planck";
 import {MobBrainContext} from "./mobBrainContext";
 import {MovementHandler} from "./brain/MovementHandler";
@@ -8,6 +8,11 @@ import {AttackState, CollisionsState} from "./brain/types";
 import {useGetBody} from "../state/bodies";
 import {useEffectRef} from "../../utils/hooks";
 import {useTransmitData} from "react-three-physics";
+import {useMobsGroupContext} from "./MobsGroupHandler";
+import {EventsHandler} from "./brain/EventsHandler";
+import {StatusHandler, useMobStatusState} from "./brain/StatusHandler";
+import {useLgMobContext} from "./LgMobContext";
+import {DamageHandler} from "./brain/DamageHandler";
 
 export const MobBrain: React.FC<{
     id: string,
@@ -22,6 +27,7 @@ export const MobBrain: React.FC<{
         isInSmallCombatRange: false,
         isInExtraSmallCombatRange: false,
         isInMediumCombatRange: false,
+        attackRangeEnemies: [],
     })
 
     const collisionsStateRef = useEffectRef(collisionsState)
@@ -33,7 +39,7 @@ export const MobBrain: React.FC<{
     const movementStateRef = useRef({
         targetPosition: null as null | Vec2,
         lastMovementGoal: 0,
-        lockedTarget: null as null | Vec2,
+        lockedTarget: false,
     })
 
     const targetBody = useGetBody('player')
@@ -43,7 +49,47 @@ export const MobBrain: React.FC<{
     const [preventMovement, setPreventMovement] = useState(false)
     const [speedLimit, setSpeedLimit] = useState(null as null | number)
 
+    const {
+        positionTokens,
+    } = useMobsGroupContext()
+
+    const positionToken = positionTokens[id] ?? ''
+
     useTransmitData(`mob--${id}`, debugData)
+
+    const {
+        subGoal,
+    } = goalHandler
+
+    const {
+        damageTaken,
+        damageRecentlyTaken,
+        onDamage,
+        stunned,
+        isAlive,
+        healthRemaining,
+        onDeath,
+    } = useLgMobContext()
+
+    useTransmitData(`mob--${id}-state`, useMemo(() => {
+        return {
+            attackState,
+            subGoal,
+            healthRemaining,
+            isAlive,
+        }
+    }, [attackState, subGoal, healthRemaining, isAlive]))
+
+    const bodyRef = useEffectRef(body)
+
+    useEffect(() => {
+        if (!isAlive) {
+            return
+        }
+        return () => {
+            onDeath(bodyRef.current)
+        }
+    }, [isAlive])
 
     return (
         <MobBrainContext.Provider value={{
@@ -65,11 +111,27 @@ export const MobBrain: React.FC<{
             setAttackState,
             attackState,
             attackStateRef,
+            positionToken,
+            onDamage,
+            damageRecentlyTaken,
+            stunned,
             ...goalHandler,
         }}>
-            <MovementHandler/>
-            <CollisionsHandler/>
-            <GoalHandler/>
+            {
+                isAlive && (
+                    <>
+                        <CollisionsHandler/>
+                        <GoalHandler/>
+                        <EventsHandler/>
+                        <StatusHandler/>
+                        {
+                            !stunned && (
+                                <MovementHandler/>
+                            )
+                        }
+                    </>
+                )
+            }
         </MobBrainContext.Provider>
     )
 }

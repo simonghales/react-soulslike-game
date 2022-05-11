@@ -12,7 +12,10 @@ import {GoalHandlerContext} from "./GoalHandlerContext";
 export const useMobBrainGoalHandler = () => {
 
     const [goal, setGoal] = useState(null)
-    const [subGoal, setSubGoal] = useState(null)
+    const [subGoal, setSubGoal] = useState({
+        type: AttackGoalSubGoalTypes.IDLE_INITIAL,
+        time: Date.now()
+    } as AttackGoalSubGoal)
 
     return {
         goal,
@@ -55,8 +58,9 @@ const getClosestDistanceDelayRange = (distance: string) => {
 }
 
 const IdleGoalHandler: React.FC<{
+    type: string,
     setSubGoal: any,
-}> = ({setSubGoal}) => {
+}> = ({type, setSubGoal}) => {
 
     const {
         collisionsState,
@@ -93,7 +97,10 @@ const IdleGoalHandler: React.FC<{
             const closestDistance = getClosestDistance(collisionsStateRef.current)
             const delayRange = getClosestDistanceDelayRange(closestDistance)
             const randomSeed = Math.random()
-            const delay = lerp(delayRange[0], delayRange[1], randomSeed)
+            let delay = lerp(delayRange[0], delayRange[1], randomSeed)
+            if (type === AttackGoalSubGoalTypes.IDLE_INITIAL) {
+                delay = delay / 2
+            }
             timeout = setTimeout(() => {
                 if (unmounted) return
                 updateSubGoal()
@@ -123,15 +130,7 @@ export type GoalHandlerProps = {
 
 const AttackPlayerGoalHandler: React.FC = () => {
 
-    const context = useMobBrainContext()
-    const [subGoal, setSubGoal] = useState({
-        type: AttackGoalSubGoalTypes.IDLE,
-        time: Date.now()
-    } as AttackGoalSubGoal)
-
-    useEffect(() => {
-        context.setSubGoal(subGoal)
-    }, [subGoal])
+    const {subGoal, setSubGoal} = useMobBrainContext()
 
     return (
         <GoalHandlerContext.Provider value={{
@@ -139,8 +138,8 @@ const AttackPlayerGoalHandler: React.FC = () => {
             setSubGoal,
         }}>
             {
-                (subGoal.type === AttackGoalSubGoalTypes.IDLE) && (
-                    <IdleGoalHandler setSubGoal={setSubGoal}/>
+                (subGoal.type === AttackGoalSubGoalTypes.IDLE || subGoal.type === AttackGoalSubGoalTypes.IDLE_INITIAL) && (
+                    <IdleGoalHandler type={subGoal.type} setSubGoal={setSubGoal}/>
                 )
             }
             {

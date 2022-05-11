@@ -32,6 +32,7 @@ export const useAttackCollisionsHandler = (attackState: {
 
     useEffect(() => {
         setDamageZoneActive(false)
+        console.log('reset collisions...')
         currentAttackRef.current.collisions = {}
         if (attackState.type !== AttackType.SHORT && attackState.type !== AttackType.LONG) return
         let timeout: any
@@ -94,6 +95,9 @@ export const useAttackCollisionsHandler = (attackState: {
     }, [damageZoneActive])
 
     useEffect(() => {
+        if (!damageZoneActiveRef.current) {
+            return
+        }
         if (attackStateRef.current.type !== AttackType.SHORT && attackStateRef.current.type !== AttackType.LONG) return
         if (attackStateRef.current.type === AttackType.SHORT) {
             Object.keys(collisions?.[PlayerAttackCollisionTypes.QUICK_ATTACK] ?? {}).forEach((id) => {

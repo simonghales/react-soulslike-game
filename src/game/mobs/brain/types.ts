@@ -1,6 +1,7 @@
 import {Body} from "planck";
 
 export enum AttackGoalSubGoalTypes {
+    IDLE_INITIAL = 'IDLE_INITIAL',
     IDLE = 'IDLE',
     MOVE = 'MOVE',
     FOLLOW = 'FOLLOW',
@@ -25,6 +26,7 @@ export type CollisionsState = {
     isInLargeCombatRange: boolean,
     isInExtraLargeCombatRange: boolean,
     enemiesInAttackRange: boolean,
+    attackRangeEnemies: string[],
 }
 
 export enum AttackStateType {

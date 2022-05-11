@@ -2,12 +2,17 @@ import {PlayerEventType, useOnPlayerEvents} from "../events/player";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {usePlayerContext} from "./PlayerContext";
 import {useEffectRef} from "../../utils/hooks";
+import {Vec2} from "planck";
+
+const v2 = new Vec2()
+const emptyV2 = new Vec2()
 
 export const useEventsHandler = () => {
 
     const {
         increasePlayerDamage,
         playerRolled,
+        body,
     } = usePlayerContext()
 
     const [invincible, setInvincible] = useState(false)
@@ -17,7 +22,7 @@ export const useEventsHandler = () => {
     useEffect(() => {
 
         const now = Date.now()
-        const timeRemaining = (playerRolled + 275) - now
+        const timeRemaining = (playerRolled + 300) - now
         const isRecent = now >= playerRolled && timeRemaining > 0
 
         if (isRecent) {
@@ -40,10 +45,15 @@ export const useEventsHandler = () => {
 
     const actions = useMemo(() => {
 
-        const handleDamaged = (damage: number) => {
+        const handleDamaged = (damage: number, currentPosition: Vec2) => {
             if (invincibleRef.current) {
-                console.log('ignore damage...')
+                return
             } else {
+                v2.set(body.getPosition())
+                v2.sub(currentPosition)
+                v2.normalize()
+                v2.mul(2)
+                body.applyLinearImpulse(v2, emptyV2)
                 increasePlayerDamage(damage)
             }
         }
@@ -57,7 +67,7 @@ export const useEventsHandler = () => {
     useOnPlayerEvents('', useCallback((event) => {
         switch (event.type) {
             case PlayerEventType.DAMAGED:
-                actions.handleDamaged(event.data.damage)
+                actions.handleDamaged(event.data.damage, event.data.currentPosition)
                 break;
         }
     }, [actions]))

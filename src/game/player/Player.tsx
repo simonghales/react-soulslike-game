@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react"
+import React, {useEffect, useRef, useState} from "react"
 import {Box, Circle, Cylinder, Html, useTexture} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
 import {usePhysicsRef, useSyncData} from "react-three-physics";
@@ -7,6 +7,8 @@ import {useSetPlayerRef} from "../state/misc";
 import {PlayerAttackStateType, syncKeys} from "../data/keys";
 import {setPlayerEnergyUsage, setPlayerHealthRemaining} from "../state/player";
 import {playerConfig} from "./config";
+import {useFrame} from "@react-three/fiber";
+import {PlayerMovementState} from "./types";
 
 export const Player: React.FC = () => {
 
@@ -19,20 +21,45 @@ export const Player: React.FC = () => {
     })
 
     const {
-        healthRemaining
+        energyUsage,
+        movementState,
+        healthRemaining,
     } = useSyncData(syncKeys.playerState, {
+        energyUsage: 0,
+        movementState: '',
         healthRemaining: playerConfig.defaultHealth,
     })
 
-    const energyUsage = useSyncData(syncKeys.playerEnergyUsage, 0)
+    const localStateRef = useRef({
+        previousHealthRemaining: healthRemaining,
+    })
+
+    const [playerDamaged, setPlayerDamaged] = useState(0)
+
+    useEffect(() => {
+        if (!playerDamaged) return
+        const timeout = setTimeout(() => {
+            setPlayerDamaged(0)
+        }, 300)
+        return () => {
+            clearTimeout(timeout)
+        }
+    }, [playerDamaged])
 
     useEffect(() => {
         setPlayerHealthRemaining(healthRemaining)
+        if (healthRemaining < localStateRef.current.previousHealthRemaining) {
+            setPlayerDamaged(Date.now())
+        }
+        localStateRef.current.previousHealthRemaining = healthRemaining
     }, [healthRemaining])
 
     useEffect(() => {
         setPlayerEnergyUsage(energyUsage)
     }, [energyUsage])
+
+    const shrink = movementState === PlayerMovementState.PENDING_JUMP || movementState === PlayerMovementState.ROLLING
+    const stretch = movementState === PlayerMovementState.JUMPING
 
     const [attackCompleted, setAttackCompleted] = useState(false)
 
@@ -65,6 +92,11 @@ export const Player: React.FC = () => {
 
     }, [playerAttackState])
 
+    const color = !!playerDamaged ? 'red' :
+                    movementState === PlayerMovementState.ATTACKING ? 'orange' :
+                    movementState === PlayerMovementState.PENDING_ATTACK ? 'yellow' :
+                        movementState === PlayerMovementState.COOLDOWN ? 'grey' : 'white'
+
     const texture = useTexture("assets/rat-sword.png")
 
     return (
@@ -90,31 +122,31 @@ export const Player: React.FC = () => {
                 {/*        {attackCompleted ? "complete" : playerAttackState.type}*/}
                 {/*    </div>*/}
                 {/*</Html>*/}
-                <Circle args={[playerConfig.sensors.extraSmallCombatRadius, 32]}>
-                    <meshBasicMaterial color={'pink'} transparent opacity={0.25}/>
-                </Circle>
-                <Circle args={[playerConfig.sensors.smallCombatRadius, 32]}>
-                    <meshBasicMaterial color={'pink'} transparent opacity={0.25}/>
-                </Circle>
-                <Circle args={[playerConfig.sensors.mediumCombatRadius, 32]}>
-                    <meshBasicMaterial color={'pink'} transparent opacity={0.25}/>
-                </Circle>
-                <Circle args={[playerConfig.sensors.largeCombatRadius, 32]}>
-                    <meshBasicMaterial color={'pink'} transparent opacity={0.25}/>
-                </Circle>
-                <Circle args={[playerConfig.sensors.extraLargeCombatRadius, 32]}>
-                    <meshBasicMaterial color={'pink'} transparent opacity={0.25}/>
-                </Circle>
-                <sprite scale={[1.5, 1.5, 1.5]} position={[0, 0, 0.10001]}>
-                    <spriteMaterial map={texture} depthWrite={false} depthTest={false}/>
+                {/*<Circle args={[playerConfig.sensors.extraSmallCombatRadius, 32]}>*/}
+                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
+                {/*</Circle>*/}
+                {/*<Circle args={[playerConfig.sensors.smallCombatRadius, 32]}>*/}
+                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
+                {/*</Circle>*/}
+                {/*<Circle args={[playerConfig.sensors.mediumCombatRadius, 32]}>*/}
+                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
+                {/*</Circle>*/}
+                {/*<Circle args={[playerConfig.sensors.largeCombatRadius, 32]}>*/}
+                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
+                {/*</Circle>*/}
+                {/*<Circle args={[playerConfig.sensors.extraLargeCombatRadius, 32]}>*/}
+                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
+                {/*</Circle>*/}
+                <sprite scale={shrink ? [1.5, 1, 1.5] : stretch ? [1.5, 2, 1.5] : [1.5, 1.5, 1.5]} position={[0, 0, 0.10001]}>
+                    <spriteMaterial color={color} map={texture} depthWrite={false} depthTest={false}/>
                 </sprite>
             </group>
             <group ref={combatBodyRef}>
                 <Box position={[playerConfig.sensors.shortAttack.x, 0, 0]} args={[playerConfig.sensors.shortAttack.w, playerConfig.sensors.shortAttack.h, 0.5]}>
-                    <meshBasicMaterial color={'red'} transparent opacity={0.5}/>
+                    <meshBasicMaterial color={'red'} transparent opacity={0.15}/>
                 </Box>
                 <Box position={[playerConfig.sensors.longAttack.x, 0, 0]} args={[playerConfig.sensors.longAttack.w, playerConfig.sensors.longAttack.h, 0.45]}>
-                    <meshBasicMaterial color={'orange'} transparent opacity={0.5}/>
+                    <meshBasicMaterial color={'orange'} transparent opacity={0.15}/>
                 </Box>
             </group>
             <PlayerCamera/>

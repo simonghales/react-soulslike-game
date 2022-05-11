@@ -8,8 +8,10 @@ import {angleToV2, roundAngleDegrees, v2ToAngleDegrees} from "../../../utils/ang
 import random from "canvas-sketch-util/random"
 import {useGoalLimitReset} from "./misc";
 import {AttackGoalSubGoalTypes} from "./types";
+import {PositionDistance} from "../MobsGroupHandler";
 
 let v2 = new Vec2()
+const spareV2 = new Vec2()
 
 let currentDistance = 0
 let targetDistance = 0
@@ -23,12 +25,15 @@ export const getPosition = (
     tryForDifferentAngle: boolean = false,
     conditionalRound: boolean = false,
     preventMoveBack: boolean = false,
-    addTargetVelocity: boolean = false
+    addTargetVelocity: boolean = false,
+    velocityMultiplier: number = 2
 ) => {
     v2.set(body.getPosition())
     v2.sub(targetBody.getPosition())
     if (addTargetVelocity) {
-        v2.sub(targetBody.getLinearVelocity())
+        spareV2.set(targetBody.getLinearVelocity())
+        spareV2.mul(velocityMultiplier)
+        v2.sub(spareV2)
     }
     currentDistance = v2.length()
     targetDistance = idealDistance
@@ -38,7 +43,7 @@ export const getPosition = (
         if (preventMoveBack) {
             targetDistance = currentDistance
         } else {
-            targetDistance = lerp(currentDistance, idealDistance, 0.5)
+            targetDistance = lerp(currentDistance, idealDistance, 0.25)
         }
         if (targetDistance < 1.25) {
             targetDistance = 1.25
@@ -90,7 +95,10 @@ export const MoveGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGoal
         movementStateRef,
         setDebugData,
         setRunning,
+        positionToken,
     } = useMobBrainContext()
+
+    const positionTokenRef = useEffectRef(positionToken)
 
     const collisionsStateRef = useEffectRef(collisionsState)
 
@@ -110,19 +118,21 @@ export const MoveGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGoal
 
         const update = () => {
 
+            const positionToken = positionTokenRef.current
+
             const targetBody = targetBodyRef.current
             if (!targetBody) return
 
             const collisionStates = collisionsStateRef.current
-            let idealDistance = 5
+            let idealDistance = 8
             if (collisionStates.isInSmallCombatRange) {
-                idealDistance = 2
-            } else if (collisionStates.isInMediumCombatRange) {
                 idealDistance = 3
-            } else if (collisionStates.isInLargeCombatRange) {
-                idealDistance = 4
-            } else if (collisionStates.isInExtraLargeCombatRange) {
-                idealDistance = 4.5
+            } else if (positionToken === PositionDistance.CLOSE) {
+                idealDistance = 3
+            } else if (positionToken === PositionDistance.MEDIUM) {
+                idealDistance = 6
+            } else if (positionToken === PositionDistance.LONG) {
+                idealDistance = 7
             }
 
             const {

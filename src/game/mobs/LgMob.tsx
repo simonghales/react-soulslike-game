@@ -7,6 +7,8 @@ import {halve} from "../../utils/physics";
 import {mobsConfig} from "../data/mobs";
 import {componentSyncKeys} from "../data/keys";
 import {MobBrain} from "./MobBrain";
+import {useMobStatusState} from "./brain/StatusHandler";
+import {LgMobContext} from "./LgMobContext";
 
 export const useMobBody = (id: string, x: number, y: number) => {
 
@@ -23,6 +25,8 @@ export const useMobBody = (id: string, x: number, y: number) => {
             allowSleep: false,
             fixedRotation: true,
         })
+
+        console.log('body created...')
 
         body.setPosition(new Vec2(x ?? 2, y ?? 2))
 
@@ -66,8 +70,19 @@ export const useMobBody = (id: string, x: number, y: number) => {
         const unsub = addBody(id, body)
 
         return () => {
-            world.destroyBody(body)
-            unsub()
+            const cleanup = () => {
+                if (world.isLocked()) {
+                    throw new Error('World is still locked, failed to remove body.')
+                }
+                world.destroyBody(body)
+                unsub()
+            }
+            if (world.isLocked()) {
+                setTimeout(cleanup, 0)
+            } else {
+                cleanup()
+            }
+
         }
     }, [])
 
@@ -75,7 +90,7 @@ export const useMobBody = (id: string, x: number, y: number) => {
 
 }
 
-export const LgMob: React.FC<{
+const MobBody: React.FC<{
     id: string,
     x: number,
     y: number,
@@ -90,5 +105,49 @@ export const LgMob: React.FC<{
             <SyncComponent id={id} componentId={componentSyncKeys.basicMob}/>
             <MobBrain id={id} body={body}/>
         </>
+    )
+
+}
+
+export const LgMob: React.FC<{
+    id: string,
+    x: number,
+    y: number,
+}> = ({id, x, y}) => {
+
+    const {
+        damageTaken,
+        damageRecentlyTaken,
+        onDamage,
+        stunned,
+        isAlive,
+        healthRemaining,
+        onDeath,
+        deathPosition,
+    } = useMobStatusState()
+
+    if (!isAlive) {
+
+        if (!deathPosition) {
+            return null
+        }
+
+        return (
+            <SyncComponent id={id} componentId={componentSyncKeys.basicMobDead} x={deathPosition.x} y={deathPosition.y}/>
+        )
+    }
+
+    return (
+        <LgMobContext.Provider value={{
+            damageTaken,
+            damageRecentlyTaken,
+            onDamage,
+            stunned,
+            isAlive,
+            healthRemaining,
+            onDeath,
+        }}>
+            <MobBody id={id} x={x} y={y}/>
+        </LgMobContext.Provider>
     )
 }

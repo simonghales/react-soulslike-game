@@ -4,15 +4,21 @@ import {
     useIsKeyPressed,
     useOnCollisionBegin,
     useOnCollisionEnd,
-    useOnPrePhysicsUpdate,
+    useOnPrePhysicsUpdate, useSyncData,
     useTransmitData
 } from "react-three-physics";
-import {KEYS} from "../input/keys";
+import {INPUT_KEYS} from "../input/INPUT_KEYS";
 import {Body, Box, Circle, Vec2} from "planck";
 import {useWorld} from "../../worker/WorldProvider";
 import {PlayerAttackStateType, syncKeys} from "../data/keys";
-import {angleToV2, calculateAngleBetweenVectors, lerpRadians, v2ToAngleDegrees} from "../../utils/angles";
-import {degToRad, lerp} from "three/src/math/MathUtils";
+import {
+    angleToV2,
+    calculateAngleBetweenVectors,
+    lerpRadians,
+    roundAngleDegrees,
+    v2ToAngleDegrees
+} from "../../utils/angles";
+import {degToRad, lerp, radToDeg} from "three/src/math/MathUtils";
 import {useEffectRef} from "../../utils/hooks";
 import {normalize} from "../../utils/numbers";
 import {COLLISION_FILTER_GROUPS, PlayerAttackCollisionTypes, PlayerRangeCollisionTypes} from "../data/collisions";
@@ -27,15 +33,26 @@ import {useEventsHandler} from "./events";
 import {EventsHandler} from "./EventsHandler";
 import {PlayerContext, usePlayerContext} from "./PlayerContext";
 import {getPowerGraph} from "../../utils/graphs";
+import {PlayerController} from "./controller/PlayerController";
+import {PlayerStateHandler} from "./PlayerStateHandler";
+import {PlayerMovementState} from "./types";
+import {useCollisionsHandler} from "./controller/collisionsHandler";
 
-let right = false
-let left = false
-let up = false
-let down = false
+let moveRight = false
+let moveLeft = false
+let moveUp = false
+let moveDown = false
+let aimRight = false
+let aimLeft = false
+let aimUp = false
+let aimDown = false
 let space = false
+let aimXDir = 0
+let aimYDir = 0
 let xDir = 0
 let yDir = 0
 let isMoving = false
+let isAiming = false
 let angle = 0
 let shift = false
 let roll = false
@@ -61,6 +78,7 @@ const zeroEnergyRegenerationDelay = 500
 
 let speed = walkSpeed
 
+const aimV2 = new Vec2()
 const v2 = new Vec2()
 const dirV2 = new Vec2()
 const plainV2 = new Vec2()
@@ -226,25 +244,9 @@ export const useSelectTarget = (target: SelectedTarget, body: Body, setTarget: a
 
 }
 
-export const useCollisionsHandler = (setTarget: any) => {
+export const OLDuseCollisionsHandler = (setTarget: any) => {
 
     const [activeCollisions, setActiveCollisions] = useState({} as Record<string, Record<string, any>>)
-
-    // const target = useMemo(() => {
-    //     if (!activeCollisions[CollisionTypes.PLAYER_RANGE]) return null
-    //     return Object.entries(activeCollisions[CollisionTypes.PLAYER_RANGE])[0] ?? null
-    // }, [activeCollisions])
-    //
-    // useEffect(() => {
-    //     if (target) {
-    //         setTarget({
-    //             id: target[0],
-    //             body: target[1],
-    //         })
-    //     } else {
-    //         setTarget(null)
-    //     }
-    // }, [target])
 
     useOnCollisionBegin('player', (fixture: Fixture, currentFixture: Fixture) => {
         const collidedId = getFixtureCollisionId(fixture)
@@ -352,7 +354,7 @@ const Controller: React.FC<{
         }
     }, [target])
 
-    const activeCollisions = useCollisionsHandler(setTarget)
+    const activeCollisions = OLDuseCollisionsHandler(setTarget)
 
     const selectNextTarget = useSelectTarget(target, body, setTarget, activeCollisions)
 
@@ -412,7 +414,6 @@ const Controller: React.FC<{
     const [energyUsage, setEnergyUsage] = useState(0)
 
     const [energyLastUsed, setEnergyLastUsed] = useState(0)
-
 
     const energyCap = 150
 
@@ -489,44 +490,59 @@ const Controller: React.FC<{
 
     const onPhysicsUpdate = useCallback((delta: number) => {
 
-        right = isKeyPressed(KEYS.RIGHT)
-        left = isKeyPressed(KEYS.LEFT)
-        up = isKeyPressed(KEYS.UP)
-        down = isKeyPressed(KEYS.DOWN)
-        space = isKeyPressed(KEYS.SPACE)
-        shift = isKeyPressed(KEYS.SHIFT)
-        roll = isKeyPressed(KEYS.Z)
+        moveRight = isKeyPressed(INPUT_KEYS.MOVE_RIGHT)
+        moveLeft = isKeyPressed(INPUT_KEYS.MOVE_LEFT)
+        moveUp = isKeyPressed(INPUT_KEYS.MOVE_UP)
+        moveDown = isKeyPressed(INPUT_KEYS.MOVE_DOWN)
+
+        aimRight = isKeyPressed(INPUT_KEYS.LOOK_RIGHT)
+        aimLeft = isKeyPressed(INPUT_KEYS.LOOK_LEFT)
+        aimUp = isKeyPressed(INPUT_KEYS.LOOK_UP)
+        aimDown = isKeyPressed(INPUT_KEYS.LOOK_DOWN)
+
+        space = isKeyPressed(INPUT_KEYS.SPACE)
+        shift = isKeyPressed(INPUT_KEYS.SHIFT)
+        roll = isKeyPressed(INPUT_KEYS.RIGHT_ANGLE)
         prevRoll = prevKeysRef.current.roll
         prevKeysRef.current.roll = roll
-        targetKey = isKeyPressed(KEYS.Q)
+        targetKey = isKeyPressed(INPUT_KEYS.Q)
         prevTargetKey = prevKeysRef.current.target
         prevKeysRef.current.target = targetKey
 
         isAttacking = attackStateRef.current.type === PlayerAttackStateType.LONG || attackStateRef.current.type === PlayerAttackStateType.SHORT
         isCharging = attackStateRef.current.type === PlayerAttackStateType.CHARGING
 
-        if (targetKey && !prevTargetKey) {
-            selectNextTarget()
-            localStateRef.current.lastTargetDown = Date.now()
-        }
+        // if (targetKey && !prevTargetKey) {
+        //     selectNextTarget()
+        //     localStateRef.current.lastTargetDown = Date.now()
+        // }
 
-        if (prevTargetKey && !targetKey && localStateRef.current.lastTargetDown) {
-            const timeSinceDown = Date.now() - localStateRef.current.lastTargetDown
-            if (timeSinceDown > 500) {
-                setTarget(null)
-            }
-            localStateRef.current.lastTargetDown = 0
-        }
+        // if (prevTargetKey && !targetKey && localStateRef.current.lastTargetDown) {
+        //     const timeSinceDown = Date.now() - localStateRef.current.lastTargetDown
+        //     if (timeSinceDown > 500) {
+        //         setTarget(null)
+        //     }
+        //     localStateRef.current.lastTargetDown = 0
+        // }
 
         setShiftPressed(shift)
 
         isRolling = rollingStateRef.current.isRolling
         isBackwards = rollingStateRef.current.isBackwards
 
-        isMoving = right || left || up || down
+        isMoving = moveRight || moveLeft || moveUp || moveDown
 
-        xDir = right ? 1 : left ? -1 : 0
-        yDir = up ? 1 : down ? -1 : 0
+        isAiming = aimRight || aimLeft || aimUp || aimDown
+
+        xDir = moveRight ? 1 : moveLeft ? -1 : 0
+        yDir = moveUp ? 1 : moveDown ? -1 : 0
+
+        aimXDir = aimRight ? 1 : aimLeft ? -1 : 0
+        aimYDir = aimUp ? 1 : aimDown ? -1 : 0
+
+        if (isAiming) {
+            // store...
+        }
 
         if (isMoving) {
             localStateRef.current.prevX = xDir
@@ -541,6 +557,8 @@ const Controller: React.FC<{
         v2.set(xDir, yDir)
         v2.normalize()
 
+
+
         if (roll && !prevRoll && hasEnergyRemainingRef.current && !isRolling && isMoving && !isBackwards) {
             // todo - check has enough energy remaining...
             isRolling = true
@@ -549,7 +567,7 @@ const Controller: React.FC<{
             rollingStateRef.current.rollXVel = v2.x
             rollingStateRef.current.rollYVel = v2.y
             setRolling(true)
-            increaseEnergyUsage(45)
+            increaseEnergyUsage(60)
             setPlayerRolled(Date.now())
         } else {
             if (!isRolling && roll && !prevRoll && !isMoving && !isBackwards) {
@@ -611,25 +629,38 @@ const Controller: React.FC<{
             increaseEnergyUsage(delta * 0.55)
         }
 
-        if (target) {
-            const targetPosition = target.body.getPosition()
-            const targetX = targetPosition.x
-            const targetY = targetPosition.y
-            const bodyX = body.getPosition().x
-            const bodyY = body.getPosition().y
-            dirV2.set(targetPosition)
-            dirV2.sub(body.getPosition())
-            dirV2.normalize()
-
-            localStateRef.current.prevX = dirV2.x
-            localStateRef.current.prevY = dirV2.y
-
-            angle = calculateAngleBetweenVectors(bodyX, targetX, targetY, bodyY)
-            angle += Math.PI / 2
-            if (isCharging) {
-                angle = lerpRadians(angle, localStateRef.current.prevAngle, 0.5)
-            }
+        // if (target) {
+        //
+        //     const targetPosition = target.body.getPosition()
+        //     const targetX = targetPosition.x
+        //     const targetY = targetPosition.y
+        //     const bodyX = body.getPosition().x
+        //     const bodyY = body.getPosition().y
+        //     dirV2.set(targetPosition)
+        //     dirV2.sub(body.getPosition())
+        //     dirV2.normalize()
+        //
+        //     localStateRef.current.prevX = dirV2.x
+        //     localStateRef.current.prevY = dirV2.y
+        //
+        //     angle = calculateAngleBetweenVectors(bodyX, targetX, targetY, bodyY)
+        //     angle += Math.PI / 2
+        //     if (isCharging) {
+        //         angle = lerpRadians(angle, localStateRef.current.prevAngle, 0.5)
+        //     }
+        //     localStateRef.current.prevAngle = angle
+        //     // body.setAngle(angle)
+        // }
+        if (isAiming) {
+            aimV2.set(aimXDir, aimYDir)
+            aimV2.normalize()
+            angle = v2ToAngleDegrees(aimV2.x, aimV2.y)
+            angle = degToRad(angle)
+            angle = lerpRadians(angle, localStateRef.current.prevAngle, 0.5)
             localStateRef.current.prevAngle = angle
+            // angle = radToDeg(angle)
+            // angle = roundAngleDegrees(angle, 45)
+            // angle = degToRad(angle)
             body.setAngle(angle)
         } else if (isMoving) {
             angle = degToRad(v2ToAngleDegrees(v2.x, v2.y))
@@ -639,6 +670,7 @@ const Controller: React.FC<{
         }
 
         v2.mul(delta * speed)
+        v2.clamp(delta * speed)
 
         if (isCharging) {
             v2.mul(0.25)
@@ -1074,25 +1106,64 @@ export const LgPlayer: React.FC = () => {
         healthRemaining = 0
     }
 
-    useTransmitData(syncKeys.playerState, {
-        healthRemaining,
-    })
+    // useTransmitData(syncKeys.playerState, {
+    //     healthRemaining,
+    // })
 
     const increasePlayerDamage = useCallback((damage: number) => {
         setPlayerDamage(state => state + damage)
     }, [])
 
+    const [energyUsage, setEnergyUsage] = useState(0)
+    const [energyLastUsed, setEnergyLastUsed] = useState(0)
+
+    const increaseEnergyUsage = useCallback((amount: number) => {
+        setEnergyUsage(prev => {
+            if ((prev + amount) > playerConfig.defaultEnergy) {
+                return playerConfig.defaultEnergy
+            }
+            return prev + amount
+        })
+        setEnergyLastUsed(Date.now())
+    }, [])
+
+    const [movementState, setMovementState] = useState('' as '' | PlayerMovementState)
+
+    useTransmitData(syncKeys.playerState, useMemo(() => {
+        return {
+            energyUsage,
+            movementState,
+            healthRemaining,
+        }
+    }, [energyUsage, movementState, healthRemaining]))
+
+    const collisions = useCollisionsHandler()
+
+    useEffect(() => {
+        console.log('collisions', collisions)
+    }, [collisions])
+
     if (!body || !combatBody || !fixtures) return null
 
     return (
         <PlayerContext.Provider value={{
+            body,
+            combatBody,
             playerDamage,
             increasePlayerDamage,
             playerRolled,
             setPlayerRolled,
+            energyUsage,
+            setEnergyUsage,
+            increaseEnergyUsage,
+            energyLastUsed,
+            movementState,
+            setMovementState,
         }}>
-            <Controller fixtures={fixtures} body={body} combatBody={combatBody}/>
-            <EventsHandler/>
+            {/*<Controller fixtures={fixtures} body={body} combatBody={combatBody}/>*/}
+            <PlayerController/>
+            <PlayerStateHandler/>
+            {/*<EventsHandler/>*/}
         </PlayerContext.Provider>
     )
 }

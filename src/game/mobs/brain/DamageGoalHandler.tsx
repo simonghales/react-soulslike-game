@@ -5,9 +5,10 @@ import {Vec2} from "planck";
 import {lerp} from "three/src/math/MathUtils";
 import {AttackGoalSubGoalTypes, AttackState, AttackStateType} from "./types";
 import {mobAttacksConfig} from "../../data/attacks";
-import {SLOW_SPEED} from "./MovementHandler";
+import {SLOW_SPEED, SPRINT_SPEED} from "./MovementHandler";
 import {angleToV2} from "../../../utils/angles";
 import {useGoalHandlerContext} from "./GoalHandlerContext";
+import {DamageHandler} from "./DamageHandler";
 
 export const AttackStateHandler: React.FC<{
     attackState: AttackState,
@@ -25,11 +26,27 @@ export const AttackStateHandler: React.FC<{
     } = useGoalHandlerContext()
 
     const isCharging = attackState.type === AttackStateType.CHARGING
+    const isAttacking = attackState.type === AttackStateType.ATTACKING
     const [timedOut, setTimedOut] = useState(false)
+
+    const [damageActive, setDamageActive] = useState(false)
+
+    useEffect(() => {
+        if (!isAttacking) {
+            setDamageActive(false)
+        } else {
+            const timeout = setTimeout(() => {
+                setDamageActive(true)
+            }, 200)
+            return () => {
+                clearTimeout(timeout)
+            }
+        }
+    }, [isAttacking])
 
     useEffect(() => {
         if (!isCharging) return
-        const delay = lerp(1500, 2000, Math.random())
+        const delay = lerp(1000, 2000, Math.random())
         const timeout = setTimeout(() => {
             setTimedOut(true)
         }, delay)
@@ -46,7 +63,7 @@ export const AttackStateHandler: React.FC<{
         if (!inAttackRange) {
             return
         }
-        const delay = lerp(500, 1000, Math.random())
+        const delay = lerp(100, 500, Math.random())
         const timeout = setTimeout(() => {
             setInAttackRangeAwhile(true)
         }, delay)
@@ -58,6 +75,17 @@ export const AttackStateHandler: React.FC<{
     const shouldSwing = isCharging && (timedOut || inAttackRangeAwhile)
 
     useEffect(() => {
+        if (!isAttacking) return
+        const timeout = setTimeout(() => {
+            movementStateRef.current.lockedTarget = true
+        }, 10)
+        return () => {
+            clearTimeout(timeout)
+            movementStateRef.current.lockedTarget = false
+        }
+    }, [isAttacking])
+
+    useEffect(() => {
         if (!shouldSwing) return
         setAttackState({
             type: AttackStateType.ATTACKING,
@@ -67,8 +95,8 @@ export const AttackStateHandler: React.FC<{
         const angle = body.getAngle()
         const angleVector = new Vec2()
         angleToV2(angle, angleVector)
+        angleVector.mul(1.5)
         target.add(angleVector)
-        movementStateRef.current.lockedTarget = target
     }, [shouldSwing])
 
     useEffect(() => {
@@ -126,7 +154,15 @@ export const AttackStateHandler: React.FC<{
         }
     }, [])
 
-    return null
+    return (
+        <>
+            {
+                damageActive && (
+                    <DamageHandler/>
+                )
+            }
+        </>
+    )
 
 }
 
@@ -143,23 +179,58 @@ export const DamageGoalHandler: React.FC<{
         setRunning,
         setSpeedLimit,
         attackState,
+        attackStateRef,
         setAttackState,
+        damageRecentlyTaken,
+        setSubGoal,
     } = useMobBrainContext()
+
+
+    useEffect(() => {
+        if (!damageRecentlyTaken) return
+        const attackState = attackStateRef.current
+        if (attackState) {
+            if (attackState.type === AttackStateType.ATTACKING) {
+                return
+            }
+        }
+        setSubGoal({
+            type: AttackGoalSubGoalTypes.IDLE,
+            time: Date.now(),
+        })
+    }, [damageRecentlyTaken])
 
     const [pendingAttack, setPendingAttack] = useState(true)
 
+    const [shouldSprint, setShouldSprint] = useState(false)
+
     useEffect(() => {
+        if (shouldSprint) return
+        const delay = lerp(3000, 5000, Math.random())
+        const timeout = setTimeout(() => {
+            setShouldSprint(true)
+        }, delay)
+        return () => {
+            clearTimeout(timeout)
+        }
+    }, [shouldSprint])
+
+    useEffect(() => {
+        if (attackState?.type === AttackStateType.ATTACKING || attackState?.type === AttackStateType.COOLDOWN) {
+            setSpeedLimit(0)
+            return
+        }
+        if (shouldSprint) {
+            setSpeedLimit(SPRINT_SPEED)
+            return
+        }
         if (!attackState) {
             setSpeedLimit(null)
             return
         }
-        if (attackState.type === AttackStateType.ATTACKING || attackState.type === AttackStateType.COOLDOWN) {
-            setSpeedLimit(0)
-            return
-        }
         setSpeedLimit(SLOW_SPEED)
         return
-    }, [attackState])
+    }, [attackState, shouldSprint])
 
     useEffect(() => {
         return () => {
@@ -168,7 +239,6 @@ export const DamageGoalHandler: React.FC<{
     }, [])
 
     const attack = useCallback(() => {
-        console.log('begin attack!')
         setPendingAttack(false)
         setAttackState({
             type: AttackStateType.CHARGING,
@@ -210,7 +280,8 @@ export const DamageGoalHandler: React.FC<{
         attack()
     }, [shouldAttack])
 
-    const isAttacking = attackState?.type === AttackStateType.CHARGING || attackState?.type === AttackStateType.ATTACKING
+    const isAttacking = attackState?.type === AttackStateType.ATTACKING
+    const isCharging = attackState?.type === AttackStateType.CHARGING
 
     useEffect(() => {
 
@@ -225,13 +296,13 @@ export const DamageGoalHandler: React.FC<{
             const targetBody = targetBodyRef.current
             if (!targetBody) return
 
-            let idealDistance = isAttacking ? 0.5 : 1.5
+            let idealDistance = isAttacking ? 1 : 1.5
 
             const {
                 v2,
                 currentDistance,
                 difference,
-            } = getPosition(body, targetBody, idealDistance, false, true, true, true)
+            } = getPosition(body, targetBody, idealDistance, false, true, true, true, isAttacking ? 4 : 2)
 
             if (!movementStateRef.current.targetPosition) {
                 movementStateRef.current.targetPosition = new Vec2(v2)
@@ -258,7 +329,7 @@ export const DamageGoalHandler: React.FC<{
 
         if (!pendingAttack) return
 
-        const delay = lerp(5000, 9000, Math.random())
+        const delay = lerp(3000, 6000, Math.random())
 
         const timeout = setTimeout(() => {
             setTimedOut(true)
@@ -269,6 +340,12 @@ export const DamageGoalHandler: React.FC<{
         }
 
     }, [pendingAttack])
+
+    useEffect(() => {
+        return () => {
+            setAttackState(null)
+        }
+    }, [])
 
     return (
         <>
