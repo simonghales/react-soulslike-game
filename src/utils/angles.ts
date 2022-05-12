@@ -1,6 +1,14 @@
 import {Vec2} from "planck";
 import {lerp} from "three/src/math/MathUtils";
 
+let a = 0
+
+export const getAngleBetweenAngles = (targetA: number, sourceA: number) => {
+    a = targetA - sourceA
+    a = (a + 180) % 360 - 180
+    return a
+}
+
 export const v2ToAngle = (x: number, y: number) => {
     return Math.atan2(y, x);
 }

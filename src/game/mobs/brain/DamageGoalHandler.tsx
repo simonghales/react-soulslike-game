@@ -37,7 +37,7 @@ export const AttackStateHandler: React.FC<{
         } else {
             const timeout = setTimeout(() => {
                 setDamageActive(true)
-            }, 200)
+            }, 250)
             return () => {
                 clearTimeout(timeout)
             }

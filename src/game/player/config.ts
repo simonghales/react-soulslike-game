@@ -42,6 +42,15 @@ export const getAttackEnergyUsage = (attackType: string) => {
     return config.energyUsage
 }
 
+export const getAttackDamage = (attackType: string) => {
+    const config = playerAttacksConfig[attackType]
+    if (!config) {
+        console.error(`No attack config found for ${attackType}`)
+        return 0
+    }
+    return config.baseDamage
+}
+
 export const getAttackDuration = (attackType: string) => {
     const config = playerAttacksConfig[attackType]
     if (!config) {

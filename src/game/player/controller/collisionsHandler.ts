@@ -1,13 +1,18 @@
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useOnCollisionBegin, useOnCollisionEnd} from "react-three-physics";
 import {Fixture} from "planck/dist/planck-with-testbed";
 import {getFixtureCollisionId, getFixtureCollisionType} from "../../../utils/physics";
+import {PlayerAttackCollisionTypes} from "../../data/collisions";
+import {PlayerCollisionsState} from "../types";
+import {Body} from "planck";
 
-export const useCollisionsHandler = () => {
+export type PlayerCollisionsData = Record<string, Record<string, Body>>
 
-    const [activeCollisions, setActiveCollisions] = useState({} as Record<string, Record<string, any>>)
+export const useCollisionsHandler = (id: string) => {
 
-    useOnCollisionBegin('player', (fixture: Fixture, currentFixture: Fixture) => {
+    const [activeCollisions, setActiveCollisions] = useState({} as PlayerCollisionsData)
+
+    useOnCollisionBegin(id, (fixture: Fixture, currentFixture: Fixture) => {
         const collidedId = getFixtureCollisionId(fixture)
         if (!collidedId) return
         const collisionType = getFixtureCollisionType(currentFixture)
@@ -23,7 +28,7 @@ export const useCollisionsHandler = () => {
         })
     })
 
-    useOnCollisionEnd('player', (fixture: Fixture, currentFixture: Fixture) => {
+    useOnCollisionEnd(id, (fixture: Fixture, currentFixture: Fixture) => {
         const collidedId = getFixtureCollisionId(fixture)
         if (!collidedId) return
         const collisionType = getFixtureCollisionType(currentFixture)
@@ -40,5 +45,30 @@ export const useCollisionsHandler = () => {
     })
 
     return activeCollisions
+
+}
+
+
+export const useCollisionsState = (collisions: PlayerCollisionsData, combatCollisions: PlayerCollisionsData) => {
+
+    const collisionsState = useMemo<PlayerCollisionsState>(() => {
+
+        const enemiesInLongAttackSensor: string[] = []
+        const enemiesInShortAttackSensor: string[] = []
+
+        Object.keys(combatCollisions[PlayerAttackCollisionTypes.QUICK_ATTACK] ?? {}).forEach((id) => {
+            enemiesInShortAttackSensor.push(id)
+        })
+        Object.keys(combatCollisions[PlayerAttackCollisionTypes.LONG_ATTACK] ?? {}).forEach((id) => {
+            enemiesInLongAttackSensor.push(id)
+        })
+
+        return {
+            enemiesInLongAttackSensor,
+            enemiesInShortAttackSensor,
+        }
+    }, [collisions, combatCollisions])
+
+    return collisionsState
 
 }

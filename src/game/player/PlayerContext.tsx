@@ -1,6 +1,7 @@
-import {createContext, useContext} from "react";
+import {createContext, MutableRefObject, useContext} from "react";
 import {Body} from "planck";
-import {PlayerMovementState} from "./types";
+import {PlayerCollisionsState, PlayerFixtures, PlayerMovementState} from "./types";
+import {PlayerCollisionsData} from "./controller/collisionsHandler";
 
 export const PlayerContext = createContext(null! as {
     body: Body,
@@ -15,6 +16,11 @@ export const PlayerContext = createContext(null! as {
     energyLastUsed: number,
     movementState: '' | PlayerMovementState,
     setMovementState: any,
+    fixtures: PlayerFixtures,
+    collisionsState: PlayerCollisionsState,
+    collisionsStateRef: MutableRefObject<PlayerCollisionsState>,
+    collisions: PlayerCollisionsData,
+    collisionsRef: MutableRefObject<PlayerCollisionsData>,
 })
 
 export const usePlayerContext = () => {

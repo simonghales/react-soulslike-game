@@ -36,7 +36,7 @@ import {getPowerGraph} from "../../utils/graphs";
 import {PlayerController} from "./controller/PlayerController";
 import {PlayerStateHandler} from "./PlayerStateHandler";
 import {PlayerMovementState} from "./types";
-import {useCollisionsHandler} from "./controller/collisionsHandler";
+import {useCollisionsHandler, useCollisionsState} from "./controller/collisionsHandler";
 
 let moveRight = false
 let moveLeft = false
@@ -1137,11 +1137,11 @@ export const LgPlayer: React.FC = () => {
         }
     }, [energyUsage, movementState, healthRemaining]))
 
-    const collisions = useCollisionsHandler()
-
-    useEffect(() => {
-        console.log('collisions', collisions)
-    }, [collisions])
+    const collisions = useCollisionsHandler(playerConfig.collisionIds.player)
+    const combatCollisions = useCollisionsHandler(playerConfig.collisionIds.attack)
+    const collisionsState = useCollisionsState(collisions, combatCollisions)
+    const collisionsRef = useEffectRef(collisions)
+    const collisionsStateRef = useEffectRef(collisionsState)
 
     if (!body || !combatBody || !fixtures) return null
 
@@ -1159,6 +1159,11 @@ export const LgPlayer: React.FC = () => {
             energyLastUsed,
             movementState,
             setMovementState,
+            fixtures,
+            collisions,
+            collisionsRef,
+            collisionsState,
+            collisionsStateRef,
         }}>
             {/*<Controller fixtures={fixtures} body={body} combatBody={combatBody}/>*/}
             <PlayerController/>

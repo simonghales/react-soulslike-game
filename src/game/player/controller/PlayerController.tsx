@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from "react"
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 import {useIsKeyPressed, useOnPhysicsUpdate} from "react-three-physics";
 import {defaultKeys, defaultKeysState, KEY_BINDINGS, KeysProcessedState, KeysState} from "../keys";
 import {usePlayerContext} from "../PlayerContext";
@@ -7,16 +7,22 @@ import {angleToV2, lerpRadians, v2ToAngle} from "../../../utils/angles";
 import {
     getAttackAngleRange,
     getAttackDuration,
-    getAttackDurationAndCooldown, getAttackEnergyUsage,
-    getAttackInputExpiration, playerAttacksConfig,
-    PlayerAttackType, playerConfig
+    getAttackDurationAndCooldown,
+    getAttackEnergyUsage,
+    getAttackInputExpiration,
+    playerAttacksConfig,
+    PlayerAttackType,
+    playerConfig
 } from "../config";
 import {degToRad, lerp} from "three/src/math/MathUtils";
 import {useEffectRef} from "../../../utils/hooks";
 import {normalize} from "../../../utils/numbers";
-import {PlayerMovementState} from "../types";
+import {PlayerFixtures, PlayerMovementState} from "../types";
 import {PlayerEventType, useOnPlayerEvents} from "../../events/player";
 import {AttackData, useAttackHandler} from "./attackHandler";
+import {updateRollingFixtures} from "./rolling";
+import {SelectedTarget, SelectedTargetWithBody, useTargetControls} from "./targetHandler";
+import {defaultMovementState, defaultPlayerState, MovementState, PlayerState} from "./types";
 
 let pressed = false
 let held = false
@@ -87,6 +93,7 @@ export type ProcessedState = {
     isBackStepping: boolean,
     isRunning: boolean,
     isAttacking: boolean,
+    isStunned: boolean,
 }
 
 const defaultProcessedState: ProcessedState = {
@@ -101,6 +108,7 @@ const defaultProcessedState: ProcessedState = {
     isBackStepping: false,
     isRunning: false,
     isAttacking: false,
+    isStunned: false,
 }
 
 export enum QueuedInputType {
@@ -126,6 +134,7 @@ export type InputsState = {
     attackY: number,
     attackYReleased: number,
     pendingAttack: number,
+    pendingTarget: number,
 }
 
 const defaultInputsState: InputsState = {
@@ -137,6 +146,7 @@ const defaultInputsState: InputsState = {
     attackY: 0,
     attackYReleased: 0,
     pendingAttack: 0,
+    pendingTarget: 0,
 }
 
 const PENDING_JUMP_THRESHOLD = 150
@@ -287,8 +297,49 @@ const handleAttackInputs = (keysState: KeysProcessedState, inputsState: InputsSt
 
 }
 
+const handleTargetInput = (
+    keysState: KeysProcessedState,
+    inputsState: InputsState,
+    playerState: PlayerState,
+    controllerActions: ControllerActions,
+) => {
 
-const processInputs = (keysState: KeysProcessedState, inputsState: InputsState, energyState: EnergyState) => {
+    if (keysState.targetPressed) {
+
+        if (!playerState.inTargetMode) {
+            if (controllerActions.enterTargetMode()) {
+                playerState.inTargetMode = true
+            }
+        } else {
+            controllerActions.selectNewTarget()
+        }
+
+        // set target key held
+
+    } else if (keysState.targetReleased) {
+
+        // set target key released
+
+    }
+
+    if (keysState.targetUnlockReleased) {
+
+        if (playerState.inTargetMode) {
+            playerState.inTargetMode = false
+            controllerActions.exitTargetMode()
+        }
+
+    }
+
+}
+
+const processInputs = (
+    keysState: KeysProcessedState,
+    inputsState: InputsState,
+    energyState: EnergyState,
+    playerState: PlayerState,
+    controllerActions: ControllerActions,
+) => {
 
     now = Date.now()
 
@@ -303,6 +354,8 @@ const processInputs = (keysState: KeysProcessedState, inputsState: InputsState, 
     } else {
         inputsState.pendingJump = false
     }
+
+    handleTargetInput(keysState, inputsState, playerState, controllerActions)
 
     handleAttackInputs(keysState, inputsState, energyState)
 
@@ -439,6 +492,8 @@ const processAttackInput = (
     actionState: PlayerActionState,
     energyState: EnergyState,
     setCurrentAttack: any,
+    selectedTarget: SelectedTarget,
+    body: Body,
 ) => {
 
     if (checkHasExpired(queuedInput, getAttackInputExpiration(queuedInput.data.attackType))) {
@@ -464,6 +519,12 @@ const processAttackInput = (
         data: queuedInput.data,
     }
 
+    if (selectedTarget) {
+        calculateTargetVector(v2, body, selectedTarget)
+        actionState.currentAction.data.attackX = v2.x
+        actionState.currentAction.data.attackY = v2.y
+    }
+
     setCurrentAttack({
         time: Date.now(),
         type: queuedInput.data.attackType,
@@ -482,6 +543,7 @@ const processInputsQueue = (
     keysState: KeysProcessedState,
     body: Body,
     setCurrentAttack: any,
+    selectedTarget: SelectedTarget,
 ) => {
 
     inputsState.queue.forEach((queuedInput, index, queue) => {
@@ -493,7 +555,7 @@ const processInputsQueue = (
                 shouldDelete = processRollInput(queuedInput, inputsState, processedState, actionState, energyState, keysState, body)
                 break;
             case QueuedInputType.ATTACK:
-                shouldDelete = processAttackInput(queuedInput, inputsState, processedState, actionState, energyState, setCurrentAttack)
+                shouldDelete = processAttackInput(queuedInput, inputsState, processedState, actionState, energyState, setCurrentAttack, selectedTarget, body)
                 break;
         }
         if (shouldDelete) {
@@ -515,13 +577,20 @@ const processActionAttack = (action: PlayerAction, actionState: PlayerActionStat
 
 }
 
-const processActionRoll = (action: PlayerAction, actionState: PlayerActionState) => {
+const processActionRoll = (action: PlayerAction, actionState: PlayerActionState, fixtures: PlayerFixtures) => {
 
     now = Date.now()
     timeElapsed = now - action.time
 
     if (timeElapsed > playerConfig.actions.roll.duration) {
         actionState.currentAction = null
+
+        fixtures.default.setSensor(false)
+        fixtures.medium.setSensor(false)
+        fixtures.small.setSensor(false)
+
+    } else {
+        updateRollingFixtures(fixtures, normalize(timeElapsed, playerConfig.actions.roll.duration, 0))
     }
 
 }
@@ -548,7 +617,7 @@ const processActionJump = (action: PlayerAction, actionState: PlayerActionState)
 
 }
 
-const processAction = (actionState: PlayerActionState, setCurrentAttack: any) => {
+const processAction = (actionState: PlayerActionState, setCurrentAttack: any, fixtures: PlayerFixtures) => {
 
     if (!actionState.currentAction) {
         return
@@ -559,7 +628,7 @@ const processAction = (actionState: PlayerActionState, setCurrentAttack: any) =>
             processActionAttack(actionState.currentAction, actionState, setCurrentAttack)
             break;
         case PlayerActionType.ROLL:
-            processActionRoll(actionState.currentAction, actionState)
+            processActionRoll(actionState.currentAction, actionState, fixtures)
             break;
         case PlayerActionType.BACK_STEP:
             processActionBackStep(actionState.currentAction, actionState)
@@ -575,19 +644,37 @@ let hasCurrentAction = false
 let isInAttackCooldown = false
 let isInSpecialMoveCooldown = false
 let isInCooldown = false
+let isStunned = false
 
-const processState = (processedState: ProcessedState, actionState: PlayerActionState, inputsState: InputsState) => {
+const processState = (
+    processedState: ProcessedState,
+    actionState: PlayerActionState,
+    inputsState: InputsState,
+    playerState: PlayerState,
+) => {
 
     now = Date.now()
+
+    isStunned = false
+
+    if (playerState.stunnedCooldown) {
+        if (now < playerState.stunnedCooldown) {
+            isStunned = true
+        } else {
+            playerState.stunnedCooldown = 0
+        }
+    }
+
+    processedState.isStunned = isStunned
 
     hasCurrentAction = !!actionState.currentAction
 
     isInAttackCooldown = now < actionState.attackCooldown
     isInSpecialMoveCooldown = now < actionState.specialMoveCooldown
 
-    isInCooldown = isInAttackCooldown || isInSpecialMoveCooldown
+    isInCooldown = isInAttackCooldown || isInSpecialMoveCooldown || isStunned
 
-    processedState.canMove = !isInAttackCooldown
+    processedState.canMove = !isInAttackCooldown && !isStunned
     processedState.canAttack = !hasCurrentAction && !isInCooldown
     processedState.canSpecialMove = !hasCurrentAction && !isInCooldown
     processedState.attackCooldown = isInAttackCooldown
@@ -696,40 +783,6 @@ const defaultPlayerActionState: PlayerActionState = {
     specialMoveCooldown: 0,
 }
 
-export type MovementState = {
-    previousLookDirection: number,
-    previousMovementDirection: number,
-    lastLooked: number,
-    lastMoved: number,
-    lookViaMovement: boolean,
-    lastLookX: number,
-    lastLookXTime: number,
-    lastLookY: number,
-    lastLookYTime: number,
-    lastMoveX: number,
-    lastMoveXTime: number,
-    lastMoveY: number,
-    lastMoveYTime: number,
-    lastCombatAngle: number,
-}
-
-export const defaultMovementState: MovementState = {
-    previousLookDirection: 0,
-    previousMovementDirection: 0,
-    lastLooked: 0,
-    lastMoved: 0,
-    lookViaMovement: false,
-    lastLookX: 0,
-    lastLookXTime: 0,
-    lastLookY: 0,
-    lastLookYTime: 0,
-    lastMoveX: 0,
-    lastMoveXTime: 0,
-    lastMoveY: 0,
-    lastMoveYTime: 0,
-    lastCombatAngle: 0,
-}
-
 let targetAngle = 0
 let lowAngle = 0
 let highAngle = 0
@@ -772,6 +825,19 @@ const processCombatAngle = (bodyAngle: number, combatBody: Body, isAttacking: bo
 
 }
 
+const angleV2 = new Vec2()
+
+const calculateTargetVector = (vector: Vec2, body: Body, selectedTarget: SelectedTargetWithBody) => {
+    vector.set(selectedTarget.body.getPosition())
+    vector.sub(body.getPosition())
+    return vector.normalize()
+}
+
+const calculateTargetAngle = (body: Body, selectedTarget: SelectedTargetWithBody) => {
+    calculateTargetVector(angleV2, body, selectedTarget)
+    return v2ToAngle(angleV2.x, angleV2.y)
+}
+
 const processAngle = (
     movementState: MovementState,
     keysState: KeysProcessedState,
@@ -782,6 +848,7 @@ const processAngle = (
     actionState: PlayerActionState,
     processedState: ProcessedState,
     isSpecialMove: boolean,
+    selectedTarget: SelectedTarget,
     ) => {
 
 
@@ -874,7 +941,10 @@ const processAngle = (
 
     movementState.lookViaMovement = lookViaMovement
 
-    if (lookViaMovement) {
+    if (!isAttacking && selectedTarget) {
+        angle = calculateTargetAngle(body, selectedTarget)
+        movementState.previousLookDirection = angle
+    } else if (lookViaMovement) {
         movementState.previousLookDirection = movementDirection
         angle = lerpRadians(movementDirection, previousMovementDirection, isAttacking ? 1 : 0.25)
         angle = lerpRadians(body.getAngle(), angle, isAttacking ? 0.9 : 0.33)
@@ -914,7 +984,9 @@ const processMovement = (
     energyState: EnergyState,
     body: Body,
     combatBody: Body,
-    delta: number) => {
+    delta: number,
+    selectedTarget: SelectedTarget,
+) => {
 
 
     moveX = keysState.moveRightHeld ? 1 : keysState.moveLeftHeld ? -1 : 0
@@ -958,7 +1030,20 @@ const processMovement = (
 
     }
 
-    processAngle(movementState, keysState, inputsState, body, combatBody, movementVector, wantsToMove, isAttacking, actionState, processedState, isSpecialMove)
+    processAngle(
+        movementState,
+        keysState,
+        inputsState,
+        body,
+        combatBody,
+        movementVector,
+        wantsToMove,
+        isAttacking,
+        actionState,
+        processedState,
+        isSpecialMove,
+        selectedTarget,
+    )
 
     combatBody.setPosition(body.getPosition())
 
@@ -1001,6 +1086,12 @@ const isInvincible = (actionState: PlayerActionState) => {
     return false
 }
 
+export type ControllerActions = {
+    enterTargetMode: () => boolean,
+    selectNewTarget: () => void,
+    exitTargetMode: () => void,
+}
+
 export const PlayerController: React.FC = () => {
 
     const localStateRef = useRef({
@@ -1011,7 +1102,17 @@ export const PlayerController: React.FC = () => {
         movementState: {...defaultMovementState},
         actionState: {...defaultPlayerActionState},
         energyState: {...defaultEnergyState},
+        playerState: {...defaultPlayerState},
     })
+
+    const keysState = localStateRef.current.keysState
+    const prevKeys = localStateRef.current.prevKeys
+    const processedState = localStateRef.current.processedState
+    const inputsState = localStateRef.current.inputsState
+    const movementState = localStateRef.current.movementState
+    const actionState = localStateRef.current.actionState
+    const energyState = localStateRef.current.energyState
+    const playerState = localStateRef.current.playerState
 
     const {
         body,
@@ -1020,6 +1121,7 @@ export const PlayerController: React.FC = () => {
         increaseEnergyUsage,
         setMovementState,
         increasePlayerDamage,
+        fixtures,
     } = usePlayerContext()
 
     const [currentAttack, setCurrentAttack] = useState(null as null | AttackData)
@@ -1028,26 +1130,57 @@ export const PlayerController: React.FC = () => {
 
     const isKeyPressed = useIsKeyPressed()
 
-    useOnPhysicsUpdate(useCallback((delta) => {
+    const {
+        controls: targetControls,
+        selectedTargetRef,
+        isInTargetMode,
+        setIsInTargetMode,
+    } = useTargetControls(movementState, keysState, playerState)
 
-        const keysState = localStateRef.current.keysState
-        const prevKeys = localStateRef.current.prevKeys
-        const processedState = localStateRef.current.processedState
-        const inputsState = localStateRef.current.inputsState
-        const movementState = localStateRef.current.movementState
-        const actionState = localStateRef.current.actionState
-        const energyState = localStateRef.current.energyState
+    useEffect(() => {
+        localStateRef.current.playerState.inTargetMode = isInTargetMode
+    }, [isInTargetMode])
+
+    const controllerActions = useMemo<ControllerActions>(() => {
+        return {
+            enterTargetMode: () => {
+                const target = targetControls.selectIdealTarget()
+                if (target) {
+                    setIsInTargetMode(true)
+                    return true
+                } else {
+                    setIsInTargetMode(false)
+                    return false
+                }
+            },
+            selectNewTarget: () => {
+                const target = targetControls.selectIdealTarget()
+                if (!target) {
+                    setIsInTargetMode(false)
+                    localStateRef.current.playerState.inTargetMode = false
+                }
+            },
+            exitTargetMode: () => {
+                setIsInTargetMode(false)
+                targetControls.clearTarget()
+            },
+        }
+    }, [targetControls])
+
+    useOnPhysicsUpdate(useCallback((delta) => {
 
         energyState.newUsage = 0
         energyState.currentUsage = energyUsageRef.current
 
+        const selectedTarget = selectedTargetRef.current
+
         processKeys(keysState, prevKeys, isKeyPressed)
-        processInputs(keysState, inputsState, energyState)
-        processAction(actionState, setCurrentAttack)
-        processState(processedState, actionState, inputsState)
-        processInputsQueue(inputsState, processedState, actionState, energyState, keysState, body, setCurrentAttack)
-        processState(processedState, actionState, inputsState) // process again...
-        processMovement(movementState, actionState, processedState, keysState, inputsState, energyState, body, combatBody, delta)
+        processInputs(keysState, inputsState, energyState, playerState, controllerActions)
+        processAction(actionState, setCurrentAttack, fixtures)
+        processState(processedState, actionState, inputsState, playerState)
+        processInputsQueue(inputsState, processedState, actionState, energyState, keysState, body, setCurrentAttack, selectedTarget)
+        processState(processedState, actionState, inputsState, playerState) // process again...
+        processMovement(movementState, actionState, processedState, keysState, inputsState, energyState, body, combatBody, delta, selectedTarget)
 
         if (energyState.newUsage > 0) {
             increaseEnergyUsage(energyState.newUsage)
@@ -1055,6 +1188,8 @@ export const PlayerController: React.FC = () => {
 
         if (processedState.isAttacking) {
             setMovementState(PlayerMovementState.ATTACKING)
+        } else if (processedState.isStunned) {
+            setMovementState(PlayerMovementState.STUNNED)
         } else if (processedState.isJumping) {
             setMovementState(PlayerMovementState.JUMPING)
         } else if (processedState.isBackStepping) {
@@ -1088,6 +1223,15 @@ export const PlayerController: React.FC = () => {
         v2.normalize()
         v2.mul(2)
         body.applyLinearImpulse(v2, plainV2)
+
+
+        if ((Date.now() - localStateRef.current.playerState.lastStunned) > 2000) {
+            localStateRef.current.inputsState.pendingAttack = 0
+            localStateRef.current.playerState.lastStunned = Date.now()
+            localStateRef.current.playerState.stunnedCooldown = Date.now() + 500
+        }
+
+        setMovementState(PlayerMovementState.STUNNED)
 
     }, [])
 

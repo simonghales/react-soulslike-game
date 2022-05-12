@@ -28,8 +28,8 @@ const generateMobs = () => {
     }
 
     addMob(-4, 6)
-    // addMob(4, 6)
-    // addMob(0, 7)
+    addMob(4, 6)
+    addMob(0, 7)
     // addMob(5, 7)
     // addMob(-5, 7)
     // addMob(8, 7)

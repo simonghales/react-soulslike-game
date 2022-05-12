@@ -93,6 +93,7 @@ export const Player: React.FC = () => {
     }, [playerAttackState])
 
     const color = !!playerDamaged ? 'red' :
+                    movementState === PlayerMovementState.STUNNED ? 'purple' :
                     movementState === PlayerMovementState.ATTACKING ? 'orange' :
                     movementState === PlayerMovementState.PENDING_ATTACK ? 'yellow' :
                         movementState === PlayerMovementState.COOLDOWN ? 'grey' : 'white'
@@ -131,9 +132,9 @@ export const Player: React.FC = () => {
                 {/*<Circle args={[playerConfig.sensors.mediumCombatRadius, 32]}>*/}
                 {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
                 {/*</Circle>*/}
-                {/*<Circle args={[playerConfig.sensors.largeCombatRadius, 32]}>*/}
-                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
-                {/*</Circle>*/}
+                <Circle args={[playerConfig.sensors.largeCombatRadius, 32]}>
+                    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>
+                </Circle>
                 {/*<Circle args={[playerConfig.sensors.extraLargeCombatRadius, 32]}>*/}
                 {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
                 {/*</Circle>*/}

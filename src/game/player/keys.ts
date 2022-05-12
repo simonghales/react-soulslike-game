@@ -12,6 +12,8 @@ export const RAW_KEYS = [
     'shift',
     'rightAngle',
     'space',
+    'target',
+    'targetUnlock',
 ] as const
 
 export const RAW_KEYS_PRESSED = [
@@ -26,6 +28,8 @@ export const RAW_KEYS_PRESSED = [
     'shiftPressed',
     'rightAnglePressed',
     'spacePressed',
+    'targetPressed',
+    'targetUnlockPressed',
 ] as const
 
 export const RAW_KEYS_RELEASED = [
@@ -40,6 +44,8 @@ export const RAW_KEYS_RELEASED = [
     'shiftReleased',
     'rightAngleReleased',
     'spaceReleased',
+    'targetReleased',
+    'targetUnlockReleased',
 ] as const
 
 export const RAW_KEYS_HELD = [
@@ -54,6 +60,8 @@ export const RAW_KEYS_HELD = [
     'shiftHeld',
     'rightAngleHeld',
     'spaceHeld',
+    'targetHeld',
+    'targetUnlockHeld',
 ] as const
 
 export const RAW_KEYS_STATE = [
@@ -88,6 +96,8 @@ export const KEY_BINDINGS: KeyBindings = {
     [KEYS.shift]: INPUT_KEYS.SHIFT,
     [KEYS.rightAngle]: INPUT_KEYS.RIGHT_ANGLE,
     [KEYS.space]: INPUT_KEYS.SPACE,
+    [KEYS.target]: INPUT_KEYS.Q,
+    [KEYS.targetUnlock]: INPUT_KEYS.E,
 } as KeyBindings
 
 export type KeysProcessedState = {
