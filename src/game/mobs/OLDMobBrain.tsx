@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 import {useGetBody} from "../state/bodies";
-import {useOnPrePhysicsUpdate} from "react-three-physics";
+import {useOnPrePhysicsUpdate} from "@simonghales/react-three-physics";
 import {Body, Vec2} from "planck";
 import {AttackingState, useMobContext, useMobId} from "./MobContext";
 import {angleToV2, calculateAngleBetweenVectors, lerpRadians} from "../../utils/angles";

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react"
-import {KeysCapture, PlanckjsPhysicsConsumer} from "react-three-physics";
+import {KeysCapture, PlanckjsPhysicsConsumer} from "@simonghales/react-three-physics";
 
 // @ts-ignore
 import PhysicsWorker from '../worker/physics.worker';

@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from "react"
 import {Collisions, CollisionsState} from "./types";
-import {useOnCollisionBegin, useOnCollisionEnd} from "react-three-physics";
+import {useOnCollisionBegin, useOnCollisionEnd} from "@simonghales/react-three-physics";
 import {Fixture} from "planck";
 import {getFixtureCollisionId, getFixtureCollisionType} from "../../../utils/physics";
 import {useMobBrainContext} from "../mobBrainContext";

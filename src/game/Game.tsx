@@ -6,7 +6,7 @@ import {Player} from "./player/Player";
 import {Engine} from "./Engine";
 import {Scenery} from "./Scenery";
 import {PlayerCamera} from "./player/PlayerCamera";
-import { SyncableComponents } from "react-three-physics";
+import { SyncableComponents } from "@simonghales/react-three-physics";
 import {mainSyncableComponents} from "./data/mainSyncableComponents";
 import {GameUI} from "./ui/GameUI";
 

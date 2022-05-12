@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from "react"
-import {SyncComponent, useAddBody, useTransmitData} from "react-three-physics";
+import {SyncComponent, useAddBody, useTransmitData} from "@simonghales/react-three-physics";
 import {componentSyncKeys, getMobSyncKey} from "../data/keys";
 import {useWorld} from "../../worker/WorldProvider";
 import {Body, Box, Circle, Vec2} from "planck";

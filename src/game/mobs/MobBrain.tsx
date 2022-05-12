@@ -7,7 +7,7 @@ import {CollisionsHandler} from "./brain/CollisionsHandler";
 import {AttackState, CollisionsState} from "./brain/types";
 import {useGetBody} from "../state/bodies";
 import {useEffectRef} from "../../utils/hooks";
-import {useTransmitData} from "react-three-physics";
+import {useTransmitData} from "@simonghales/react-three-physics";
 import {useMobsGroupContext} from "./MobsGroupHandler";
 import {EventsHandler} from "./brain/EventsHandler";
 import {StatusHandler, useMobStatusState} from "./brain/StatusHandler";

@@ -1,6 +1,6 @@
 import React from "react"
 import {Sphere} from "@react-three/drei";
-import {usePhysicsRef} from "react-three-physics";
+import {usePhysicsRef} from "@simonghales/react-three-physics";
 
 export const DeadMob: React.FC<{
     id: string,

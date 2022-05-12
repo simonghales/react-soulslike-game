@@ -1,7 +1,7 @@
 import React, {Suspense, useEffect} from "react"
 import {Box, Cylinder, Html, Sphere, useTexture} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
-import {usePhysicsRef, useSyncData} from "react-three-physics";
+import {usePhysicsRef, useSyncData} from "@simonghales/react-three-physics";
 import styled from "styled-components";
 import {getMobSyncKey} from "../data/keys";
 import {mobsConfig} from "../data/mobs";

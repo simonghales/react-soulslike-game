@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from "react"
 import {Box, Circle, Cylinder, Html, useTexture} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
-import {usePhysicsRef, useSyncData} from "react-three-physics";
+import {usePhysicsRef, useSyncData} from "@simonghales/react-three-physics";
 import {PlayerCamera} from "./PlayerCamera";
 import {useSetPlayerRef} from "../state/misc";
 import {PlayerAttackStateType, syncKeys} from "../data/keys";

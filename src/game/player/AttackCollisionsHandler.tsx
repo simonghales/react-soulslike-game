@@ -1,4 +1,4 @@
-import {useOnCollisionBegin, useOnCollisionEnd} from "react-three-physics";
+import {useOnCollisionBegin, useOnCollisionEnd} from "@simonghales/react-three-physics";
 import {playerConfig} from "./config";
 import {Fixture} from "planck/dist/planck-with-testbed";
 import {getFixtureCollisionId, getFixtureCollisionType} from "../../utils/physics";

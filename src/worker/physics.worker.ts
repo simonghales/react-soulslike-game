@@ -17,7 +17,7 @@ if (typeof __webpack_require__ !== undefined) {
     };
 }
 
-const createWorkerApp = require('react-three-physics').createWorkerApp
+const createWorkerApp = require('@simonghales/react-three-physics').createWorkerApp
 
 console.log('worker...')
 

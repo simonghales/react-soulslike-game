@@ -6,7 +6,7 @@ import {
     useOnCollisionEnd,
     useOnPrePhysicsUpdate, useSyncData,
     useTransmitData
-} from "react-three-physics";
+} from "@simonghales/react-three-physics";
 import {INPUT_KEYS} from "../input/INPUT_KEYS";
 import {Body, Box, Circle, Vec2} from "planck";
 import {useWorld} from "../../worker/WorldProvider";

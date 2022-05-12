@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react"
 import {useWorld} from "../../worker/WorldProvider";
-import {SyncComponent, useAddBody} from "react-three-physics";
+import {SyncComponent, useAddBody} from "@simonghales/react-three-physics";
 import {Body, Box, Circle, Vec2} from "planck";
 import {COLLISION_FILTER_GROUPS, MobCollisionTypes} from "../data/collisions";
 import {halve} from "../../utils/physics";

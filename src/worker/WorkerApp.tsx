@@ -1,6 +1,6 @@
 import { World } from "planck";
 import React, {useEffect, useState} from "react"
-import {KeysConsumer, PlanckjsCollisions, PlanckjsPhysicsProvider, SyncableComponents} from "react-three-physics";
+import {KeysConsumer, PlanckjsCollisions, PlanckjsPhysicsProvider, SyncableComponents} from "@simonghales/react-three-physics";
 import {LgPlayer} from "../game/player/LgPlayer";
 import {WorldProvider} from "./WorldProvider";
 import {LgBasicMob} from "../game/mobs/LgBasicMob";

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
-import {useIsKeyPressed, useOnPhysicsUpdate} from "react-three-physics";
+import {useIsKeyPressed, useOnPhysicsUpdate} from "@simonghales/react-three-physics";
 import {defaultKeys, defaultKeysState, KEY_BINDINGS, KeysProcessedState, KeysState} from "../keys";
 import {usePlayerContext} from "../PlayerContext";
 import {Body, Vec2} from "planck";
