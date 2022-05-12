@@ -1143,6 +1143,8 @@ export const LgPlayer: React.FC = () => {
     const collisionsRef = useEffectRef(collisions)
     const collisionsStateRef = useEffectRef(collisionsState)
 
+    const isAlive = healthRemaining > 0
+
     if (!body || !combatBody || !fixtures) return null
 
     return (
@@ -1166,8 +1168,14 @@ export const LgPlayer: React.FC = () => {
             collisionsStateRef,
         }}>
             {/*<Controller fixtures={fixtures} body={body} combatBody={combatBody}/>*/}
-            <PlayerController/>
-            <PlayerStateHandler/>
+            {
+                isAlive && (
+                    <>
+                        <PlayerController/>
+                        <PlayerStateHandler/>
+                    </>
+                )
+            }
             {/*<EventsHandler/>*/}
         </PlayerContext.Provider>
     )

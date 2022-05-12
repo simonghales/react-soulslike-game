@@ -41,7 +41,7 @@ export const Game: React.FC = () => {
                         {/*<OrbitControls/>*/}
                     </SyncableComponents>
                 </Engine>
-                <Stats/>
+                {/*<Stats/>*/}
             </Canvas>
             <GameUI/>
         </StyledContainer>

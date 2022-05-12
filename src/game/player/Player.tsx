@@ -132,9 +132,9 @@ export const Player: React.FC = () => {
                 {/*<Circle args={[playerConfig.sensors.mediumCombatRadius, 32]}>*/}
                 {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
                 {/*</Circle>*/}
-                <Circle args={[playerConfig.sensors.largeCombatRadius, 32]}>
-                    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>
-                </Circle>
+                {/*<Circle args={[playerConfig.sensors.largeCombatRadius, 32]}>*/}
+                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
+                {/*</Circle>*/}
                 {/*<Circle args={[playerConfig.sensors.extraLargeCombatRadius, 32]}>*/}
                 {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
                 {/*</Circle>*/}

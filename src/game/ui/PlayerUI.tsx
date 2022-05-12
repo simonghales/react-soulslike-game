@@ -50,6 +50,24 @@ const StyledEnergyAmount = styled.div<{
   transform: translateX(-${props => props.energyAmount}%);
 `
 
+const StyledDeadMessageContainer = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`
+
+const StyledDeadMessage = styled.div`
+    font-size: 2rem;
+    color: red;
+    font-weight: bold;
+`
+
 export const PlayerUI: React.FC = () => {
 
     const {
@@ -63,14 +81,27 @@ export const PlayerUI: React.FC = () => {
 
     const healthAmount = 100 - Math.ceil((healthRemaining / playerConfig.defaultHealth) * 100)
 
+    const playerDead = healthRemaining <= 0
+
     return (
-        <StyledContainer>
-            <StyledHealthContainer>
-                <StyledHealthAmount percent={healthAmount}/>
-            </StyledHealthContainer>
-            <StyledEnergyContainer>
-                <StyledEnergyAmount energyAmount={energyAmount}/>
-            </StyledEnergyContainer>
-        </StyledContainer>
+        <>
+            <StyledContainer>
+                <StyledHealthContainer>
+                    <StyledHealthAmount percent={healthAmount}/>
+                </StyledHealthContainer>
+                <StyledEnergyContainer>
+                    <StyledEnergyAmount energyAmount={energyAmount}/>
+                </StyledEnergyContainer>
+            </StyledContainer>
+            {
+                playerDead && (
+                    <StyledDeadMessageContainer>
+                        <StyledDeadMessage>
+                            you ded
+                        </StyledDeadMessage>
+                    </StyledDeadMessageContainer>
+                )
+            }
+        </>
     )
 }

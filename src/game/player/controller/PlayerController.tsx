@@ -1228,7 +1228,7 @@ export const PlayerController: React.FC = () => {
         if ((Date.now() - localStateRef.current.playerState.lastStunned) > 2000) {
             localStateRef.current.inputsState.pendingAttack = 0
             localStateRef.current.playerState.lastStunned = Date.now()
-            localStateRef.current.playerState.stunnedCooldown = Date.now() + 500
+            localStateRef.current.playerState.stunnedCooldown = Date.now() + 750
         }
 
         setMovementState(PlayerMovementState.STUNNED)
