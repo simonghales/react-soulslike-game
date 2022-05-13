@@ -36,6 +36,7 @@ const selectIdealTarget = (
     playerState: PlayerState,
     recentlySelected: RecentlySelected,
     selectedTarget: SelectedTarget,
+    favourDistance: boolean = false,
 ) => {
 
     const enemiesInRange = collisions[PlayerRangeCollisionTypes.PLAYER_LARGE_COMBAT_RANGE] ?? {}
@@ -88,7 +89,7 @@ const selectIdealTarget = (
         }
 
         enemyCalculations[id] = {
-            angleDifference: Math.pow(angleDifference, 1.1),
+            angleDifference: Math.pow(angleDifference, favourDistance ? 0.5 : 0.9),
             squaredDistance: direction.lengthSquared(),
             extraPenalty,
         }
@@ -118,6 +119,8 @@ export const useTargetControls = (
         collisions,
         collisionsRef,
         body,
+        selectedTarget,
+        setSelectedTarget,
     } = usePlayerContext()
 
     const localStateRef = useRef({
@@ -125,10 +128,13 @@ export const useTargetControls = (
     })
 
     const recentlySelected = localStateRef.current.recentlySelected
-
-    const [selectedTarget, setSelectedTarget] = useState(null as SelectedTarget)
-
+    
     const selectedTargetRef = useEffectRef(selectedTarget)
+
+    useEffect(() => {
+        const id = selectedTarget?.id ?? ''
+        console.log('selected target...', id)
+    }, [selectedTarget])
 
     useEffect(() => {
         localStateRef.current.recentlySelected = {}
@@ -138,10 +144,10 @@ export const useTargetControls = (
 
 
         return {
-            selectIdealTarget: () => {
+            selectIdealTarget: (favourDistance: boolean = false) => {
                 const selectedTarget = selectedTargetRef.current
                 const collisions = collisionsRef.current
-                const target = selectIdealTarget(collisions, body, movementState, keysState, playerState, recentlySelected, selectedTarget)
+                const target = selectIdealTarget(collisions, body, movementState, keysState, playerState, recentlySelected, selectedTarget, favourDistance)
                 setSelectedTarget(target)
                 if (target) {
                     recentlySelected[target.id] = Date.now()
@@ -160,7 +166,7 @@ export const useTargetControls = (
         const enemiesInRange = collisions[PlayerRangeCollisionTypes.PLAYER_LARGE_COMBAT_RANGE] ?? {}
 
         if (!enemiesInRange[selectedTarget.id]) {
-            const newTarget = controls.selectIdealTarget()
+            const newTarget = controls.selectIdealTarget(true)
             if (!newTarget) {
                 controls.clearTarget()
             }

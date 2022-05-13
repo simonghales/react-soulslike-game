@@ -126,7 +126,9 @@ export const MobBrain: React.FC<{
                         <StatusHandler/>
                         {
                             !stunned && (
-                                <MovementHandler/>
+                                <>
+                                    <MovementHandler/>
+                                </>
                             )
                         }
                     </>

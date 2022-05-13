@@ -2,7 +2,7 @@ export const mobsConfig = {
     basic: {
         health: 18,
         damage: 42,
-        damageCooldownDuration: 400,
+        damageCooldownDuration: 750,
         sensors: {
             attackRange: {
                 x: 0.8,

@@ -1,12 +1,13 @@
-import React, {Suspense, useEffect} from "react"
+import React, {Suspense, useEffect, useRef, useState} from "react"
 import {Box, Cylinder, Html, Sphere, useTexture} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
 import {usePhysicsRef, useSyncData} from "@simonghales/react-three-physics";
 import styled from "styled-components";
-import {getMobSyncKey} from "../data/keys";
-import {mobsConfig} from "../data/mobs";
-import {GoalType} from "./types";
-import {AttackGoalSubGoalTypes, AttackStateType} from "./brain/types";
+import {getMobSyncKey} from "../../data/keys";
+import {mobsConfig} from "../../data/mobs";
+import {GoalType} from "../types";
+import {AttackGoalSubGoalTypes, AttackStateType} from "../brain/types";
+import {useEventsHandler} from "./eventsHandler";
 
 const StyledContainer = styled.div`
   width: 70px;
@@ -30,11 +31,13 @@ const StyledBar = styled.div<{
   transform: translateX(-${props => props.healthPercent}%);
 `
 
-const Visuals: React.FC = () => {
+const Visuals: React.FC<{
+    color: string,
+}> = ({color}) => {
     const texture = useTexture("assets/mob-sword.png")
     return (
         <sprite scale={[1.5, 1.5, 1.5]} position={[0, 0, 0.1]}>
-            <spriteMaterial map={texture} depthWrite={false} depthTest={false}/>
+            <spriteMaterial color={color} map={texture} depthWrite={false} depthTest={false}/>
         </sprite>
     )
 }
@@ -70,8 +73,6 @@ export const BasicMob: React.FC<{
 
     // const isAttackGoal = goal?.type === GoalType.ATTACK_ENTITY
 
-    let color = 'purple'
-
     const debugData = useSyncData(`mob--${id}`, {})
 
     const {
@@ -86,6 +87,29 @@ export const BasicMob: React.FC<{
         isAlive: true,
     })
 
+    const localStateRef = useRef({
+        previousHealthRemaining: mobsConfig.basic.health,
+    })
+
+    const [lastDamaged, setLastDamaged] = useState(0)
+
+    const damaged = !!lastDamaged
+
+    useEffect(() => {
+        if (healthRemaining >= localStateRef.current.previousHealthRemaining) return
+        setLastDamaged(Date.now())
+    }, [healthRemaining])
+
+    useEffect(() => {
+        if (!lastDamaged) return
+        const timeout = setTimeout(() => {
+            setLastDamaged(0)
+        }, 750)
+        return () => {
+            clearTimeout(timeout)
+        }
+    }, [lastDamaged])
+
     const healthPercent = (100 - (healthRemaining / mobsConfig.basic.health) * 100)
 
     const targetPosition = debugData?.targetPosition
@@ -94,6 +118,10 @@ export const BasicMob: React.FC<{
     const isAttacking = attackState?.type === AttackStateType.ATTACKING
 
     const isDamageSubGoal = subGoal?.type === AttackGoalSubGoalTypes.DAMAGE
+
+    const color = damaged ? 'red' : 'white'
+
+    useEventsHandler(id, ref)
 
     return (
         <>
@@ -121,7 +149,7 @@ export const BasicMob: React.FC<{
                     )
                 }
                 <Suspense fallback={null}>
-                    <Visuals/>
+                    <Visuals color={color}/>
                 </Suspense>
             </group>
             {/*{*/}

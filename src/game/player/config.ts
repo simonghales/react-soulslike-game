@@ -106,12 +106,12 @@ export const playerConfig = {
         extraSmallCombatRadius: 1.75,
         shortAttack: {
             w: 1.6,
-            h: 0.5,
+            h: 0.7,
             x: 0.8,
         },
         longAttack: {
             w: 1.6,
-            h: 0.75,
+            h: 0.9,
             x: 0.8,
         }
     },

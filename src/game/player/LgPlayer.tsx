@@ -1129,6 +1129,8 @@ export const LgPlayer: React.FC = () => {
 
     const [movementState, setMovementState] = useState('' as '' | PlayerMovementState)
 
+    const [selectedTarget, setSelectedTarget] = useState(null as SelectedTarget)
+
     useTransmitData(syncKeys.playerState, useMemo(() => {
         return {
             energyUsage,
@@ -1142,6 +1144,8 @@ export const LgPlayer: React.FC = () => {
     const collisionsState = useCollisionsState(collisions, combatCollisions)
     const collisionsRef = useEffectRef(collisions)
     const collisionsStateRef = useEffectRef(collisionsState)
+
+
 
     const isAlive = healthRemaining > 0
 
@@ -1166,6 +1170,8 @@ export const LgPlayer: React.FC = () => {
             collisionsRef,
             collisionsState,
             collisionsStateRef,
+            selectedTarget,
+            setSelectedTarget,
         }}>
             {/*<Controller fixtures={fixtures} body={body} combatBody={combatBody}/>*/}
             {

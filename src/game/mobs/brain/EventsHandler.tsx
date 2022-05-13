@@ -4,6 +4,8 @@ import {Vec2} from "planck";
 import {lerp} from "three/src/math/MathUtils";
 import {normalize} from "../../../utils/numbers";
 import {MobEvent, MobEventType, useOnMobEvents} from "../../events/mobs";
+import {useSendCustomMessage} from "@simonghales/react-three-physics";
+import {getMobEventsKey} from "../../data/keys";
 
 const v2 = new Vec2()
 const emptyV2 = new Vec2()
@@ -15,6 +17,8 @@ export const EventsHandler: React.FC = () => {
         body,
         onDamage,
     } = useMobBrainContext()
+
+    const sendEvent = useSendCustomMessage()
 
     const {
         handleDamaged,
@@ -31,6 +35,12 @@ export const EventsHandler: React.FC = () => {
                 const power = lerp(50, 100, normalize(damage, 12, 2))
                 v2.mul(power)
                 body.applyLinearImpulse(v2, emptyV2)
+                sendEvent(getMobEventsKey(id), {
+                    type: MobEventType.DAMAGED,
+                    damage,
+                    x: v2.x,
+                    y: v2.y,
+                })
             },
         }
     }, [])

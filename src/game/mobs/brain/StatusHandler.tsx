@@ -35,7 +35,7 @@ export const useMobStatusState = () => {
         setStunned(true)
         const timeout = setTimeout(() => {
             setDamageRecentlyTaken(false)
-        }, 750)
+        }, 1500)
         return () => {
             clearTimeout(timeout)
         }

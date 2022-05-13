@@ -9,6 +9,7 @@ import {PlayerCamera} from "./player/PlayerCamera";
 import { SyncableComponents } from "@simonghales/react-three-physics";
 import {mainSyncableComponents} from "./data/mainSyncableComponents";
 import {GameUI} from "./ui/GameUI";
+import {SceneManager} from "./scene/SceneManager";
 
 const StyledContainer = styled.div`
   position: fixed;
@@ -32,16 +33,18 @@ export const Game: React.FC = () => {
     return (
         <StyledContainer>
             <Canvas>
-                <Engine>
-                    <SyncableComponents components={mainSyncableComponents}>
-                        <Scenery/>
-                        <Suspense fallback={null}>
-                            <Player/>
-                        </Suspense>
-                        {/*<OrbitControls/>*/}
-                    </SyncableComponents>
-                </Engine>
-                {/*<Stats/>*/}
+                <SceneManager>
+                    <Engine>
+                        <SyncableComponents components={mainSyncableComponents}>
+                            <Scenery/>
+                            <Suspense fallback={null}>
+                                <Player/>
+                            </Suspense>
+                            {/*<OrbitControls/>*/}
+                        </SyncableComponents>
+                    </Engine>
+                    {/*<Stats/>*/}
+                </SceneManager>
             </Canvas>
             <GameUI/>
         </StyledContainer>

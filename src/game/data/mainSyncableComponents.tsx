@@ -1,5 +1,5 @@
 import {componentSyncKeys} from "./keys";
-import {BasicMob} from "../mobs/BasicMob";
+import {BasicMob} from "../mobs/frontend/BasicMob";
 import {DeadMob} from "../mobs/DeadMob";
 
 export const mainSyncableComponents = {

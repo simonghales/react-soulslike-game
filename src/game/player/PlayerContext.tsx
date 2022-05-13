@@ -2,6 +2,7 @@ import {createContext, MutableRefObject, useContext} from "react";
 import {Body} from "planck";
 import {PlayerCollisionsState, PlayerFixtures, PlayerMovementState} from "./types";
 import {PlayerCollisionsData} from "./controller/collisionsHandler";
+import {SelectedTarget} from "./controller/targetHandler";
 
 export const PlayerContext = createContext(null! as {
     body: Body,
@@ -21,6 +22,8 @@ export const PlayerContext = createContext(null! as {
     collisionsStateRef: MutableRefObject<PlayerCollisionsState>,
     collisions: PlayerCollisionsData,
     collisionsRef: MutableRefObject<PlayerCollisionsData>,
+    selectedTarget: SelectedTarget,
+    setSelectedTarget: any,
 })
 
 export const usePlayerContext = () => {

@@ -93,3 +93,9 @@ export const lerpRadiansBROKEN = (angleA: number, angleB: number, lerpFactor: nu
 export const calculateAngleBetweenVectors = (x1: number, x2: number, y1: number, y2: number): number => {
     return Math.atan2((x1 - x2), (y1 - y2))
 }
+
+export const rotateVector = (v2: Vec2, radians: number) => {
+    const x = v2.x * Math.cos(radians) - v2.y * Math.sin(radians);
+    const y = v2.x * Math.sin(radians) + v2.y * Math.cos(radians);
+    return v2.set(x, y)
+}

@@ -8,6 +8,10 @@ export const getMobSyncKey = (id: string) => {
     return `mob--${id}`
 }
 
+export const getMobEventsKey = (id: string) => {
+    return `mob--${id}`
+}
+
 export enum PlayerAttackStateType {
     CHARGING = 'CHARGING',
     SHORT = 'SHORT',

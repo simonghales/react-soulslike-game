@@ -5820,6 +5820,11 @@ jest@^27.4.3:
     import-local "^3.0.2"
     jest-cli "^27.5.1"
 
+js-easing-functions@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/js-easing-functions/-/js-easing-functions-1.0.3.tgz#01bcf4d4779994a55e3d7790ba755ef7872ba629"
+  integrity sha512-skDTLPuwWvAVYQVPwmjcFuCv8i8jtVD4L4FELxICwbS1HWFhs+627vOdDhQUGJMe9os6QO2XgEI4qb5umiUQFg==
+
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
@@ -7617,10 +7622,6 @@ react-scripts@5.0.0:
     workbox-webpack-plugin "^6.4.1"
   optionalDependencies:
     fsevents "^2.3.2"
-
-"react-three-physics@link:.yalc/react-three-physics":
-  version "0.0.0"
-  uid ""
 
 react-use-measure@^2.1.1:
   version "2.1.1"

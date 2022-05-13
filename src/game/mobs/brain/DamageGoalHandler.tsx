@@ -19,6 +19,7 @@ export const AttackStateHandler: React.FC<{
         body,
         movementStateRef,
         collisionsState,
+        damageRecentlyTaken,
     } = useMobBrainContext()
 
     const {
@@ -28,6 +29,7 @@ export const AttackStateHandler: React.FC<{
     const isCharging = attackState.type === AttackStateType.CHARGING
     const isAttacking = attackState.type === AttackStateType.ATTACKING
     const [timedOut, setTimedOut] = useState(false)
+    const [isAggressive] = useState(damageRecentlyTaken)
 
     const [damageActive, setDamageActive] = useState(false)
 
@@ -72,7 +74,7 @@ export const AttackStateHandler: React.FC<{
         }
     }, [inAttackRange])
 
-    const shouldSwing = isCharging && (timedOut || inAttackRangeAwhile)
+    const shouldSwing = isCharging && (timedOut || inAttackRangeAwhile || isAggressive)
 
     useEffect(() => {
         if (!isAttacking) return
@@ -183,11 +185,11 @@ export const DamageGoalHandler: React.FC<{
         setAttackState,
         damageRecentlyTaken,
         setSubGoal,
+        stunned,
     } = useMobBrainContext()
 
-
     useEffect(() => {
-        if (!damageRecentlyTaken) return
+        if (!stunned) return
         const attackState = attackStateRef.current
         if (attackState) {
             if (attackState.type === AttackStateType.ATTACKING) {
@@ -198,11 +200,17 @@ export const DamageGoalHandler: React.FC<{
             type: AttackGoalSubGoalTypes.IDLE,
             time: Date.now(),
         })
-    }, [damageRecentlyTaken])
+    }, [stunned])
 
     const [pendingAttack, setPendingAttack] = useState(true)
 
     const [shouldSprint, setShouldSprint] = useState(false)
+
+    useEffect(() => {
+        if (!damageRecentlyTaken) return
+        console.log('set should sprint!')
+        setShouldSprint(true)
+    }, [damageRecentlyTaken])
 
     useEffect(() => {
         if (shouldSprint) return

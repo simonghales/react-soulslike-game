@@ -165,6 +165,7 @@ export const CombatHandler: React.FC<{
         body,
         targetBody,
         damageRecentlyTaken,
+        stunned,
     } = useMobBrainContext()
 
     const {
@@ -238,7 +239,7 @@ export const CombatHandler: React.FC<{
 
     const [lastAttacked, setLastAttacked] = useState(0)
 
-    const wantsToAttack = (smallRangeAwhile || mediumRangeAwhile) && !damageRecentlyTaken
+    const wantsToAttack = (smallRangeAwhile || mediumRangeAwhile) && !stunned
 
     useEffect(() => {
         if (!wantsToAttack) return
@@ -247,7 +248,7 @@ export const CombatHandler: React.FC<{
 
     const isAttackingSubGoal = subGoal.type === AttackGoalSubGoalTypes.DAMAGE
 
-    const manualAttackToken = (inExtraSmallRange || smallRangeAwhile) && wantsToAttack
+    const manualAttackToken = (inExtraSmallRange || smallRangeAwhile || damageRecentlyTaken) && wantsToAttack
 
     const shouldAttack = !isAttackingSubGoal && (hasAttackToken || manualAttackToken) && wantsToAttack
 

@@ -23,6 +23,7 @@ import {AttackData, useAttackHandler} from "./attackHandler";
 import {updateRollingFixtures} from "./rolling";
 import {SelectedTarget, SelectedTargetWithBody, useTargetControls} from "./targetHandler";
 import {defaultMovementState, defaultPlayerState, MovementState, PlayerState} from "./types";
+import {easeInOutBack, easeInOutQuad, easeInOutQuint, easeOutQuart} from "../../../utils/easing";
 
 let pressed = false
 let held = false
@@ -815,6 +816,8 @@ const processCombatAngle = (bodyAngle: number, combatBody: Body, isAttacking: bo
         progress = 0
     }
 
+    progress = easeInOutQuad(progress)
+
     highAngle = getAttackAngleRange(actionState.currentAction?.data?.attackType ?? '')
     lowAngle = 0 - highAngle
     targetAngle = lerpRadians(lowAngle, highAngle, progress)
@@ -1225,7 +1228,7 @@ export const PlayerController: React.FC = () => {
         body.applyLinearImpulse(v2, plainV2)
 
 
-        if ((Date.now() - localStateRef.current.playerState.lastStunned) > 2000) {
+        if ((Date.now() - localStateRef.current.playerState.lastStunned) > 1500) {
             localStateRef.current.inputsState.pendingAttack = 0
             localStateRef.current.playerState.lastStunned = Date.now()
             localStateRef.current.playerState.stunnedCooldown = Date.now() + 750
