@@ -20,7 +20,7 @@ let weight = 0
 const WALK_SPEED = 4
 export const SLOW_SPEED = WALK_SPEED
 const RUNNING_SPEED = WALK_SPEED * 2.75
-export const SPRINT_SPEED = RUNNING_SPEED * 1.25
+export const SPRINT_SPEED = RUNNING_SPEED * 1.75
 
 const angleV2 = new Vec2()
 const targetV2 = new Vec2()

@@ -1580,10 +1580,10 @@
   resolved "https://registry.yarnpkg.com/@rushstack/eslint-patch/-/eslint-patch-1.1.1.tgz#782fa5da44c4f38ae9fd38e9184b54e451936118"
   integrity sha512-BUyKJGdDWqvWC5GEhyOiUrGNi9iJUr4CU0O2WxJL6QJhHeeA/NVBalH+FeK0r/x/W0rPymXt5s78TDS7d6lCwg==
 
-"@simonghales/react-three-physics@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@simonghales/react-three-physics/-/react-three-physics-0.1.1.tgz#b2d9ada733599b693eb9a849587219a58a8cbba5"
-  integrity sha512-evv/U17sSV5XYIm3Qsxwc59FyZH0cE3qENtJG6H2FfgpZ0ik5TpQ/ENZGOAwl9vlrnV6PwkhAw1YKN6a06m4RQ==
+"@simonghales/react-three-physics@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@simonghales/react-three-physics/-/react-three-physics-0.1.2.tgz#8487b6d25bae2541e092e3f7ba8a4967a5ab3072"
+  integrity sha512-qZrag5i2OyvDLlL/M1B7LluZqsjMem8f1yqlsEMca6SECm2i05ZVYgKeED+HCt22dqQry6xtg+dBGMHkfI+0lg==
   dependencies:
     hotkeys-js "^3.8.7"
     react-nil "^0.0.3"

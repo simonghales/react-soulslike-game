@@ -49,13 +49,27 @@ export const useBloodSprayParticles = () => {
 
 const tempObject = new Object3D()
 
-export type BloodSprayParticleInstance = {
+export type OLDBloodSprayParticleInstance = {
     angle: number,
     x: number,
     y: number,
     vX: number,
     vY: number,
     time: number,
+}
+
+export type ParticleInstance = {
+    vX: number,
+    vY: number,
+    angle: number,
+}
+
+export type BloodSprayParticleInstance = {
+    x: number,
+    y: number,
+    time: number,
+    main: ParticleInstance[],
+    spray: ParticleInstance[],
 }
 
 export type ParticleControls = {
@@ -72,36 +86,164 @@ let angle = 0
 
 const v2 = new Vec2()
 
+type ParticlesData = {
+    OLDinstances: OLDBloodSprayParticleInstance[],
+    instances: BloodSprayParticleInstance[],
+    mainCount: number,
+    sprayCount: number,
+}
+
+const cleanupOlderInstances = (data: ParticlesData, particleCount: number) => {
+
+    let mainExcess = data.mainCount - particleCount
+    let sprayExcess = data.sprayCount - particleCount
+
+    if (mainExcess <= 0 && sprayExcess <= 0) {
+        return
+    }
+
+    let iterations = 0
+
+    while (((mainExcess > 0) || (sprayExcess > 0)) && (iterations < particleCount)) {
+        iterations +=1 // make sure we don't loop forever...
+        const instance = data.instances[0]
+        if (!instance) {
+            iterations = particleCount
+            return
+        }
+        mainExcess -= instance.main.length
+        sprayExcess -= instance.spray.length
+        data.mainCount -= instance.main.length
+        data.sprayCount -= instance.spray.length
+        data.instances.splice(0, 1)
+    }
+
+}
+
+const generateMainParticles = (count: number, xVel: number, yVel: number) => {
+
+    const particles: ParticleInstance[] = []
+
+    for (let i = 0; i < count; i++) {
+        v2.set(xVel, yVel)
+        const mul = lerp(1, 0.25, Math.random())
+        v2.mul(mul)
+        rotateVector(v2, degToRad(lerp(-10 * i, 10 * i, Math.random()) + i * 2))
+        angle = v2ToAngle(v2.x, v2.y)
+        particles.push({
+            angle,
+            vX: v2.x,
+            vY: v2.y,
+        })
+    }
+
+    return particles
+
+}
+
+const generateSprayParticles = (count: number, xVel: number, yVel: number) => {
+
+    const particles: ParticleInstance[] = []
+
+    for (let i = 0; i < count; i++) {
+        v2.set(xVel, yVel)
+        const mul = lerp(2, 1, Math.random())
+        v2.mul(mul)
+        rotateVector(v2, degToRad(lerp(-10 * i, 10 * i, Math.random()) + i * 2))
+        angle = v2ToAngle(v2.x, v2.y)
+        particles.push({
+            angle,
+            vX: v2.x,
+            vY: v2.y,
+        })
+    }
+
+    return particles
+
+}
+
 export const BloodSprayParticles: React.FC = () => {
 
-    const particleCount = 128
+    const particleCount = 256
 
     const [alphaValues] = useState(() => new Float32Array(Array.from({length: particleCount}).map(() => 0.25)))
+    const [smallSprayAlphaValues] = useState(() => new Float32Array(Array.from({length: particleCount}).map(() => 0.25)))
 
-    const [data] = useState(() => {
+    const [data] = useState<ParticlesData>(() => {
         return {
+            OLDinstances: [] as OLDBloodSprayParticleInstance[],
             instances: [] as BloodSprayParticleInstance[],
+            mainCount: 0,
+            sprayCount: 0,
         }
     })
 
     const meshRef = useRef<any>()
+    const smallSprayRef = useRef<any>()
 
     const update = () => {
         now = Date.now()
-        data.instances.forEach((instance, i) => {
+
+        let mainIndex = 0
+        let sprayIndex = 0
+
+        data.instances.forEach((instance) => {
+
             age = now - instance.time
             if (age > maxAge) age = maxAge
             progress = easeOutQuart(normalize(age, maxAge, 0))
-            x = instance.x
-            y = instance.y
-            x = lerp(x, instance.x + (instance.vX * 0.015), progress)
-            y = lerp(y, instance.y + (instance.vY * 0.015), progress)
-            tempObject.position.set(x, y, 0.1)
-            tempObject.rotation.set(0, 0, instance.angle)
-            tempObject.updateMatrix()
-            meshRef.current.setMatrixAt(i, tempObject.matrix)
+
+            instance.main.forEach((particle, i) => {
+
+                x = lerp(instance.x, instance.x + (particle.vX * 0.015), progress)
+                y = lerp(instance.y, instance.y + (particle.vY * 0.015), progress)
+                tempObject.position.set(x, y, 0.1)
+                tempObject.rotation.set(0, 0, particle.angle)
+                tempObject.updateMatrix()
+                meshRef.current.setMatrixAt(mainIndex, tempObject.matrix)
+
+                mainIndex += 1
+            })
+
+            instance.spray.forEach((particle, i) => {
+
+                x = lerp(instance.x, instance.x + (particle.vX * 0.02), progress)
+                y = lerp(instance.y, instance.y + (particle.vY * 0.02), progress)
+                tempObject.position.set(x, y, 0.1)
+                tempObject.rotation.set(0, 0, particle.angle)
+                tempObject.updateMatrix()
+                smallSprayRef.current.setMatrixAt(sprayIndex, tempObject.matrix)
+
+                sprayIndex += 1
+            })
+
         })
+
+        // data.OLDinstances.forEach((instance, i) => {
+        //     age = now - instance.time
+        //     if (age > maxAge) age = maxAge
+        //     progress = easeOutQuart(normalize(age, maxAge, 0))
+        //     x = instance.x
+        //     y = instance.y
+        //     x = lerp(x, instance.x + (instance.vX * 0.015), progress)
+        //     y = lerp(y, instance.y + (instance.vY * 0.015), progress)
+        //     tempObject.position.set(x, y, 0.1)
+        //     tempObject.rotation.set(0, 0, instance.angle)
+        //     tempObject.updateMatrix()
+        //     meshRef.current.setMatrixAt(i, tempObject.matrix)
+        //
+        //     x = lerp(instance.x, instance.x + (instance.vX * 0.025), progress)
+        //     y = lerp(instance.y, instance.y + (instance.vY * 0.025), progress)
+        //
+        //     tempObject.position.set(x, y, 0.1)
+        //     tempObject.updateMatrix()
+        //     smallSprayRef.current.setMatrixAt(i, tempObject.matrix)
+        // })
+
         meshRef.current.instanceMatrix.needsUpdate = true
+
+        smallSprayRef.current.instanceMatrix.needsUpdate = true
+
     }
 
     useFrame(() => {
@@ -112,32 +254,52 @@ export const BloodSprayParticles: React.FC = () => {
         return {
             initParticle: (type: ParticleType, x: number, y: number, xVel: number, yVel: number) => {
 
-                let iteration = 0
+                const numberOfMain = 4
+                const numberOfSpray = 6
 
-                const add = () => {
-                    v2.set(xVel, yVel)
-                    rotateVector(v2, degToRad(lerp(-10 * iteration, 10 * iteration, Math.random()) + iteration * 2))
-                    angle = v2ToAngle(v2.x, v2.y)
-                    data.instances.push({
-                        angle,
-                        x,
-                        y,
-                        vX: v2.x,
-                        vY: v2.y,
-                        time: Date.now(),
-                    })
-                    iteration += 1
-                }
+                data.instances.push({
+                    x,
+                    y,
+                    time: Date.now(),
+                    main: generateMainParticles(numberOfMain, xVel, yVel),
+                    spray: generateSprayParticles(numberOfSpray, xVel, yVel),
+                })
 
-                add()
-                add()
-                add()
-                add()
+                data.mainCount += numberOfMain
+                data.sprayCount += numberOfSpray
 
-                if (data.instances.length >= particleCount) {
-                    const excess = data.instances.length - particleCount
-                    data.instances.splice(0, excess)
-                }
+                cleanupOlderInstances(data, particleCount)
+
+                // if (data.mainCount >= particleCount || data.sprayCount >= particleCount) {
+                //     // todo - delete old data instances...
+                // }
+                //
+                //
+                // let iteration = 0
+                //
+                // const add = () => {
+                //     v2.set(xVel, yVel)
+                //     rotateVector(v2, degToRad(lerp(-10 * iteration, 10 * iteration, Math.random()) + iteration * 2))
+                //     angle = v2ToAngle(v2.x, v2.y)
+                //     data.OLDinstances.push({
+                //         angle,
+                //         x,
+                //         y,
+                //         vX: v2.x,
+                //         vY: v2.y,
+                //         time: Date.now(),
+                //     })
+                //     iteration += 1
+                // }
+                //
+                // for (let i = 0; i < numberOfMain; i++) {
+                //     add()
+                // }
+                //
+                // if (data.OLDinstances.length >= particleCount) {
+                //     const excess = data.OLDinstances.length - particleCount
+                //     data.OLDinstances.splice(0, excess)
+                // }
             }
         }
     }, []))
@@ -147,7 +309,14 @@ export const BloodSprayParticles: React.FC = () => {
             <instancedMesh ref={meshRef} args={[null, null, particleCount] as any} matrixAutoUpdate={false}>
                 <planeBufferGeometry attach="geometry" args={[1, 1]}>
                     <instancedBufferAttribute attach="attributes-instanceOpacity" args={[alphaValues, 1]} />
-                    {/*<instancedBufferAttribute  attachObject={["attributes", "instanceOpacity"]} args={[alphaValues, 1]}/>*/}
+                </planeBufferGeometry>
+                <meshBasicMaterial transparent opacity={0.5} color={'red'}/>
+                {/*<shaderMaterial attach="material" uniforms={uniforms} vertexShader={vertShader}*/}
+                {/*                fragmentShader={fragShader} transparent/>*/}
+            </instancedMesh>
+            <instancedMesh ref={smallSprayRef} args={[null, null, particleCount] as any} matrixAutoUpdate={false}>
+                <planeBufferGeometry attach="geometry" args={[0.5, 0.5]}>
+                    <instancedBufferAttribute attach="attributes-instanceOpacity" args={[smallSprayAlphaValues, 1]} />
                 </planeBufferGeometry>
                 <meshBasicMaterial transparent opacity={0.5} color={'red'}/>
                 {/*<shaderMaterial attach="material" uniforms={uniforms} vertexShader={vertShader}*/}
