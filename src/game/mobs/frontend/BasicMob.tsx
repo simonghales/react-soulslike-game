@@ -1,13 +1,16 @@
-import React, {Suspense, useEffect, useRef, useState} from "react"
-import {Box, Cylinder, Html, Sphere, useTexture} from "@react-three/drei";
+import React, {Suspense, useCallback, useEffect, useRef, useState} from "react"
+import {Box, Circle, Cylinder, Html, Sphere, useTexture} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
-import {usePhysicsRef, useSyncData} from "@simonghales/react-three-physics";
+import {usePhysicsRef, usePhysicsSubscription, useSyncData} from "@simonghales/react-three-physics";
 import styled from "styled-components";
 import {getMobSyncKey} from "../../data/keys";
 import {mobsConfig} from "../../data/mobs";
 import {GoalType} from "../types";
 import {AttackGoalSubGoalTypes, AttackStateType} from "../brain/types";
 import {useEventsHandler} from "./eventsHandler";
+import {PlanckjsBuffersData} from "@simonghales/react-three-physics/dist/declarations/src/physics/planckjs/buffers";
+import {mapBufferDataToObjectRef} from "../../physics/custom";
+import {Object3D} from "three";
 
 const StyledContainer = styled.div`
   width: 70px;
@@ -36,7 +39,7 @@ const Visuals: React.FC<{
 }> = ({color}) => {
     const texture = useTexture("assets/mob-sword.png")
     return (
-        <sprite scale={[1.5, 1.5, 1.5]} position={[0, 0, 0.1]}>
+        <sprite scale={[1.5, 1.5, 1.5]} position={[0.125, 0, 0.1]}>
             <spriteMaterial color={color} map={texture} depthWrite={false} depthTest={false}/>
         </sprite>
     )
@@ -68,7 +71,15 @@ export const BasicMob: React.FC<{
 
     // const isAttacking = !!attackingState
 
-    const ref = usePhysicsRef(id)
+    const ref = useRef<Object3D>(null!)
+    const rotateRef = useRef<Object3D>(null!)
+
+    usePhysicsSubscription(id, useCallback((
+        buffers: PlanckjsBuffersData,
+        index: number,
+    ) => {
+        mapBufferDataToObjectRef(buffers, index, ref, rotateRef)
+    }, []))
 
 
     // const isAttackGoal = goal?.type === GoalType.ATTACK_ENTITY
@@ -126,28 +137,28 @@ export const BasicMob: React.FC<{
     return (
         <>
             <group ref={ref}>
-                {/*<Cylinder args={[0.5, 0.5, 1.5, 16]}*/}
-                {/*          position={[0, 0, 0.75]}*/}
-                {/*          rotation={[degToRad(90), 0, 0]}>*/}
-                {/*    <meshBasicMaterial color={color}/>*/}
-                {/*</Cylinder>*/}
-                {
-                    isAlive && (
-                        <>
-                            <Box position={[mobsConfig.basic.sensors.attackRange.x, 0, 0]} args={[mobsConfig.basic.sensors.attackRange.w, mobsConfig.basic.sensors.attackRange.h, 0.4]}>
-                                <meshBasicMaterial color={isCharging ? 'red' : isDamageSubGoal ? 'orange' : 'white'} transparent opacity={0.1}/>
-                            </Box>
-                            <Box position={[mobsConfig.basic.sensors.attack.x, 0, 0]} args={[mobsConfig.basic.sensors.attack.w, mobsConfig.basic.sensors.attack.h, 0.5]}>
-                                <meshBasicMaterial color={isAttacking ? 'red' : 'white'} transparent opacity={0.1}/>
-                            </Box>
-                            <Html center position={[0, 0, 0]}>
-                                <StyledContainer>
-                                    <StyledBar healthPercent={healthPercent}/>
-                                </StyledContainer>
-                            </Html>
-                        </>
-                    )
-                }
+                <group ref={rotateRef}>
+                    <Circle args={[0.6, 32]}>
+                        <meshBasicMaterial color={"orange"} transparent opacity={0.75}/>
+                    </Circle>
+                    {
+                        isAlive && (
+                            <>
+                                <Box position={[mobsConfig.basic.sensors.attackRange.x, 0, 0]} args={[mobsConfig.basic.sensors.attackRange.w, mobsConfig.basic.sensors.attackRange.h, 0.4]}>
+                                    <meshBasicMaterial color={isCharging ? 'red' : isDamageSubGoal ? 'orange' : 'white'} transparent opacity={0.1}/>
+                                </Box>
+                                <Box position={[mobsConfig.basic.sensors.attack.x, 0, 0]} args={[mobsConfig.basic.sensors.attack.w, mobsConfig.basic.sensors.attack.h, 0.5]}>
+                                    <meshBasicMaterial color={isAttacking ? 'red' : 'white'} transparent opacity={0.1}/>
+                                </Box>
+                                <Html center position={[0, 0, 0]}>
+                                    <StyledContainer>
+                                        <StyledBar healthPercent={healthPercent}/>
+                                    </StyledContainer>
+                                </Html>
+                            </>
+                        )
+                    }
+                </group>
                 <Suspense fallback={null}>
                     <Visuals color={color}/>
                 </Suspense>

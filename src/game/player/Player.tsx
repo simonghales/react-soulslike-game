@@ -1,7 +1,7 @@
-import React, {useEffect, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
 import {Box, Circle, Cylinder, Html, useTexture} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
-import {usePhysicsRef, useSyncData} from "@simonghales/react-three-physics";
+import {usePhysicsRef, usePhysicsSubscription, useSyncData} from "@simonghales/react-three-physics";
 import {PlayerCamera} from "./PlayerCamera";
 import {useSetPlayerRef} from "../state/misc";
 import {PlayerAttackStateType, syncKeys} from "../data/keys";
@@ -9,11 +9,23 @@ import {setPlayerEnergyUsage, setPlayerHealthRemaining} from "../state/player";
 import {playerConfig} from "./config";
 import {useFrame} from "@react-three/fiber";
 import {PlayerMovementState} from "./types";
+import {Object3D} from "three";
+import {mapBufferDataToObjectRef} from "../physics/custom";
+import {PlanckjsBuffersData} from "@simonghales/react-three-physics/dist/declarations/src/physics/planckjs/buffers";
 
 export const Player: React.FC = () => {
 
-    const ref = usePhysicsRef('test')
     const combatBodyRef = usePhysicsRef('combatBody')
+
+    const ref = useRef<Object3D>(null!)
+    const rotateRef = useRef<Object3D>(null!)
+
+    usePhysicsSubscription('test', useCallback((
+        buffers: PlanckjsBuffersData,
+        index: number,
+    ) => {
+        mapBufferDataToObjectRef(buffers, index, ref, rotateRef)
+    }, []))
 
     const playerAttackState = useSyncData(syncKeys.playerAttackState, {
         type: '',
@@ -100,45 +112,52 @@ export const Player: React.FC = () => {
 
     const texture = useTexture("assets/rat-sword.png")
 
+
+
     return (
         <>
             <group ref={ref}>
-                {/*<Cylinder args={[0.5, 0.5, 1.5, 16]}*/}
-                {/*          position={[0, 0, 0.75]}*/}
-                {/*          rotation={[degToRad(90), 0, 0]}/>*/}
-                <Box position={[1, 0, 0]} args={[2, 0.2, 0.4]}>
-                    <meshBasicMaterial color={'white'} transparent opacity={0.25}/>
-                </Box>
-                {/*<Box position={[1.75, 0, 0]} args={[4, 3, 0.4]}>*/}
-                {/*    <meshBasicMaterial color={'white'} transparent opacity={0.25}/>*/}
-                {/*</Box>*/}
-                {/*<Circle args={[playerConfig.sensors.mediumRangeRadius, 32]}>*/}
-                {/*    <meshBasicMaterial color={'yellow'} transparent opacity={0.25}/>*/}
-                {/*</Circle>*/}
-                {/*<Circle args={[playerConfig.sensors.largeRangeRadius, 32]}>*/}
-                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.25}/>*/}
-                {/*</Circle>*/}
-                {/*<Html center>*/}
-                {/*    <div>*/}
-                {/*        {attackCompleted ? "complete" : playerAttackState.type}*/}
-                {/*    </div>*/}
-                {/*</Html>*/}
-                {/*<Circle args={[playerConfig.sensors.extraSmallCombatRadius, 32]}>*/}
-                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
-                {/*</Circle>*/}
-                {/*<Circle args={[playerConfig.sensors.smallCombatRadius, 32]}>*/}
-                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
-                {/*</Circle>*/}
-                {/*<Circle args={[playerConfig.sensors.mediumCombatRadius, 32]}>*/}
-                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
-                {/*</Circle>*/}
-                {/*<Circle args={[playerConfig.sensors.largeCombatRadius, 32]}>*/}
-                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
-                {/*</Circle>*/}
-                {/*<Circle args={[playerConfig.sensors.extraLargeCombatRadius, 32]}>*/}
-                {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
-                {/*</Circle>*/}
-                <sprite scale={shrink ? [1.5, 1, 1.5] : stretch ? [1.5, 2, 1.5] : [1.5, 1.5, 1.5]} position={[0, 0, 0.10001]}>
+                <group ref={rotateRef}>
+                    <Circle args={[0.5, 32]}>
+                        <meshBasicMaterial color={'orange'} transparent opacity={0.5}/>
+                    </Circle>
+                    {/*<Cylinder args={[0.5, 0.5, 1.5, 16]}*/}
+                    {/*          position={[0, 0, 0.75]}*/}
+                    {/*          rotation={[degToRad(90), 0, 0]}/>*/}
+                    <Box position={[1, 0, 0]} args={[2, 0.2, 0.4]}>
+                        <meshBasicMaterial color={'white'} transparent opacity={0.25}/>
+                    </Box>
+                    {/*<Box position={[1.75, 0, 0]} args={[4, 3, 0.4]}>*/}
+                    {/*    <meshBasicMaterial color={'white'} transparent opacity={0.25}/>*/}
+                    {/*</Box>*/}
+                    {/*<Circle args={[playerConfig.sensors.mediumRangeRadius, 32]}>*/}
+                    {/*    <meshBasicMaterial color={'yellow'} transparent opacity={0.25}/>*/}
+                    {/*</Circle>*/}
+                    {/*<Circle args={[playerConfig.sensors.largeRangeRadius, 32]}>*/}
+                    {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.25}/>*/}
+                    {/*</Circle>*/}
+                    {/*<Html center>*/}
+                    {/*    <div>*/}
+                    {/*        {attackCompleted ? "complete" : playerAttackState.type}*/}
+                    {/*    </div>*/}
+                    {/*</Html>*/}
+                    {/*<Circle args={[playerConfig.sensors.extraSmallCombatRadius, 32]}>*/}
+                    {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
+                    {/*</Circle>*/}
+                    {/*<Circle args={[playerConfig.sensors.smallCombatRadius, 32]}>*/}
+                    {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
+                    {/*</Circle>*/}
+                    {/*<Circle args={[playerConfig.sensors.mediumCombatRadius, 32]}>*/}
+                    {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
+                    {/*</Circle>*/}
+                    {/*<Circle args={[playerConfig.sensors.largeCombatRadius, 32]}>*/}
+                    {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
+                    {/*</Circle>*/}
+                    {/*<Circle args={[playerConfig.sensors.extraLargeCombatRadius, 32]}>*/}
+                    {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
+                    {/*</Circle>*/}
+                </group>
+                <sprite scale={shrink ? [1.5, 1, 1.5] : stretch ? [1.5, 2, 1.5] : [1.5, 1.5, 1.5]} position={[0.125, 0.2, 0.10001]}>
                     <spriteMaterial color={color} map={texture} depthWrite={false} depthTest={false}/>
                 </sprite>
             </group>

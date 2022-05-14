@@ -11,8 +11,8 @@ export const DeadMob: React.FC<{
     return (
         <>
             <group position={[x, y, 0.1]}>
-                <Sphere args={[0.5]}>
-                    <meshBasicMaterial color={'red'}/>
+                <Sphere args={[0.45]}>
+                    <meshBasicMaterial color={'black'} transparent opacity={0.5}/>
                 </Sphere>
             </group>
         </>

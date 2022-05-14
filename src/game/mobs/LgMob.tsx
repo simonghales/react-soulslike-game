@@ -30,7 +30,7 @@ export const useMobBody = (id: string, x: number, y: number) => {
 
         body.setPosition(new Vec2(x ?? 2, y ?? 2))
 
-        const circleShape = Circle(0.5)
+        const circleShape = Circle(0.6)
 
         const fixture = body.createFixture({
             shape: circleShape,

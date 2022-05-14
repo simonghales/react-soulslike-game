@@ -180,8 +180,12 @@ export const BloodSprayParticles: React.FC = () => {
 
     const particleCount = 256
 
-    const [alphaValues] = useState(() => new Float32Array(Array.from({length: particleCount}).map(() => 1)))
-    const [smallSprayAlphaValues] = useState(() => new Float32Array(Array.from({length: particleCount}).map(() => 1)))
+    const [attributes] = useState(() => {
+        return {
+            mainAlpha: new Float32Array(Array.from({length: particleCount}).map(() => 1)),
+            sprayAlpha: new Float32Array(Array.from({length: particleCount}).map(() => 1)),
+        }
+    })
 
     const [data] = useState<ParticlesData>(() => {
         return {
@@ -209,9 +213,6 @@ export const BloodSprayParticles: React.FC = () => {
                 age = maxAge
             }
             progress = easeOutQuart(normalize(age, maxAge, 0))
-            sprayProgress = normalize(age, sprayMaxAge, 0)
-            sprayProgress = normalize(progress, 1, 0.5)
-            sprayProgress = easeInQuad(sprayProgress)
 
             instance.main.forEach((particle, i) => {
 
@@ -226,13 +227,23 @@ export const BloodSprayParticles: React.FC = () => {
                 mainIndex += 1
             })
 
+            age = now - instance.time
+            exceedsMaxAge = age > sprayMaxAge
+            if (exceedsMaxAge) {
+                age = sprayMaxAge
+            }
+
+            sprayProgress = normalize(age, sprayMaxAge, 0)
+            sprayProgress = normalize(progress, 1, 0.5)
+            sprayProgress = easeInQuad(sprayProgress)
+
             if (exceedsMaxAge && instance.spray.length) {
                 cleanupSprayParticles(data, instance)
             } else {
                 instance.spray.forEach((particle, i) => {
 
-                    x = lerp(instance.x, instance.x + (particle.vX * 0.02), progress)
-                    y = lerp(instance.y, instance.y + (particle.vY * 0.02), progress)
+                    x = lerp(instance.x, instance.x + (particle.vX * 0.0175), progress)
+                    y = lerp(instance.y, instance.y + (particle.vY * 0.0175), progress)
                     scale = lerp(1, 0, sprayProgress)
                     tempObject.scale.set(scale, scale, scale)
                     tempObject.position.set(x, y, 0.1)
@@ -319,18 +330,17 @@ export const BloodSprayParticles: React.FC = () => {
         <>
             <instancedMesh ref={meshRef} args={[null, null, particleCount] as any} matrixAutoUpdate={false}>
                 <planeBufferGeometry attach="geometry" args={[1, 1]}>
-                    <instancedBufferAttribute attach="attributes-instanceOpacity" args={[alphaValues, 1]} />
+                    <instancedBufferAttribute attach="attributes-instanceOpacity" args={[attributes.mainAlpha, 1]} />
                 </planeBufferGeometry>
                 <shaderMaterial attach="material" uniforms={uniforms} vertexShader={vertShader}
                                 fragmentShader={fragShader} transparent/>
             </instancedMesh>
             <instancedMesh ref={smallSprayRef} args={[null, null, particleCount] as any} matrixAutoUpdate={false}>
                 <planeBufferGeometry attach="geometry" args={[0.5, 0.5]}>
-                    <instancedBufferAttribute attach="attributes-instanceOpacity" args={[smallSprayAlphaValues, 1]} />
+                    <instancedBufferAttribute attach="attributes-instanceOpacity" args={[attributes.sprayAlpha, 1]} />
                 </planeBufferGeometry>
-                <meshBasicMaterial transparent opacity={0.5} color={'red'}/>
                 <shaderMaterial attach="material" uniforms={sprayUniforms} vertexShader={vertShader}
-                                fragmentShader={fragShader} transparent/>
+                                fragmentShader={fragShader} transparent depthWrite={false} depthTest={false}/>
             </instancedMesh>
         </>
     )
