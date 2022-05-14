@@ -138,9 +138,9 @@ export const BasicMob: React.FC<{
         <>
             <group ref={ref}>
                 <group ref={rotateRef}>
-                    <Circle args={[0.6, 32]}>
-                        <meshBasicMaterial color={"orange"} transparent opacity={0.75}/>
-                    </Circle>
+                    {/*<Circle args={[0.6, 32]}>*/}
+                    {/*    <meshBasicMaterial color={"orange"} transparent opacity={0.75}/>*/}
+                    {/*</Circle>*/}
                     {
                         isAlive && (
                             <>

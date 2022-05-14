@@ -29,8 +29,6 @@ import {halve, getFixtureCollisionId, getFixtureCollisionType} from "../../utils
 import {useAttackCollisionsHandler} from "./AttackCollisionsHandler";
 import {attacksConfig} from "../data/attacks";
 import {useSetBody} from "../state/bodies";
-import {useEventsHandler} from "./events";
-import {EventsHandler} from "./EventsHandler";
 import {PlayerContext, usePlayerContext} from "./PlayerContext";
 import {getPowerGraph} from "../../utils/graphs";
 import {PlayerController} from "./controller/PlayerController";

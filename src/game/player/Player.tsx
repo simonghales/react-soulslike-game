@@ -12,6 +12,7 @@ import {PlayerMovementState} from "./types";
 import {Object3D} from "three";
 import {mapBufferDataToObjectRef} from "../physics/custom";
 import {PlanckjsBuffersData} from "@simonghales/react-three-physics/dist/declarations/src/physics/planckjs/buffers";
+import {useEventsHandler} from "./frontend/eventsHandler";
 
 export const Player: React.FC = () => {
 
@@ -112,15 +113,15 @@ export const Player: React.FC = () => {
 
     const texture = useTexture("assets/rat-sword.png")
 
-
+    useEventsHandler(ref)
 
     return (
         <>
             <group ref={ref}>
                 <group ref={rotateRef}>
-                    <Circle args={[0.5, 32]}>
-                        <meshBasicMaterial color={'orange'} transparent opacity={0.5}/>
-                    </Circle>
+                    {/*<Circle args={[0.5, 32]}>*/}
+                    {/*    <meshBasicMaterial color={'orange'} transparent opacity={0.5}/>*/}
+                    {/*</Circle>*/}
                     {/*<Cylinder args={[0.5, 0.5, 1.5, 16]}*/}
                     {/*          position={[0, 0, 0.75]}*/}
                     {/*          rotation={[degToRad(90), 0, 0]}/>*/}

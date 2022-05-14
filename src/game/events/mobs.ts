@@ -2,10 +2,7 @@ import {eventEmitter} from "./general";
 import {useEffectRef} from "../../utils/hooks";
 import {useEffect} from "react";
 import {Vec2} from "planck";
-
-export enum MobEventType {
-    DAMAGED = 'DAMAGED',
-}
+import {MobEventType} from "../mobs/brain/events";
 
 export type MobEvent = {
     type: string,

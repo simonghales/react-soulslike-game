@@ -12,6 +12,8 @@ export const getMobEventsKey = (id: string) => {
     return `mob--${id}`
 }
 
+export const PLAYER_EVENTS_KEY = 'PLAYER_EVENTS'
+
 export enum PlayerAttackStateType {
     CHARGING = 'CHARGING',
     SHORT = 'SHORT',

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
-import {useIsKeyPressed, useOnPhysicsUpdate} from "@simonghales/react-three-physics";
+import {useIsKeyPressed, useOnPhysicsUpdate, useSendCustomMessage} from "@simonghales/react-three-physics";
 import {defaultKeys, defaultKeysState, KEY_BINDINGS, KeysProcessedState, KeysState} from "../keys";
 import {usePlayerContext} from "../PlayerContext";
 import {Body, Vec2} from "planck";
@@ -24,6 +24,8 @@ import {updateRollingFixtures} from "./rolling";
 import {SelectedTarget, SelectedTargetWithBody, useTargetControls} from "./targetHandler";
 import {defaultMovementState, defaultPlayerState, MovementState, PlayerState} from "./types";
 import {easeInOutBack, easeInOutQuad, easeInOutQuint, easeOutQuart} from "../../../utils/easing";
+import {getMobEventsKey, PLAYER_EVENTS_KEY} from "../../data/keys";
+import {MobEventType} from "../../mobs/brain/events";
 
 let pressed = false
 let held = false
@@ -1213,6 +1215,8 @@ export const PlayerController: React.FC = () => {
 
     }, []))
 
+    const sendEvent = useSendCustomMessage()
+
     const onDamageReceived = useCallback((damage: number, from: Vec2) => {
 
         if (isInvincible(localStateRef.current.actionState)) {
@@ -1235,6 +1239,13 @@ export const PlayerController: React.FC = () => {
         }
 
         setMovementState(PlayerMovementState.STUNNED)
+
+        sendEvent(PLAYER_EVENTS_KEY, {
+            type: PlayerEventType.DAMAGED,
+            damage,
+            x: v2.x,
+            y: v2.y,
+        })
 
     }, [])
 

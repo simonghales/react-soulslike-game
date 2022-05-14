@@ -26,8 +26,6 @@ export const useMobBody = (id: string, x: number, y: number) => {
             fixedRotation: true,
         })
 
-        console.log('body created...')
-
         body.setPosition(new Vec2(x ?? 2, y ?? 2))
 
         const circleShape = Circle(0.6)

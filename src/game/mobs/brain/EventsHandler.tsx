@@ -3,9 +3,10 @@ import {useMobBrainContext} from "../mobBrainContext";
 import {Vec2} from "planck";
 import {lerp} from "three/src/math/MathUtils";
 import {normalize} from "../../../utils/numbers";
-import {MobEvent, MobEventType, useOnMobEvents} from "../../events/mobs";
+import {MobEvent, useOnMobEvents} from "../../events/mobs";
 import {useSendCustomMessage} from "@simonghales/react-three-physics";
 import {getMobEventsKey} from "../../data/keys";
+import {MobEventType} from "./events";
 
 const v2 = new Vec2()
 const emptyV2 = new Vec2()

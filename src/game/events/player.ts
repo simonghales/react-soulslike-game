@@ -7,6 +7,16 @@ export enum PlayerEventType {
     DAMAGED = 'DAMAGED',
 }
 
+export type PlayerBaseEvent = {
+    type: PlayerEventType,
+}
+
+export type PlayerDamagedEvent = PlayerBaseEvent & {
+    damage: number,
+    x: number,
+    y: number,
+}
+
 export type PlayerEvent = {
     type: string,
     data?: any,

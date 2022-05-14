@@ -4,7 +4,7 @@ import {componentSyncKeys, getMobSyncKey} from "../data/keys";
 import {useWorld} from "../../worker/WorldProvider";
 import {Body, Box, Circle, Vec2} from "planck";
 import {COLLISION_FILTER_GROUPS, MobCollisionTypes} from "../data/collisions";
-import {MobEvent, MobEventType, useOnMobEvents} from "../events/mobs";
+import {MobEvent, useOnMobEvents} from "../events/mobs";
 import {setMobDead} from "../state/game";
 import {mobsConfig} from "../data/mobs";
 import {lerp} from "three/src/math/MathUtils";
@@ -14,6 +14,7 @@ import {MobContext} from "./MobContext";
 import {halve} from "../../utils/physics";
 import {useCollisionsHandler, useCollisionStates} from "./CollisionsHandler";
 import {Goal, GoalType} from "./types";
+import {MobEventType} from "./brain/events";
 
 const v2 = new Vec2()
 
