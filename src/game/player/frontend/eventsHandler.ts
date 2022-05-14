@@ -21,7 +21,7 @@ export const useEventsHandler = (ref: MutableRefObject<Object3D>) => {
 
             const norm = normalize(message.damage + 2, 20, 1)
 
-            const damageMultiplier = lerp(10, 20, norm)
+            const damageMultiplier = lerp(20, 40, norm)
 
             sceneManagerControls[SceneManagerControlsTypes.particles].initParticle(
                 ParticleType.BLOOD_SPRAY,

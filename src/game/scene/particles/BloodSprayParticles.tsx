@@ -238,6 +238,14 @@ export const BloodSprayParticles: React.FC = () => {
             sprayProgress = easeInQuad(sprayProgress)
 
             if (exceedsMaxAge && instance.spray.length) {
+
+                instance.spray.forEach((particle, i) => {
+                    tempObject.scale.set(0, 0, 0)
+                    tempObject.updateMatrix()
+                    smallSprayRef.current.setMatrixAt(sprayIndex, tempObject.matrix)
+                    sprayIndex += 1
+                })
+
                 cleanupSprayParticles(data, instance)
             } else {
                 instance.spray.forEach((particle, i) => {
@@ -281,6 +289,9 @@ export const BloodSprayParticles: React.FC = () => {
         meshRef.current.instanceMatrix.needsUpdate = true
 
         smallSprayRef.current.instanceMatrix.needsUpdate = true
+
+        meshRef.current.count = data.mainCount
+        smallSprayRef.current.count = data.sprayCount
 
     }
 

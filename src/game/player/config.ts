@@ -90,7 +90,8 @@ export const getAttackDurationAndCooldown = (attackType: string) => {
 export const playerConfig = {
     rechargeAmount: 4,
     defaultEnergy: 150,
-    defaultHealth: 200,
+    // defaultHealth: 200,
+    defaultHealth: 2000,
     collisionIds: {
         player: 'player',
         attack: 'playerAttack',
