@@ -34,7 +34,7 @@ const calculateTargetLerpAmount = (time: number) => {
 
 const calculateTargetUnlockedLerpAmount = (time: number) => {
     timeElapsed = Date.now() - time
-    progress = normalize(timeElapsed, 250, 50)
+    progress = normalize(timeElapsed, 300, 50)
     progress = 1 - progress
     progress = easeInOutSine(progress)
     return progress * 0.5
