@@ -35,6 +35,7 @@ import {PlayerController} from "./controller/PlayerController";
 import {PlayerStateHandler} from "./PlayerStateHandler";
 import {PlayerMovementState} from "./types";
 import {useCollisionsHandler, useCollisionsState} from "./controller/collisionsHandler";
+import {setBackendSelectedTarget} from "../state/backend/player";
 
 let moveRight = false
 let moveLeft = false
@@ -1134,8 +1135,14 @@ export const LgPlayer: React.FC = () => {
             energyUsage,
             movementState,
             healthRemaining,
+            selectedTarget: selectedTarget?.id ?? '',
         }
-    }, [energyUsage, movementState, healthRemaining]))
+    }, [energyUsage, movementState, healthRemaining, selectedTarget]))
+
+    useEffect(() => {
+        const id = selectedTarget?.id ?? ''
+        setBackendSelectedTarget(id)
+    }, [selectedTarget])
 
     const collisions = useCollisionsHandler(playerConfig.collisionIds.player)
     const combatCollisions = useCollisionsHandler(playerConfig.collisionIds.attack)

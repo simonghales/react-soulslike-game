@@ -13,6 +13,8 @@ import {EventsHandler} from "./brain/EventsHandler";
 import {StatusHandler, useMobStatusState} from "./brain/StatusHandler";
 import {useLgMobContext} from "./LgMobContext";
 import {DamageHandler} from "./brain/DamageHandler";
+import {useIsSelectedTarget} from "../state/backend/player";
+import {getMobStateSyncKey} from "../data/keys";
 
 export const MobBrain: React.FC<{
     id: string,
@@ -71,14 +73,17 @@ export const MobBrain: React.FC<{
         onDeath,
     } = useLgMobContext()
 
-    useTransmitData(`mob--${id}-state`, useMemo(() => {
+    const isSelectedTarget = useIsSelectedTarget(id)
+
+    useTransmitData(getMobStateSyncKey(id), useMemo(() => {
         return {
             attackState,
             subGoal,
             healthRemaining,
             isAlive,
+            isSelectedTarget,
         }
-    }, [attackState, subGoal, healthRemaining, isAlive]))
+    }, [attackState, subGoal, healthRemaining, isAlive, isSelectedTarget]))
 
     const bodyRef = useEffectRef(body)
 

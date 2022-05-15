@@ -1,17 +1,20 @@
 import React from "react"
 import styled from "styled-components";
 import {useSnapshot} from "valtio";
-import {playerStateProxy} from "../state/player";
+import {playerStateProxy} from "../state/frontend/player";
 import {playerConfig} from "../player/config";
 
 const StyledContainer = styled.div`
   position: fixed;
-  top: 0;
+  bottom: 80px;
+  right: 0;
   left: 0;
+  display: flex;
+  justify-content: center;
 `
 
 const StyledHealthContainer = styled.div`
-  width: 320px;
+  width: 260px;
   height: 18px;
   background-color: white;
   position: relative;
@@ -31,7 +34,7 @@ const StyledHealthAmount = styled.div<{
 `
 
 const StyledEnergyContainer = styled.div`
-  width: 320px;
+  width: 260px;
   height: 18px;
   background-color: white;
   position: relative;
@@ -86,12 +89,14 @@ export const PlayerUI: React.FC = () => {
     return (
         <>
             <StyledContainer>
-                <StyledHealthContainer>
-                    <StyledHealthAmount percent={healthAmount}/>
-                </StyledHealthContainer>
-                <StyledEnergyContainer>
-                    <StyledEnergyAmount energyAmount={energyAmount}/>
-                </StyledEnergyContainer>
+                <div>
+                    <StyledHealthContainer>
+                        <StyledHealthAmount percent={healthAmount}/>
+                    </StyledHealthContainer>
+                    <StyledEnergyContainer>
+                        <StyledEnergyAmount energyAmount={energyAmount}/>
+                    </StyledEnergyContainer>
+                </div>
             </StyledContainer>
             {
                 playerDead && (

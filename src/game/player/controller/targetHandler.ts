@@ -128,13 +128,8 @@ export const useTargetControls = (
     })
 
     const recentlySelected = localStateRef.current.recentlySelected
-    
-    const selectedTargetRef = useEffectRef(selectedTarget)
 
-    useEffect(() => {
-        const id = selectedTarget?.id ?? ''
-        console.log('selected target...', id)
-    }, [selectedTarget])
+    const selectedTargetRef = useEffectRef(selectedTarget)
 
     useEffect(() => {
         localStateRef.current.recentlySelected = {}

@@ -2,8 +2,8 @@ import React, {Suspense, useCallback, useEffect, useRef, useState} from "react"
 import {Box, Circle, Cylinder, Html, Sphere, useTexture} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
 import {usePhysicsRef, usePhysicsSubscription, useSyncData} from "@simonghales/react-three-physics";
-import styled from "styled-components";
-import {getMobSyncKey} from "../../data/keys";
+import styled, {css} from "styled-components";
+import {getMobStateSyncKey, getMobSyncKey} from "../../data/keys";
 import {mobsConfig} from "../../data/mobs";
 import {GoalType} from "../types";
 import {AttackGoalSubGoalTypes, AttackStateType} from "../brain/types";
@@ -11,8 +11,16 @@ import {useEventsHandler} from "./eventsHandler";
 import {PlanckjsBuffersData} from "@simonghales/react-three-physics/dist/declarations/src/physics/planckjs/buffers";
 import {mapBufferDataToObjectRef} from "../../physics/custom";
 import {Object3D} from "three";
+import {useSetPlayerTargetRef} from "../../state/frontend/player";
 
-const StyledContainer = styled.div`
+
+const cssSelected = css`
+  box-shadow: 0 0 0 3px white;
+`
+
+const StyledContainer = styled.div<{
+    isSelectedTarget: boolean,
+}>`
   width: 70px;
   height: 10px;
   background-color: grey;
@@ -20,6 +28,8 @@ const StyledContainer = styled.div`
   position: relative;
   overflow: hidden;
   transform: translateY(-50px);
+  ${props => props.isSelectedTarget ? cssSelected : ''};
+  border-radius: 2px;
 `
 
 const StyledBar = styled.div<{
@@ -91,12 +101,16 @@ export const BasicMob: React.FC<{
         subGoal,
         healthRemaining,
         isAlive,
-    } = useSyncData(`mob--${id}-state`, {
+        isSelectedTarget,
+    } = useSyncData(getMobStateSyncKey(id), {
         attackState: null,
         subGoal: null,
         healthRemaining: mobsConfig.basic.health,
         isAlive: true,
+        isSelectedTarget: false,
     })
+
+    useSetPlayerTargetRef(isSelectedTarget, ref)
 
     const localStateRef = useRef({
         previousHealthRemaining: mobsConfig.basic.health,
@@ -151,7 +165,7 @@ export const BasicMob: React.FC<{
                                     <meshBasicMaterial color={isAttacking ? 'red' : 'white'} transparent opacity={0.1}/>
                                 </Box>
                                 <Html center position={[0, 0, 0]}>
-                                    <StyledContainer>
+                                    <StyledContainer isSelectedTarget={isSelectedTarget}>
                                         <StyledBar healthPercent={healthPercent}/>
                                     </StyledContainer>
                                 </Html>

@@ -5,7 +5,7 @@ import {usePhysicsRef, usePhysicsSubscription, useSyncData} from "@simonghales/r
 import {PlayerCamera} from "./PlayerCamera";
 import {useSetPlayerRef} from "../state/misc";
 import {PlayerAttackStateType, syncKeys} from "../data/keys";
-import {setPlayerEnergyUsage, setPlayerHealthRemaining} from "../state/player";
+import {setPlayerEnergyUsage, setPlayerHealthRemaining} from "../state/frontend/player";
 import {playerConfig} from "./config";
 import {useFrame} from "@react-three/fiber";
 import {PlayerMovementState} from "./types";
@@ -37,10 +37,12 @@ export const Player: React.FC = () => {
         energyUsage,
         movementState,
         healthRemaining,
+        selectedTarget,
     } = useSyncData(syncKeys.playerState, {
         energyUsage: 0,
         movementState: '',
         healthRemaining: playerConfig.defaultHealth,
+        selectedTarget: '',
     })
 
     const localStateRef = useRef({

@@ -26,3 +26,16 @@ export const easeInOutQuad = (x: number) => {
 export const easeInQuad = (x: number) => {
     return x * x;
 }
+
+export const easeInOutSine = (x: number) => {
+    return -(Math.cos(Math.PI * x) - 1) / 2;
+}
+
+
+export const easeInQuart = (x: number) => {
+    return x * x * x * x;
+}
+
+export const easeInOutCubic = (x: number) => {
+    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+}

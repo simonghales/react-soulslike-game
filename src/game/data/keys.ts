@@ -8,6 +8,10 @@ export const getMobSyncKey = (id: string) => {
     return `mob--${id}`
 }
 
+export const getMobStateSyncKey = (id: string) => {
+    return `mob--${id}--state`
+}
+
 export const getMobEventsKey = (id: string) => {
     return `mob--${id}`
 }
