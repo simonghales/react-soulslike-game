@@ -8,6 +8,7 @@ import {sceneManagerControls, SceneManagerControlsTypes} from "../../scene/scene
 import {ParticleType} from "../../scene/particles/ParticlesManager";
 import {PlayerBaseEvent, PlayerDamagedEvent, PlayerEventType} from "../../events/player";
 import {lerp} from "three/src/math/MathUtils";
+import {addRecentHit} from "../../state/frontend/player";
 
 export const useEventsHandler = (ref: MutableRefObject<Object3D>) => {
 
@@ -33,7 +34,7 @@ export const useEventsHandler = (ref: MutableRefObject<Object3D>) => {
                 }
             )
 
-            console.log('damaged', message)
+            addRecentHit(message.x, message.y)
 
         }
 

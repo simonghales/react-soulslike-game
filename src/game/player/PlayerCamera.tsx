@@ -4,9 +4,11 @@ import {Object3D, Vector3, PerspectiveCamera as PerspectiveCameraImpl} from "thr
 import {useFrame} from "@react-three/fiber";
 import {usePlayerRef} from "../state/misc";
 import {lerp} from "three/src/math/MathUtils";
-import {useTargetRef} from "../state/frontend/player";
+import {playerMiscProxy, RecentHitData, useTargetRef} from "../state/frontend/player";
 import {normalize} from "../../utils/numbers";
 import {easeInOutCubic, easeInOutSine, easeInQuart} from "../../utils/easing";
+import {useSnapshot} from "valtio";
+import {Vec2} from "planck";
 
 let playerX = 0
 let playerY = 0
@@ -27,14 +29,14 @@ let targetY = 0
 
 const calculateTargetLerpAmount = (time: number) => {
     timeElapsed = Date.now() - time
-    progress = normalize(timeElapsed, 350, 0)
+    progress = normalize(timeElapsed, 400, 0)
     progress = easeInOutSine(progress)
     return progress * 0.5
 }
 
 const calculateTargetUnlockedLerpAmount = (time: number) => {
     timeElapsed = Date.now() - time
-    progress = normalize(timeElapsed, 300, 50)
+    progress = normalize(timeElapsed, 350, 50)
     progress = 1 - progress
     progress = easeInOutSine(progress)
     return progress * 0.5
@@ -42,12 +44,60 @@ const calculateTargetUnlockedLerpAmount = (time: number) => {
 
 const calculateTargetSwitchLerpAmount = (time: number) => {
     timeElapsed = Date.now() - time
-    progress = normalize(timeElapsed, 200, 0)
+    progress = normalize(timeElapsed, 300, 0)
     progress = easeInOutCubic(progress)
     return progress
 }
 
+type ImpactVelocity = {
+    x: number,
+    y: number,
+}
+
+const impactVelocity: ImpactVelocity = {
+    x: 0,
+    y: 0,
+}
+
+const v2 = new Vec2()
+const hitV2 = new Vec2()
+let now = 0
+let HIT_MAX_AGE = 550
+let hitTimeElapsed = 0
+let hitProgress = 0
+let hitMultiplier = 0
+
+const addRecentHitsImpact = (recentHits: RecentHitData[], impactVelocity: ImpactVelocity, previousImpactVelocity: ImpactVelocity) => {
+
+    now = Date.now()
+
+    v2.set(0, 0)
+
+    recentHits.forEach(([xVel, yVel, time], index) => {
+        hitTimeElapsed = now - time
+        if (hitTimeElapsed > HIT_MAX_AGE) {
+            recentHits.splice(index, 1)
+        }
+        hitProgress = normalize(hitTimeElapsed, HIT_MAX_AGE, 0)
+        hitProgress = easeInOutCubic(hitProgress)
+        hitV2.set(xVel, yVel)
+        hitMultiplier = lerp(0.15, 0, hitProgress)
+        hitV2.mul(hitMultiplier)
+        v2.add(hitV2)
+    })
+
+    v2.clamp(2)
+
+    impactVelocity.x = lerp(v2.x, previousImpactVelocity.x, 0.75)
+    impactVelocity.y = lerp(v2.y, previousImpactVelocity.y, 0.75)
+
+    return impactVelocity
+
+}
+
 export const useCameraController = (groupRef: MutableRefObject<Object3D | undefined>) => {
+
+    const recentHits = useSnapshot(playerMiscProxy).recentHits
 
     const playerRef = usePlayerRef()
 
@@ -67,6 +117,10 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
                 y: 0,
             },
             previousTargetPosition: {
+                x: 0,
+                y: 0,
+            },
+            previousImpactVelocity: {
                 x: 0,
                 y: 0,
             }
@@ -151,6 +205,21 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
             lerpAmount = calculateTargetUnlockedLerpAmount(localStateRef.current.cameraData.targetUnlocked)
             lerpedX = lerp(lerpedX, localStateRef.current.cameraData.previousTargetPosition.x, lerpAmount)
             lerpedY = lerp(lerpedY, localStateRef.current.cameraData.previousTargetPosition.y, lerpAmount)
+        }
+
+        if (recentHits.length) {
+            addRecentHitsImpact(recentHits as RecentHitData[], impactVelocity, localStateRef.current.cameraData.previousImpactVelocity)
+            if (impactVelocity.x !== 0 || impactVelocity.y !== 0) {
+
+                localStateRef.current.cameraData.previousImpactVelocity.x = impactVelocity.x
+                localStateRef.current.cameraData.previousImpactVelocity.y = impactVelocity.y
+
+                lerpedX += impactVelocity.x
+                lerpedY += impactVelocity.y
+            }
+        } else {
+            localStateRef.current.cameraData.previousImpactVelocity.x = 0
+            localStateRef.current.cameraData.previousImpactVelocity.y = 0
         }
 
         groupRef.current.position.x = lerpedX

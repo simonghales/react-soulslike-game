@@ -8,9 +8,16 @@ export const playerStateProxy = proxy({
     healthRemaining: playerConfig.defaultHealth,
 })
 
+export type RecentHitData = [xVel: number, yVel: number, time: number]
+
 export const playerMiscProxy = proxy({
     targetRef: null as null | MutableRefObject<Object3D>,
+    recentHits: ref([]) as RecentHitData[],
 })
+
+export const addRecentHit = (xVel: number, yVel: number) => {
+    playerMiscProxy.recentHits.push([xVel, yVel, Date.now()])
+}
 
 export const useTargetRef = () => {
     return useSnapshot(playerMiscProxy).targetRef
