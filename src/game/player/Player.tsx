@@ -13,6 +13,7 @@ import {Object3D} from "three";
 import {mapBufferDataToObjectRef} from "../physics/custom";
 import {PlanckjsBuffersData} from "@simonghales/react-three-physics/dist/declarations/src/physics/planckjs/buffers";
 import {useEventsHandler} from "./frontend/eventsHandler";
+import {useFootstepsHandler} from "./frontend/footstepsHandler";
 
 export const Player: React.FC = () => {
 
@@ -116,6 +117,7 @@ export const Player: React.FC = () => {
     const texture = useTexture("assets/rat-sword.png")
 
     useEventsHandler(ref)
+    useFootstepsHandler(ref)
 
     return (
         <>

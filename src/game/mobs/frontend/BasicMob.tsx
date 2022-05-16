@@ -12,6 +12,7 @@ import {PlanckjsBuffersData} from "@simonghales/react-three-physics/dist/declara
 import {mapBufferDataToObjectRef} from "../../physics/custom";
 import {Object3D} from "three";
 import {useSetPlayerTargetRef} from "../../state/frontend/player";
+import {useFootstepsHandler} from "../../player/frontend/footstepsHandler";
 
 
 const cssSelected = css`
@@ -147,6 +148,8 @@ export const BasicMob: React.FC<{
     const color = damaged ? 'red' : 'white'
 
     useEventsHandler(id, ref)
+
+    useFootstepsHandler(ref)
 
     return (
         <>

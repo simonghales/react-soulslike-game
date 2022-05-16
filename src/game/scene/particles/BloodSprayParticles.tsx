@@ -8,9 +8,9 @@ import {degToRad, lerp} from "three/src/math/MathUtils";
 import {easeInOutBack, easeInOutQuint, easeInQuad, easeOutExpo, easeOutQuart} from "../../../utils/easing";
 import {Vec2} from "planck";
 import {rotateVector, v2ToAngle} from "../../../utils/angles";
-import { useTexture } from "@react-three/drei";
+import {useTexture} from "@react-three/drei";
 
-const fragShader = `
+export const fragShader = `
     uniform sampler2D vTexture;
     varying vec2 vUv;
     varying float vInstanceOpacity;
@@ -22,7 +22,7 @@ const fragShader = `
     }
 `
 
-const vertShader = `
+export const vertShader = `
     varying vec2 vUv;
     attribute float instanceOpacity;
     varying float vInstanceOpacity;
@@ -48,7 +48,7 @@ export const useBloodSprayParticles = () => {
 
 }
 
-const tempObject = new Object3D()
+export const tempObject = new Object3D()
 
 export type OLDBloodSprayParticleInstance = {
     angle: number,
@@ -74,7 +74,7 @@ export type BloodSprayParticleInstance = {
 }
 
 export type ParticleControls = {
-    initParticle: (type: ParticleType, x: number, y: number, xVel: number, yVel: number) => void,
+    initParticle: (args: any) => void,
 }
 
 let x = 0
@@ -108,7 +108,7 @@ const cleanupOlderInstances = (data: ParticlesData, particleCount: number) => {
     let iterations = 0
 
     while (((mainExcess > 0) || (sprayExcess > 0)) && (iterations < particleCount)) {
-        iterations +=1 // make sure we don't loop forever...
+        iterations += 1 // make sure we don't loop forever...
         const instance = data.instances[0]
         if (!instance) {
             iterations = particleCount
@@ -175,6 +175,13 @@ const cleanupSprayParticles = (data: ParticlesData, instance: BloodSprayParticle
 
 let sprayProgress = 0
 let scale = 1
+
+export type BloodSprayParticleArgs = {
+    x: number,
+    y: number,
+    xVel: number,
+    yVel: number,
+}
 
 export const BloodSprayParticles: React.FC = () => {
 
@@ -301,7 +308,12 @@ export const BloodSprayParticles: React.FC = () => {
 
     useRegisterControls(ParticleType.BLOOD_SPRAY, useMemo<ParticleControls>(() => {
         return {
-            initParticle: (type: ParticleType, x: number, y: number, xVel: number, yVel: number) => {
+            initParticle: ({
+                               x,
+                               y,
+                               xVel,
+                               yVel,
+                           }: BloodSprayParticleArgs) => {
 
                 const numberOfMain = 4
                 const numberOfSpray = 6
@@ -341,14 +353,14 @@ export const BloodSprayParticles: React.FC = () => {
         <>
             <instancedMesh ref={meshRef} args={[null, null, particleCount] as any} matrixAutoUpdate={false}>
                 <planeBufferGeometry attach="geometry" args={[1, 1]}>
-                    <instancedBufferAttribute attach="attributes-instanceOpacity" args={[attributes.mainAlpha, 1]} />
+                    <instancedBufferAttribute attach="attributes-instanceOpacity" args={[attributes.mainAlpha, 1]}/>
                 </planeBufferGeometry>
                 <shaderMaterial attach="material" uniforms={uniforms} vertexShader={vertShader}
                                 fragmentShader={fragShader} transparent/>
             </instancedMesh>
             <instancedMesh ref={smallSprayRef} args={[null, null, particleCount] as any} matrixAutoUpdate={false}>
                 <planeBufferGeometry attach="geometry" args={[0.5, 0.5]}>
-                    <instancedBufferAttribute attach="attributes-instanceOpacity" args={[attributes.sprayAlpha, 1]} />
+                    <instancedBufferAttribute attach="attributes-instanceOpacity" args={[attributes.sprayAlpha, 1]}/>
                 </planeBufferGeometry>
                 <shaderMaterial attach="material" uniforms={sprayUniforms} vertexShader={vertShader}
                                 fragmentShader={fragShader} transparent depthWrite={false} depthTest={false}/>

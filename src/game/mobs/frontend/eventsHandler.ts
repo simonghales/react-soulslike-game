@@ -21,10 +21,12 @@ export const useEventsHandler = (id: string, ref: MutableRefObject<Object3D>) =>
 
             sceneManagerControls[SceneManagerControlsTypes.particles].initParticle(
                 ParticleType.BLOOD_SPRAY,
-                object.position.x,
-                object.position.y,
-                message.x * damageMultiplier,
-                message.y * damageMultiplier,
+                {
+                    x: object.position.x,
+                    y: object.position.y,
+                    xVel: message.x * damageMultiplier,
+                    yVel: message.y * damageMultiplier,
+                }
             )
         }
 

@@ -63,7 +63,7 @@ export const CollisionsHandler: React.FC = () => {
             }
         }
 
-        const attackRangeEnemies = Object.keys(collisions[MobCollisionTypes.ATTACK_RANGE] ?? {})
+        const attackRangeEnemies = Object.keys(collisions[MobCollisionTypes.ATTACK_BOX] ?? {})
 
         let enemiesInAttackRange = attackRangeEnemies.length > 0
 

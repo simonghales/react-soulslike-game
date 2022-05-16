@@ -5,13 +5,15 @@ import {
 } from "../sceneManagerContext";
 import {BloodSprayParticles, ParticleControls, useBloodSprayParticles} from "./BloodSprayParticles";
 import {ParticlesManagerContext} from "./particlesManagerContext";
+import {DustParticles} from "./DustParticles";
 
 export enum ParticleType {
     BLOOD_SPRAY = 'BLOOD_SPRAY',
+    DUST = 'DUST',
 }
 
 export type ParticlesManagerControls = {
-    initParticle: (type: ParticleType, x: number, y: number, xVel: number, yVel: number) => void,
+    initParticle: (type: ParticleType, args: any) => void,
 }
 
 export const defaultParticlesManagerControls: ParticlesManagerControls = {
@@ -26,9 +28,9 @@ export const ParticlesManager: React.FC = () => {
 
     const controls = useMemo<ParticlesManagerControls>(() => {
         return {
-            initParticle: (type: ParticleType, x: number, y: number, xVel: number, yVel: number) => {
+            initParticle: (type: ParticleType, args: any) => {
                 if (particleControls[type]) {
-                    particleControls[type].initParticle(type, x, y, xVel, yVel)
+                    particleControls[type].initParticle(args)
                 }
             }
         }
@@ -58,6 +60,9 @@ export const ParticlesManager: React.FC = () => {
         }}>
             <Suspense fallback={null}>
                 <BloodSprayParticles/>
+            </Suspense>
+            <Suspense fallback={null}>
+                <DustParticles/>
             </Suspense>
         </ParticlesManagerContext.Provider>
     )
