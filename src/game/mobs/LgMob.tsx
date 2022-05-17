@@ -69,12 +69,12 @@ export const useMobBody = (id: string, x: number, y: number) => {
         const unsub = addBody(id, body)
 
         return () => {
+            unsub()
             const cleanup = () => {
                 if (world.isLocked()) {
                     throw new Error('World is still locked, failed to remove body.')
                 }
                 world.destroyBody(body)
-                unsub()
             }
             if (world.isLocked()) {
                 setTimeout(cleanup, 0)
