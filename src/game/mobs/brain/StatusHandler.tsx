@@ -4,6 +4,7 @@ import {Body, Vec2} from "planck";
 
 export const useMobStatusState = () => {
 
+    const [ready, setReady] = useState(false)
     const [damageTaken, setDamageTaken] = useState(0)
     const [damageLastTaken, setDamageLastTaken] = useState(0)
     const [damageRecentlyTaken, setDamageRecentlyTaken] = useState(false)
@@ -58,6 +59,8 @@ export const useMobStatusState = () => {
         healthRemaining,
         onDeath,
         deathPosition,
+        ready,
+        setReady,
     }
 
 }

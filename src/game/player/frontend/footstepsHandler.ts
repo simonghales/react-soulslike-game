@@ -103,7 +103,6 @@ export const useFootstepsHandler = (ref: MutableRefObject<Object3D>) => {
                 data.movingWeight = lerp(data.movingWeight, 2, 0.1 * delta)
             }
 
-
             sceneManagerControls[SceneManagerControlsTypes.particles].initParticle(
                 ParticleType.DUST,
                 {

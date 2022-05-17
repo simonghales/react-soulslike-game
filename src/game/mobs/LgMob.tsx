@@ -1,14 +1,15 @@
-import React, {useEffect, useState} from "react"
+import React, {useEffect, useMemo, useState} from "react"
 import {useWorld} from "../../worker/WorldProvider";
-import {SyncComponent, useAddBody} from "@simonghales/react-three-physics";
+import {SyncComponent, useAddBody, useTransmitData} from "@simonghales/react-three-physics";
 import {Body, Box, Circle, Vec2} from "planck";
 import {COLLISION_FILTER_GROUPS, MobCollisionTypes} from "../data/collisions";
 import {halve} from "../../utils/physics";
 import {mobsConfig} from "../data/mobs";
-import {componentSyncKeys} from "../data/keys";
+import {componentSyncKeys, getMobSyncKey} from "../data/keys";
 import {MobBrain} from "./MobBrain";
 import {useMobStatusState} from "./brain/StatusHandler";
-import {LgMobContext} from "./LgMobContext";
+import {LgMobContext, useLgMobContext} from "./LgMobContext";
+import {MobDeadBody} from "./backend/MobDeadBody";
 
 export const useMobBody = (id: string, x: number, y: number) => {
 
@@ -96,11 +97,22 @@ const MobBody: React.FC<{
 
     const body = useMobBody(id, x, y)
 
+    const {
+        setReady,
+    } = useLgMobContext()
+
+    const hasBody = !!body
+
+    useEffect(() => {
+        if (hasBody) {
+            setReady(true)
+        }
+    }, [hasBody])
+
     if (!body) return null
 
     return (
         <>
-            <SyncComponent id={id} componentId={componentSyncKeys.basicMob}/>
             <MobBrain id={id} body={body}/>
         </>
     )
@@ -122,18 +134,16 @@ export const LgMob: React.FC<{
         healthRemaining,
         onDeath,
         deathPosition,
+        ready,
+        setReady,
     } = useMobStatusState()
 
-    if (!isAlive) {
+    const removeBody = !isAlive && !!deathPosition
 
-        if (!deathPosition) {
-            return null
-        }
-
-        return (
-            <SyncComponent id={id} componentId={componentSyncKeys.basicMobDead} x={deathPosition.x} y={deathPosition.y}/>
-        )
-    }
+    useTransmitData(getMobSyncKey(id), useMemo(() => ({
+        isAlive,
+        deathPosition: deathPosition ? [deathPosition.x, deathPosition.y] : null,
+    }), [isAlive, deathPosition]))
 
     return (
         <LgMobContext.Provider value={{
@@ -144,8 +154,22 @@ export const LgMob: React.FC<{
             isAlive,
             healthRemaining,
             onDeath,
+            setReady,
         }}>
-            <MobBody id={id} x={x} y={y}/>
+            {
+                !removeBody ? (
+                    <MobBody id={id} x={x} y={y}/>
+                ) : (
+                    <MobDeadBody id={id} x={deathPosition.x} y={deathPosition.y}/>
+                )
+            }
+            {
+                ready && (
+                    <>
+                        <SyncComponent id={id} componentId={componentSyncKeys.basicMob} x={x} y={y}/>
+                    </>
+                )
+            }
         </LgMobContext.Provider>
     )
 }

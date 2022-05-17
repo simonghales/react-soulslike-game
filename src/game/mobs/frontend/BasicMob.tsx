@@ -1,4 +1,4 @@
-import React, {Suspense, useCallback, useEffect, useRef, useState} from "react"
+import React, {Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState} from "react"
 import {Box, Circle, Cylinder, Html, Sphere, useTexture} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
 import {usePhysicsRef, usePhysicsSubscription, useSyncData} from "@simonghales/react-three-physics";
@@ -58,31 +58,27 @@ const Visuals: React.FC<{
 
 export const BasicMob: React.FC<{
     id: string,
-}> = ({id}) => {
-
-    // const {
-    //     healthRemaining,
-    //     attackingState,
-    //     hasAttackToken,
-    //     goal,
-    // } = useSyncData(getMobSyncKey(id), {
-    //     healthRemaining: 1000,
-    //     attackingState: null,
-    //     hasAttackToken: false,
-    //     goal: {
-    //         type: GoalType.IDLE,
-    //     }
-    // })
-
-    // const targetPosition = useSyncData(`mob-${id}-targetPosition`, null)
-
-    // useEffect(() => {
-    //     console.log('attackingState', attackingState)
-    // }, [attackingState])
-
-    // const isAttacking = !!attackingState
+    x: number,
+    y: number,
+}> = ({id, x, y}) => {
 
     const ref = useRef<Object3D>(null!)
+
+    useLayoutEffect(() => {
+        const object = ref.current
+        if (!object) return
+        object.position.x = x
+        object.position.y = y
+    }, [])
+
+    const {
+        isAlive,
+        deathPosition,
+    } = useSyncData(getMobSyncKey(id), {
+        isAlive: true,
+        deathPosition: null,
+    })
+
     const rotateRef = useRef<Object3D>(null!)
 
     usePhysicsSubscription(id, useCallback((
@@ -93,21 +89,15 @@ export const BasicMob: React.FC<{
     }, []))
 
 
-    // const isAttackGoal = goal?.type === GoalType.ATTACK_ENTITY
-
-    const debugData = useSyncData(`mob--${id}`, {})
-
     const {
         attackState,
         subGoal,
         healthRemaining,
-        isAlive,
         isSelectedTarget,
     } = useSyncData(getMobStateSyncKey(id), {
         attackState: null,
         subGoal: null,
         healthRemaining: mobsConfig.basic.health,
-        isAlive: true,
         isSelectedTarget: false,
     })
 
@@ -137,8 +127,6 @@ export const BasicMob: React.FC<{
     }, [lastDamaged])
 
     const healthPercent = (100 - (healthRemaining / mobsConfig.basic.health) * 100)
-
-    const targetPosition = debugData?.targetPosition
 
     const isCharging = attackState?.type === AttackStateType.CHARGING
     const isAttacking = attackState?.type === AttackStateType.ATTACKING
@@ -177,7 +165,13 @@ export const BasicMob: React.FC<{
                     }
                 </group>
                 <Suspense fallback={null}>
-                    <Visuals color={color}/>
+                    {
+                        isAlive && (
+                            <>
+                                <Visuals color={color}/>
+                            </>
+                        )
+                    }
                 </Suspense>
             </group>
             {/*{*/}

@@ -167,12 +167,12 @@ export const LgBasicMob: React.FC<{
 
     useOnMobEvents(id, onMobEvents)
 
-    useTransmitData(getMobSyncKey(id), {
-        healthRemaining,
-        attackingState,
-        hasAttackToken,
-        goal,
-    })
+    // useTransmitData(getMobSyncKey(id), {
+    //     healthRemaining,
+    //     attackingState,
+    //     hasAttackToken,
+    //     goal,
+    // })
 
     if (!body) {
         return null

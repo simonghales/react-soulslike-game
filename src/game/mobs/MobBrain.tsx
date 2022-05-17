@@ -14,7 +14,7 @@ import {StatusHandler, useMobStatusState} from "./brain/StatusHandler";
 import {useLgMobContext} from "./LgMobContext";
 import {DamageHandler} from "./brain/DamageHandler";
 import {useIsSelectedTarget} from "../state/backend/player";
-import {getMobStateSyncKey} from "../data/keys";
+import {getMobDebugSyncKey, getMobStateSyncKey} from "../data/keys";
 
 export const MobBrain: React.FC<{
     id: string,
@@ -57,7 +57,7 @@ export const MobBrain: React.FC<{
 
     const positionToken = positionTokens[id] ?? ''
 
-    useTransmitData(`mob--${id}`, debugData)
+    useTransmitData(getMobDebugSyncKey(id), debugData)
 
     const {
         subGoal,

@@ -8,6 +8,7 @@ export const LgMobContext = createContext(null! as {
     isAlive: boolean,
     healthRemaining: number,
     onDeath: any,
+    setReady: any,
 })
 
 export const useLgMobContext = () => {

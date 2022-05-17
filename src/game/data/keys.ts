@@ -8,12 +8,16 @@ export const getMobSyncKey = (id: string) => {
     return `mob--${id}`
 }
 
+export const getMobDebugSyncKey = (id: string) => {
+    return `mob--${id}--debug`
+}
+
 export const getMobStateSyncKey = (id: string) => {
     return `mob--${id}--state`
 }
 
 export const getMobEventsKey = (id: string) => {
-    return `mob--${id}`
+    return `mob--${id}--events`
 }
 
 export const PLAYER_EVENTS_KEY = 'PLAYER_EVENTS'
