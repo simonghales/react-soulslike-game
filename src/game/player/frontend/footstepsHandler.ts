@@ -21,7 +21,7 @@ let now = 0
 let timeElapsed = 0
 let delta = 0
 
-const SPEED_DIFFERENCE_THRESHOLD = 0.01
+const SPEED_DIFFERENCE_THRESHOLD = 0.0075
 const INTERVAL = 50
 
 export const useFootstepsHandler = (ref: MutableRefObject<Object3D>) => {
@@ -65,7 +65,7 @@ export const useFootstepsHandler = (ref: MutableRefObject<Object3D>) => {
 
             roughSpeed = v2.lengthSquared()
 
-            speedDifference = roughSpeed - data.roughSpeed
+            speedDifference = (roughSpeed - data.roughSpeed) * delta
 
             direction = v2ToAngle(v2.x, v2.y)
 
@@ -74,7 +74,7 @@ export const useFootstepsHandler = (ref: MutableRefObject<Object3D>) => {
             if (difference > (50 * delta)) {
                 data.movingWeight = lerp(data.movingWeight, 0, 0.5 * delta)
             } else {
-                data.movingWeight = lerp(data.movingWeight, 2, 0.2 * delta)
+                data.movingWeight = lerp(data.movingWeight, 2, 0.25 * delta)
             }
 
             data.direction = lerpRadians(data.direction, direction, 0.5 * delta)
@@ -90,7 +90,7 @@ export const useFootstepsHandler = (ref: MutableRefObject<Object3D>) => {
 
             // console.log('roughSpeed', roughSpeed)
 
-            if (speedDifference >= SPEED_DIFFERENCE_THRESHOLD * delta) {
+            if (speedDifference >= SPEED_DIFFERENCE_THRESHOLD) {
                 // console.log('speedDifference', speedDifference)
                 data.movingWeight = lerp(data.movingWeight, 0, 0.25 * delta)
             }
@@ -99,7 +99,7 @@ export const useFootstepsHandler = (ref: MutableRefObject<Object3D>) => {
                 return
             }
 
-            if (speedDifference < (0.01 * delta)) {
+            if (speedDifference < (0.01)) {
                 data.movingWeight = lerp(data.movingWeight, 2, 0.1 * delta)
             }
 
