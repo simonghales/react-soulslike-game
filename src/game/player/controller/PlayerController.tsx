@@ -396,9 +396,6 @@ const processJumpInput = (
     }
 
     if (!hasEnergyRemaining(energyState)) {
-        if (getTimeElapsed(queuedInput) > 500) {
-            return true
-        }
         return false
     }
 
@@ -433,9 +430,6 @@ const processRollInput = (
     }
 
     if (!hasEnergyRemaining(energyState)) {
-        if (getTimeElapsed(queuedInput) > 500) {
-            return true
-        }
         return false
     }
 
@@ -504,9 +498,6 @@ const processAttackInput = (
     }
 
     if (!hasEnergyRemaining(energyState)) {
-        if (getTimeElapsed(queuedInput) > 500) {
-            return true
-        }
         return false
     }
 

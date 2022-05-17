@@ -101,7 +101,7 @@ export const BasicMob: React.FC<{
         isSelectedTarget: false,
     })
 
-    useSetPlayerTargetRef(isSelectedTarget, ref)
+    useSetPlayerTargetRef(isSelectedTarget && isAlive, ref)
 
     const localStateRef = useRef({
         previousHealthRemaining: mobsConfig.basic.health,

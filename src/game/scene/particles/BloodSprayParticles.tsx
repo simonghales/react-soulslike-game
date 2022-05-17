@@ -15,7 +15,10 @@ export const fragShader = `
     varying vec2 vUv;
     varying float vInstanceOpacity;
     void main() {
-      vec4 color = texture2D(vTexture, vUv);
+    
+        //vec3 foo = vec3(0.318,0.2,0.153);
+    
+      vec4 color = texture2D(vTexture, vUv); // * vec4(foo,1.0);
       //gl_FragColor = vec4(0.18, 0.54, 0.34, vInstanceOpacity);
       vec4 transparent = vec4(0, 0, 0, 0);
       gl_FragColor = mix(transparent, color, vInstanceOpacity);
