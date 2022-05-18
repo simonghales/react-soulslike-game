@@ -1,8 +1,9 @@
 import React, {useCallback, useEffect, useState} from "react"
 import {mobsConfig} from "../../data/mobs";
 import {Body, Vec2} from "planck";
+import {addDeadBody} from "../../state/game";
 
-export const useMobStatusState = () => {
+export const useMobStatusState = (id: string) => {
 
     const [ready, setReady] = useState(false)
     const [damageTaken, setDamageTaken] = useState(0)
@@ -48,6 +49,7 @@ export const useMobStatusState = () => {
 
     const onDeath = useCallback((body: Body) => {
         setDeathPosition(body.getPosition().clone())
+        addDeadBody(id, body.getPosition().x, body.getPosition().y)
     }, [])
 
     return {

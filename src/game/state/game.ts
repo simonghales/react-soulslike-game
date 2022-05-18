@@ -8,6 +8,12 @@ export type MobState = {
     isDead?: boolean,
 }
 
+export type DeadBody = {
+    id: string,
+    x: number,
+    y: number,
+}
+
 let mobCount = 0
 
 const generateMob = (x: number, y: number) => {
@@ -16,6 +22,16 @@ const generateMob = (x: number, y: number) => {
         x: x,
         y: y,
     }
+}
+
+const generateDeadBody = (id: string, x: number, y: number): DeadBody => {
+
+    return {
+        id: `${id}--dead`,
+        x,
+        y,
+    }
+
 }
 
 const generateMobs = () => {
@@ -43,6 +59,7 @@ const generateMobs = () => {
 
 export const gameStateProxy = proxy({
     mobs: generateMobs() as Record<string, MobState>,
+    deadBodies: {} as Record<string, DeadBody>,
 })
 
 export const setMobDead = (id: string) => {
@@ -56,14 +73,18 @@ export const setMobDead = (id: string) => {
 }
 
 export const useMobs = () => {
-    const [mobs, setMobs] = useState(snapshot(gameStateProxy.mobs))
-    useEffect(() => {
-        const unsub = subscribe(gameStateProxy, () => {
-            setMobs(snapshot(gameStateProxy.mobs))
-        })
-        return () => {
-            unsub()
-        }
-    }, [])
-    return mobs
+
+    return useSnapshot(gameStateProxy.mobs)
+
+}
+
+export const useDeadBodies = () => {
+
+    return useSnapshot(gameStateProxy.deadBodies)
+
+}
+
+export const addDeadBody = (id: string, x: number, y: number) => {
+    const deadBody = generateDeadBody(id, x, y)
+    gameStateProxy.deadBodies[deadBody.id] = deadBody
 }

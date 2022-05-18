@@ -24,7 +24,7 @@ const StyledContainer = styled.div<{
 }>`
   width: 70px;
   height: 10px;
-  background-color: grey;
+  background-color: #68719599;
   border: 1px solid black;
   position: relative;
   overflow: hidden;

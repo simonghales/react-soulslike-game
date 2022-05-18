@@ -16,7 +16,7 @@ const StyledContainer = styled.div`
 const StyledHealthContainer = styled.div`
   width: 260px;
   height: 18px;
-  background-color: white;
+  background-color: #68719599;
   position: relative;
   overflow: hidden;
 `
@@ -29,14 +29,14 @@ const StyledHealthAmount = styled.div<{
   left: 0;
   bottom: 0;
   width: 100%;
-  background-color: red;
+  background-color: #c40b1d;
   transform: translateX(-${props => props.percent}%);
 `
 
 const StyledEnergyContainer = styled.div`
   width: 260px;
   height: 18px;
-  background-color: white;
+  background-color: #68719599;
   position: relative;
   overflow: hidden;
 `
@@ -49,7 +49,7 @@ const StyledEnergyAmount = styled.div<{
   left: 0;
   bottom: 0;
   width: 100%;
-  background-color: green;
+  background-color: #94a426;
   transform: translateX(-${props => props.energyAmount}%);
 `
 

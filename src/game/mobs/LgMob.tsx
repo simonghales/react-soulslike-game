@@ -9,7 +9,7 @@ import {componentSyncKeys, getMobSyncKey} from "../data/keys";
 import {MobBrain} from "./MobBrain";
 import {useMobStatusState} from "./brain/StatusHandler";
 import {LgMobContext, useLgMobContext} from "./LgMobContext";
-import {MobDeadBody} from "./backend/MobDeadBody";
+import {LgMobDeadBody} from "./backend/LgMobDeadBody";
 
 export const useMobBody = (id: string, x: number, y: number) => {
 
@@ -136,7 +136,7 @@ export const LgMob: React.FC<{
         deathPosition,
         ready,
         setReady,
-    } = useMobStatusState()
+    } = useMobStatusState(id)
 
     const removeBody = !isAlive && !!deathPosition
 
@@ -157,10 +157,8 @@ export const LgMob: React.FC<{
             setReady,
         }}>
             {
-                !removeBody ? (
+                !removeBody && (
                     <MobBody id={id} x={x} y={y}/>
-                ) : (
-                    <MobDeadBody id={id} x={deathPosition.x} y={deathPosition.y}/>
                 )
             }
             {
