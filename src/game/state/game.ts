@@ -44,15 +44,17 @@ const generateMobs = () => {
     }
 
     addMob(-4, 6)
-    addMob(-2, 6)
-    // addMob(4, 6)
-    // addMob(0, 7)
-    // addMob(5, 7)
-    // addMob(-5, 7)
-    // addMob(8, 7)
-    // addMob(-8, 7)
+    addMob(4, 6)
+    addMob(0, 7)
+    addMob(8, 7)
+    addMob(-8, 7)
+
+
+
     // addMob(5, 3)
     // addMob(-5, 3)
+    // addMob(5, 7)
+    // addMob(-5, 7)
 
     return mobs
 

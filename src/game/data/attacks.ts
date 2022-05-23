@@ -1,8 +1,10 @@
 export const SHORT_ATTACK_DURATION = 175
 export const LONG_ATTACK_DURATION = 275
 
-// const ATTACK_MULTIPLIER = 1
-const ATTACK_MULTIPLIER = 10
+// WARNING - NOT IN USE!!!
+
+const ATTACK_MULTIPLIER = 1
+// const ATTACK_MULTIPLIER = 10
 
 export const attacksConfig = {
     short: {
