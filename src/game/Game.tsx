@@ -10,6 +10,7 @@ import { SyncableComponents } from "@simonghales/react-three-physics";
 import {mainSyncableComponents} from "./data/mainSyncableComponents";
 import {GameUI} from "./ui/GameUI";
 import {SceneManager} from "./scene/SceneManager";
+import {StateSync} from "./state/frontend/StateSync";
 
 const StyledContainer = styled.div`
   position: fixed;
@@ -36,6 +37,7 @@ export const Game: React.FC = () => {
                 <SceneManager>
                     <Engine>
                         <SyncableComponents components={mainSyncableComponents}>
+                            <StateSync/>
                             <Scenery/>
                             <Suspense fallback={null}>
                                 <Player/>

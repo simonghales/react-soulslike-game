@@ -2,11 +2,24 @@ import {proxy, ref, useSnapshot} from "valtio";
 import {playerConfig} from "../../player/config";
 import {MutableRefObject, useEffect} from "react";
 import {Object3D} from "three";
+import {PlayerInventory} from "../backend/player";
 
 export const playerStateProxy = proxy({
     energyUsage: 0,
     healthRemaining: playerConfig.defaultHealth,
+    inventory: {} as PlayerInventory,
 })
+
+export const updatePlayerInventory = (update: PlayerInventory) => {
+    Object.keys(playerStateProxy.inventory).forEach(key => {
+        if (!update[key]) {
+            delete playerStateProxy.inventory[key]
+        }
+    })
+    Object.entries(update).forEach(([key, entry]) => {
+        playerStateProxy.inventory[key] = ref(entry)
+    })
+}
 
 export type RecentHitData = [xVel: number, yVel: number, time: number]
 

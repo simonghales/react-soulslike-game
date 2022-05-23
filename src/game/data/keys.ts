@@ -2,6 +2,7 @@ export const syncKeys = {
     playerState: 'playerState',
     playerAttackState: 'playerAttackState',
     playerEnergyUsage: 'playerEnergyUsage',
+    backendStateSync: 'backendStateSync',
 }
 
 export const getMobSyncKey = (id: string) => {
@@ -18,6 +19,10 @@ export const getMobStateSyncKey = (id: string) => {
 
 export const getMobEventsKey = (id: string) => {
     return `mob--${id}--events`
+}
+
+export const getInteractionEventsKey = (id: string) => {
+    return `interaction--${id}`
 }
 
 export const PLAYER_EVENTS_KEY = 'PLAYER_EVENTS'

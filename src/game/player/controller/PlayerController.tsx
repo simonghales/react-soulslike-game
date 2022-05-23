@@ -26,6 +26,8 @@ import {defaultMovementState, defaultPlayerState, MovementState, PlayerState} fr
 import {easeInOutBack, easeInOutQuad, easeInOutQuint, easeOutQuart} from "../../../utils/easing";
 import {getMobEventsKey, PLAYER_EVENTS_KEY} from "../../data/keys";
 import {MobEventType} from "../../mobs/brain/events";
+import {useInteractionHandler} from "./interactionHandler";
+import {emitInteractionBegan, emitInteractionEnded, emitInteractionInterrupted} from "../../events/interaction";
 
 let pressed = false
 let held = false
@@ -97,6 +99,7 @@ export type ProcessedState = {
     isRunning: boolean,
     isAttacking: boolean,
     isStunned: boolean,
+    isInteracting: boolean,
 }
 
 const defaultProcessedState: ProcessedState = {
@@ -112,6 +115,7 @@ const defaultProcessedState: ProcessedState = {
     isRunning: false,
     isAttacking: false,
     isStunned: false,
+    isInteracting: false,
 }
 
 export enum QueuedInputType {
@@ -138,6 +142,8 @@ export type InputsState = {
     attackYReleased: number,
     pendingAttack: number,
     pendingTarget: number,
+    interactionId: string,
+    interactionBegan: number,
 }
 
 const defaultInputsState: InputsState = {
@@ -150,6 +156,8 @@ const defaultInputsState: InputsState = {
     attackYReleased: 0,
     pendingAttack: 0,
     pendingTarget: 0,
+    interactionId: '',
+    interactionBegan: 0,
 }
 
 const PENDING_JUMP_THRESHOLD = 150
@@ -336,6 +344,39 @@ const handleTargetInput = (
 
 }
 
+const handleInteractInput = (
+    keysState: KeysProcessedState,
+    inputsState: InputsState,
+    playerState: PlayerState,
+    controllerActions: ControllerActions,
+) => {
+
+    if (keysState.interactPressed) {
+
+        if (!playerState.targetItem) {
+            return
+        }
+
+        inputsState.interactionId = playerState.targetItem
+        inputsState.interactionBegan = Date.now()
+
+    } else if (keysState.interactReleased) {
+
+        if (!inputsState.interactionId) return
+
+        if (playerState.currentInteractionId) {
+            controllerActions.onInteractEnd(playerState.currentInteractionId)
+            playerState.currentInteractionId = ''
+        }
+
+        inputsState.interactionId = ''
+        inputsState.interactionBegan = 0
+
+
+    }
+
+}
+
 const processInputs = (
     keysState: KeysProcessedState,
     inputsState: InputsState,
@@ -361,6 +402,8 @@ const processInputs = (
     handleTargetInput(keysState, inputsState, playerState, controllerActions)
 
     handleAttackInputs(keysState, inputsState, energyState)
+
+    handleInteractInput(keysState, inputsState, playerState, controllerActions)
 
     excess = inputsState.queue.length - INPUT_QUEUE_LIMIT
 
@@ -535,9 +578,11 @@ const processInputsQueue = (
     actionState: PlayerActionState,
     energyState: EnergyState,
     keysState: KeysProcessedState,
+    playerState: PlayerState,
     body: Body,
     setCurrentAttack: any,
     selectedTarget: SelectedTarget,
+    controllerActions: ControllerActions,
 ) => {
 
     inputsState.queue.forEach((queuedInput, index, queue) => {
@@ -556,6 +601,14 @@ const processInputsQueue = (
             queue.splice(index, 1)
         }
     })
+
+    if (inputsState.interactionBegan) {
+        if (!playerState.currentInteractionId && !playerState.currentlyCarvingId) {
+            playerState.currentInteractionId = playerState.targetItem
+            controllerActions.onInteractBegin(playerState.targetItem)
+            inputsState.interactionBegan = 0
+        }
+    }
 
 }
 
@@ -639,6 +692,8 @@ let isInAttackCooldown = false
 let isInSpecialMoveCooldown = false
 let isInCooldown = false
 let isStunned = false
+let isInteracting = false
+let canMove = false
 
 const processState = (
     processedState: ProcessedState,
@@ -659,6 +714,14 @@ const processState = (
         }
     }
 
+    isInteracting = false
+
+    if (playerState.currentInteractionId || playerState.currentlyCarvingId) {
+        isInteracting = true
+    }
+
+    processedState.isInteracting = isInteracting
+
     processedState.isStunned = isStunned
 
     hasCurrentAction = !!actionState.currentAction
@@ -668,9 +731,9 @@ const processState = (
 
     isInCooldown = isInAttackCooldown || isInSpecialMoveCooldown || isStunned
 
-    processedState.canMove = !isInAttackCooldown && !isStunned
-    processedState.canAttack = !hasCurrentAction && !isInCooldown
-    processedState.canSpecialMove = !hasCurrentAction && !isInCooldown
+    processedState.canMove = !isInAttackCooldown && !isStunned && !isInteracting
+    processedState.canAttack = !hasCurrentAction && !isInCooldown && !isInteracting
+    processedState.canSpecialMove = !hasCurrentAction && !isInCooldown && !isInteracting
     processedState.attackCooldown = isInAttackCooldown
     processedState.attackCharging = (!!inputsState.pendingAttack) && !hasCurrentAction
     processedState.canRun = processedState.canMove && !hasCurrentAction && !isInCooldown && !inputsState.pendingJump && !inputsState.pendingAttack
@@ -846,7 +909,6 @@ const processAngle = (
     isSpecialMove: boolean,
     selectedTarget: SelectedTarget,
     ) => {
-
 
     prevLookViaMovement = movementState.lookViaMovement
     lookViaMovement = prevLookViaMovement
@@ -1086,7 +1148,15 @@ export type ControllerActions = {
     enterTargetMode: () => boolean,
     selectNewTarget: () => void,
     exitTargetMode: () => void,
+    onInteractBegin: (id: string) => void,
+    onInteractEnd: (id: string) => void,
+    onCarvingBegin: (id: string, time: number) => void,
+    onCarvingEnd: (id: string, time: number) => void,
 }
+
+let xPos = 0
+let yPos = 0
+let currentlyAtRest = false
 
 export const PlayerController: React.FC = () => {
 
@@ -1133,6 +1203,16 @@ export const PlayerController: React.FC = () => {
         setIsInTargetMode,
     } = useTargetControls(movementState, keysState, playerState)
 
+    const [atRest, setAtRest] = useState(false)
+
+    const [canInteract, setCanInteract] = useState(true)
+
+    const targetItem = useInteractionHandler(body, atRest, canInteract)
+
+    useEffect(() => {
+        localStateRef.current.playerState.targetItem = targetItem
+    }, [targetItem])
+
     useEffect(() => {
         localStateRef.current.playerState.inTargetMode = isInTargetMode
     }, [isInTargetMode])
@@ -1160,6 +1240,21 @@ export const PlayerController: React.FC = () => {
                 setIsInTargetMode(false)
                 targetControls.clearTarget()
             },
+            onInteractBegin: (id: string) => {
+                emitInteractionBegan(id)
+            },
+            onInteractEnd: (id: string) => {
+                emitInteractionEnded(id)
+            },
+            onCarvingBegin: (id: string, time: number) => {
+                localStateRef.current.playerState.currentlyCarvingId = id
+                setCanInteract(false)
+            },
+            onCarvingEnd: (id: string, time: number) => {
+                localStateRef.current.playerState.currentInteractionId = ''
+                localStateRef.current.playerState.currentlyCarvingId = ''
+                setCanInteract(true)
+            },
         }
     }, [targetControls])
 
@@ -1174,12 +1269,25 @@ export const PlayerController: React.FC = () => {
         processInputs(keysState, inputsState, energyState, playerState, controllerActions)
         processAction(actionState, setCurrentAttack, fixtures)
         processState(processedState, actionState, inputsState, playerState)
-        processInputsQueue(inputsState, processedState, actionState, energyState, keysState, body, setCurrentAttack, selectedTarget)
+        processInputsQueue(inputsState, processedState, actionState, energyState, keysState, playerState, body, setCurrentAttack, selectedTarget, controllerActions)
         processState(processedState, actionState, inputsState, playerState) // process again...
         processMovement(movementState, actionState, processedState, keysState, inputsState, energyState, body, combatBody, delta, selectedTarget)
 
         if (energyState.newUsage > 0) {
             increaseEnergyUsage(energyState.newUsage)
+        }
+
+        xPos = body.getPosition().x
+        yPos = body.getPosition().y
+
+        currentlyAtRest = (xPos === playerState.previousX && yPos === playerState.previousY)
+
+        playerState.previousX = xPos
+        playerState.previousY = yPos
+
+        if (currentlyAtRest !== playerState.previouslyAtRest) {
+            playerState.previouslyAtRest = currentlyAtRest
+            setAtRest(currentlyAtRest)
         }
 
         if (processedState.isAttacking) {
@@ -1229,6 +1337,12 @@ export const PlayerController: React.FC = () => {
             localStateRef.current.playerState.stunnedCooldown = Date.now() + 750
         }
 
+        if (playerState.currentInteractionId) {
+            emitInteractionInterrupted(playerState.currentInteractionId)
+            playerState.currentInteractionId = ''
+            playerState.currentlyCarvingId = ''
+        }
+
         setMovementState(PlayerMovementState.STUNNED)
 
         sendEvent(PLAYER_EVENTS_KEY, {
@@ -1244,6 +1358,12 @@ export const PlayerController: React.FC = () => {
         switch (event.type) {
             case PlayerEventType.DAMAGED:
                 onDamageReceived(event.data.damage, event.data.currentPosition)
+                break;
+            case PlayerEventType.CARVING_BEGAN:
+                controllerActions.onCarvingBegin(event.data.id, event.data.time)
+                break;
+            case PlayerEventType.CARVING_END:
+                controllerActions.onCarvingEnd(event.data.id, event.data.time)
                 break;
         }
     }, []))

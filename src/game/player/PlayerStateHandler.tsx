@@ -36,7 +36,7 @@ const useEnergyHandler = () => {
         if (hasNoEnergy) {
             timeout = setTimeout(begin, 1300)
         } else {
-            timeout = setTimeout(begin, 300)
+            timeout = setTimeout(begin, 500)
         }
 
         return () => {

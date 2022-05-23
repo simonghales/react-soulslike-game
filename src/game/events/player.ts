@@ -5,6 +5,8 @@ import {useEffect} from "react";
 
 export enum PlayerEventType {
     DAMAGED = 'DAMAGED',
+    CARVING_BEGAN = 'CARVING_BEGAN',
+    CARVING_END = 'CARVING_END',
 }
 
 export type PlayerBaseEvent = {
@@ -20,6 +22,26 @@ export type PlayerDamagedEvent = PlayerBaseEvent & {
 export type PlayerEvent = {
     type: string,
     data?: any,
+}
+
+export const emitPlayerCarvingBegan = (id: string, time: number) => {
+    eventEmitter.emit(`player`, {
+        type: PlayerEventType.CARVING_BEGAN,
+        data: {
+            id,
+            time,
+        }
+    })
+}
+
+export const emitPlayerCarvingEnd = (id: string, time: number) => {
+    eventEmitter.emit(`player`, {
+        type: PlayerEventType.CARVING_END,
+        data: {
+            id,
+            time,
+        }
+    })
 }
 
 export const emitPlayerDamaged = (id: string, damage: number, currentPosition: Vec2) => {

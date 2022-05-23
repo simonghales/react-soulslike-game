@@ -24,6 +24,8 @@ export const PlayerContext = createContext(null! as {
     collisionsRef: MutableRefObject<PlayerCollisionsData>,
     selectedTarget: SelectedTarget,
     setSelectedTarget: any,
+    targetItem: string,
+    setTargetItem: any,
 })
 
 export const usePlayerContext = () => {

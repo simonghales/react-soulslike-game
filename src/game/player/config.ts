@@ -14,12 +14,15 @@ export type AttackConfig = {
     angleRange: number,
 }
 
+// const ATTACK_MULTIPLIER = 1
+const ATTACK_MULTIPLIER = 10
+
 export const playerAttacksConfig: Record<string, AttackConfig> = {
     [PlayerAttackType.SHORT]: {
         energyUsage: 75,
         duration: 175,
         cooldown: 250,
-        baseDamage: 6,
+        baseDamage: 6 * ATTACK_MULTIPLIER,
         inputExpiration: 1000,
         angleRange: degToRad(40),
     },
@@ -27,7 +30,7 @@ export const playerAttacksConfig: Record<string, AttackConfig> = {
         energyUsage: 110,
         duration: 275,
         cooldown: 500,
-        baseDamage: 17,
+        baseDamage: 17 * ATTACK_MULTIPLIER,
         inputExpiration: 1500,
         angleRange: degToRad(50),
     },
@@ -105,6 +108,8 @@ export const playerConfig = {
         mediumCombatRadius: 5.5,
         smallCombatRadius: 3.25,
         extraSmallCombatRadius: 1.75,
+        interactionRadius: 1.1,
+        // interactionRadius: 5,
         shortAttack: {
             w: 1.6,
             h: 0.7,

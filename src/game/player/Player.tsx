@@ -146,6 +146,9 @@ export const Player: React.FC = () => {
                     {/*        {attackCompleted ? "complete" : playerAttackState.type}*/}
                     {/*    </div>*/}
                     {/*</Html>*/}
+                    <Circle args={[playerConfig.sensors.interactionRadius, 32]}>
+                        <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>
+                    </Circle>
                     {/*<Circle args={[playerConfig.sensors.extraSmallCombatRadius, 32]}>*/}
                     {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
                     {/*</Circle>*/}

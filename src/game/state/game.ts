@@ -44,12 +44,13 @@ const generateMobs = () => {
     }
 
     addMob(-4, 6)
-    addMob(4, 6)
-    addMob(0, 7)
+    addMob(-2, 6)
+    // addMob(4, 6)
+    // addMob(0, 7)
     // addMob(5, 7)
     // addMob(-5, 7)
-    addMob(8, 7)
-    addMob(-8, 7)
+    // addMob(8, 7)
+    // addMob(-8, 7)
     // addMob(5, 3)
     // addMob(-5, 3)
 
@@ -87,4 +88,8 @@ export const useDeadBodies = () => {
 export const addDeadBody = (id: string, x: number, y: number) => {
     const deadBody = generateDeadBody(id, x, y)
     gameStateProxy.deadBodies[deadBody.id] = deadBody
+}
+
+export const removeDeadBody = (id: string) => {
+    delete gameStateProxy.deadBodies[id]
 }

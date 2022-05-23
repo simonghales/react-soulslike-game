@@ -36,10 +36,24 @@ export type PlayerState = {
     stunnedCooldown: number,
     lastStunned: number,
     inTargetMode: boolean,
+    previousX: number,
+    previousY: number,
+    atRestTracker: number,
+    previouslyAtRest: boolean,
+    targetItem: string,
+    currentInteractionId: string,
+    currentlyCarvingId: string,
 }
 
 export const defaultPlayerState: PlayerState = {
     stunnedCooldown: 0,
     lastStunned: 0,
     inTargetMode: false,
+    previousX: 0,
+    previousY: 0,
+    atRestTracker: 0,
+    previouslyAtRest: false,
+    targetItem: '',
+    currentInteractionId: '',
+    currentlyCarvingId: '',
 }

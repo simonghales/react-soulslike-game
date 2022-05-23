@@ -35,7 +35,7 @@ import {PlayerController} from "./controller/PlayerController";
 import {PlayerStateHandler} from "./PlayerStateHandler";
 import {PlayerMovementState} from "./types";
 import {useCollisionsHandler, useCollisionsState} from "./controller/collisionsHandler";
-import {setBackendSelectedTarget} from "../state/backend/player";
+import {setBackendSelectedTarget, setBackendTargetItem} from "../state/backend/player";
 
 let moveRight = false
 let moveLeft = false
@@ -938,6 +938,7 @@ export const LgPlayer: React.FC = () => {
             shape: Box((4 / 2), (3 / 2), new Vec2(1.75, 0)),
             isSensor: true,
             filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            filterMaskBits: COLLISION_FILTER_GROUPS.npcs,
             userData: {
                 collisionId: playerConfig.collisionIds.player,
                 collisionType: PlayerRangeCollisionTypes.PLAYER_RANGE,
@@ -948,9 +949,21 @@ export const LgPlayer: React.FC = () => {
             shape: Circle(playerConfig.sensors.mediumRangeRadius),
             isSensor: true,
             filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            filterMaskBits: COLLISION_FILTER_GROUPS.npcs,
             userData: {
                 collisionId: playerConfig.collisionIds.player,
                 collisionType: PlayerRangeCollisionTypes.PLAYER_MEDIUM_RANGE,
+            },
+        })
+
+        const interactionRangeFixture = body.createFixture({
+            shape: Circle(playerConfig.sensors.interactionRadius),
+            isSensor: true,
+            filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            filterMaskBits: COLLISION_FILTER_GROUPS.items,
+            userData: {
+                collisionId: playerConfig.collisionIds.player,
+                collisionType: PlayerRangeCollisionTypes.PLAYER_INTERACTION_RANGE,
             },
         })
 
@@ -958,6 +971,7 @@ export const LgPlayer: React.FC = () => {
             shape: Circle(playerConfig.sensors.extraSmallCombatRadius),
             isSensor: true,
             filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            filterMaskBits: COLLISION_FILTER_GROUPS.npcs,
             userData: {
                 collisionId: playerConfig.collisionIds.player,
                 collisionType: PlayerRangeCollisionTypes.PLAYER_EXTRA_SMALL_COMBAT_RANGE,
@@ -968,6 +982,7 @@ export const LgPlayer: React.FC = () => {
             shape: Circle(playerConfig.sensors.smallCombatRadius),
             isSensor: true,
             filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            filterMaskBits: COLLISION_FILTER_GROUPS.npcs,
             userData: {
                 collisionId: playerConfig.collisionIds.player,
                 collisionType: PlayerRangeCollisionTypes.PLAYER_SMALL_COMBAT_RANGE,
@@ -978,6 +993,7 @@ export const LgPlayer: React.FC = () => {
             shape: Circle(playerConfig.sensors.mediumCombatRadius),
             isSensor: true,
             filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            filterMaskBits: COLLISION_FILTER_GROUPS.npcs,
             userData: {
                 collisionId: playerConfig.collisionIds.player,
                 collisionType: PlayerRangeCollisionTypes.PLAYER_MEDIUM_COMBAT_RANGE,
@@ -988,6 +1004,7 @@ export const LgPlayer: React.FC = () => {
             shape: Circle(playerConfig.sensors.largeCombatRadius),
             isSensor: true,
             filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            filterMaskBits: COLLISION_FILTER_GROUPS.npcs,
             userData: {
                 collisionId: playerConfig.collisionIds.player,
                 collisionType: PlayerRangeCollisionTypes.PLAYER_LARGE_COMBAT_RANGE,
@@ -998,6 +1015,7 @@ export const LgPlayer: React.FC = () => {
             shape: Circle(playerConfig.sensors.extraLargeCombatRadius),
             isSensor: true,
             filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            filterMaskBits: COLLISION_FILTER_GROUPS.npcs,
             userData: {
                 collisionId: playerConfig.collisionIds.player,
                 collisionType: PlayerRangeCollisionTypes.PLAYER_EXTRA_LARGE_COMBAT_RANGE,
@@ -1008,6 +1026,7 @@ export const LgPlayer: React.FC = () => {
             shape: Circle(playerConfig.sensors.largeRangeRadius),
             isSensor: true,
             filterCategoryBits: COLLISION_FILTER_GROUPS.playerRange,
+            filterMaskBits: COLLISION_FILTER_GROUPS.npcs,
             userData: {
                 collisionId: playerConfig.collisionIds.player,
                 collisionType: PlayerRangeCollisionTypes.PLAYER_LONG_RANGE,
@@ -1130,6 +1149,8 @@ export const LgPlayer: React.FC = () => {
 
     const [selectedTarget, setSelectedTarget] = useState(null as SelectedTarget)
 
+    const [targetItem, setTargetItem] = useState('')
+
     useTransmitData(syncKeys.playerState, useMemo(() => {
         return {
             energyUsage,
@@ -1143,6 +1164,10 @@ export const LgPlayer: React.FC = () => {
         const id = selectedTarget?.id ?? ''
         setBackendSelectedTarget(id)
     }, [selectedTarget])
+
+    useEffect(() => {
+        setBackendTargetItem(targetItem)
+    }, [targetItem])
 
     const collisions = useCollisionsHandler(playerConfig.collisionIds.player)
     const combatCollisions = useCollisionsHandler(playerConfig.collisionIds.attack)
@@ -1177,6 +1202,8 @@ export const LgPlayer: React.FC = () => {
             collisionsStateRef,
             selectedTarget,
             setSelectedTarget,
+            targetItem,
+            setTargetItem,
         }}>
             {/*<Controller fixtures={fixtures} body={body} combatBody={combatBody}/>*/}
             {

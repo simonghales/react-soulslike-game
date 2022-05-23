@@ -12,6 +12,7 @@ export const INPUT_KEYS = {
     E: ['69'],
     Z: ['90'],
     Q: ['81'],
+    C: ['67'],
     RIGHT_ANGLE: ['190'],
 }
 

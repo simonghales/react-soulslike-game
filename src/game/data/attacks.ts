@@ -1,18 +1,21 @@
 export const SHORT_ATTACK_DURATION = 175
 export const LONG_ATTACK_DURATION = 275
 
+// const ATTACK_MULTIPLIER = 1
+const ATTACK_MULTIPLIER = 10
+
 export const attacksConfig = {
     short: {
         energyUsage: 75,
         duration: 175,
         cooldown: 250,
-        baseDamage: 6,
+        baseDamage: 6 * ATTACK_MULTIPLIER,
     },
     long: {
         energyUsage: 110,
       duration: 275,
         cooldown: 500,
-      baseDamage: 17,
+      baseDamage: 17 * ATTACK_MULTIPLIER,
     },
 }
 
