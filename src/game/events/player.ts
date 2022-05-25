@@ -2,11 +2,14 @@ import {Vec2} from "planck";
 import {eventEmitter} from "./general";
 import {useEffectRef} from "../../utils/hooks";
 import {useEffect} from "react";
+import {ItemType} from "../data/types";
+import {eventKeys} from "../data/keys";
 
 export enum PlayerEventType {
     DAMAGED = 'DAMAGED',
     CARVING_BEGAN = 'CARVING_BEGAN',
     CARVING_END = 'CARVING_END',
+    ITEM_RECEIVED = 'ITEM_RECEIVED',
 }
 
 export type PlayerBaseEvent = {
@@ -40,6 +43,28 @@ export const emitPlayerCarvingEnd = (id: string, time: number) => {
         data: {
             id,
             time,
+        }
+    })
+}
+
+export const emitPlayerItemReceived = (type: ItemType, count: number) => {
+    eventEmitter.emit(`player`, {
+        type: PlayerEventType.ITEM_RECEIVED,
+        data: {
+            type,
+            count,
+            time: Date.now(),
+        }
+    })
+}
+
+export const emitPlayerInventoryItemReceived = (type: ItemType, count: number) => {
+    eventEmitter.emit(eventKeys.playerInventory, {
+        type: PlayerEventType.ITEM_RECEIVED,
+        data: {
+            type,
+            count,
+            time: Date.now(),
         }
     })
 }

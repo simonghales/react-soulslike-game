@@ -132,7 +132,7 @@ export const MobBrain: React.FC<{
                         {
                             !stunned && (
                                 <>
-                                    <MovementHandler/>
+                                    {/*<MovementHandler/>*/}
                                 </>
                             )
                         }

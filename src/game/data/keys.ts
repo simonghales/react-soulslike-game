@@ -5,6 +5,14 @@ export const syncKeys = {
     backendStateSync: 'backendStateSync',
 }
 
+export const messageKeys = {
+    playerInventoryChange: 'playerInventoryChange',
+}
+
+export const eventKeys = {
+    playerInventory: 'playerInventory',
+}
+
 export const getMobSyncKey = (id: string) => {
     return `mob--${id}`
 }

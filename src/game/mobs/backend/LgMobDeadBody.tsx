@@ -3,11 +3,12 @@ import {componentSyncKeys} from "../../data/keys";
 import {SyncComponent, useAddBody} from "@simonghales/react-three-physics";
 import {useWorld} from "../../../worker/WorldProvider";
 import {Body, Circle, Vec2} from "planck";
-import {COLLISION_FILTER_GROUPS, MobCollisionTypes} from "../../data/collisions";
+import {COLLISION_FILTER_GROUPS} from "../../data/collisions";
 import {addItemToPlayerInventory, useIsTargetedItem} from "../../state/backend/player";
 import {InteractionEvent, InteractionEventType, useOnInteractionEvents} from "../../events/interaction";
-import {emitPlayerCarvingBegan, emitPlayerCarvingEnd} from "../../events/player";
+import {emitPlayerCarvingBegan, emitPlayerCarvingEnd, emitPlayerItemReceived} from "../../events/player";
 import {removeDeadBody} from "../../state/game";
+import {ChestInventoryItem, ItemType} from "../../data/types";
 
 const useMobDeadBody = (id: string, x: number, y: number) => {
 
@@ -83,24 +84,14 @@ const useMobDeadBody = (id: string, x: number, y: number) => {
 
 const CARVING_DURATION = 2000
 
-export enum ItemType {
-    MEDIUM_BRAIN = 'MEDIUM_BRAIN',
-    MEDIUM_BONES = 'MEDIUM_BONES',
-}
-
-export type ChestInventoryItem = {
-    type: ItemType,
-    count: number,
-}
-
 const defaultInventory: ChestInventoryItem[] = [
     {
         type: ItemType.MEDIUM_BRAIN,
         count: 1,
     },
     {
-        type: ItemType.MEDIUM_BONES,
-        count: 1,
+        type: ItemType.MEDIUM_MEAT,
+        count: 2,
     },
 ]
 
