@@ -37,6 +37,7 @@ export type MobConfig = {
     movement: MovementConfig,
     movementPriorityMultiplier: number,
     attackPriorityMultiplier: number,
+    targetPriorityMultiplier: number,
 }
 
 export const mobsConfig: Record<string, MobConfig> = {
@@ -59,6 +60,7 @@ export const mobsConfig: Record<string, MobConfig> = {
         movement: generateMovementConfig(4, 1.1),
         movementPriorityMultiplier: 5,
         attackPriorityMultiplier: 5,
+        targetPriorityMultiplier: 5,
     },
     [MobType.LARGE]: {
         health: 36,
@@ -66,8 +68,8 @@ export const mobsConfig: Record<string, MobConfig> = {
         damageCooldownDuration: 750,
         sensors: {
             attackRange: {
-                x: 1.6,
-                w: 3,
+                x: 1.4,
+                w: 2.6,
                 h: 1.8,
             },
             attack: {
@@ -83,6 +85,7 @@ export const mobsConfig: Record<string, MobConfig> = {
         },
         movementPriorityMultiplier: 1,
         attackPriorityMultiplier: 1,
+        targetPriorityMultiplier: 1,
     },
 }
 
@@ -92,4 +95,9 @@ export const getMobConfig = (type: MobType = MobType.BASIC) => {
         throw new Error(`No config found for type ${type}`)
     }
     return config
+}
+
+export const getMobTargetPriorityMultiplier = (mobType: MobType) => {
+    if (!mobType) return 1
+    return getMobConfig(mobType).targetPriorityMultiplier
 }

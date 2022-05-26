@@ -38,6 +38,9 @@ export const useMobBody = (id: string, x: number, y: number, type: MobType) => {
             angularDamping: 0.1,
             allowSleep: false,
             fixedRotation: true,
+            userData: {
+                mobType: type,
+            }
         })
 
         body.setPosition(new Vec2(x, y))

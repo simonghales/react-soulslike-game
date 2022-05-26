@@ -74,16 +74,6 @@ export const gameStateProxy = proxy({
     deadBodies: {} as Record<string, DeadBody>,
 })
 
-export const setMobDead = (id: string) => {
-    gameStateProxy.mobs = {
-        ...gameStateProxy.mobs,
-        [id]: {
-            ...gameStateProxy.mobs[id],
-            isDead: true,
-        }
-    }
-}
-
 export const useMobs = () => {
 
     return useSnapshot(gameStateProxy.mobs)
