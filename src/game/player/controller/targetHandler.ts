@@ -8,6 +8,7 @@ import {KeysProcessedState} from "../keys";
 import {angleToV2, getAngleBetweenAngles, v2ToAngle} from "../../../utils/angles";
 import {lerp, radToDeg} from "three/src/math/MathUtils";
 import {useEffectRef} from "../../../utils/hooks";
+import {getMobTargetPriorityMultiplier} from "../../data/mobs";
 
 const v2 = new Vec2()
 const direction = new Vec2()
@@ -62,11 +63,13 @@ const selectIdealTarget = (
         angleDifference: number,
         squaredDistance: number,
         extraPenalty: number,
+        targetMultiplier: number,
     }> = {}
 
     now = Date.now()
 
     Object.entries(enemiesInRange).forEach(([id, targetBody]) => {
+
         direction.set(targetBody.getPosition())
         direction.sub(v2)
         enemyDirection = v2ToAngle(direction.x, direction.y)
@@ -92,11 +95,12 @@ const selectIdealTarget = (
             angleDifference: Math.pow(angleDifference, favourDistance ? 0.5 : 0.9),
             squaredDistance: direction.lengthSquared(),
             extraPenalty,
+            targetMultiplier: getMobTargetPriorityMultiplier((targetBody.getUserData() as any).mobType ?? ''),
         }
     })
 
     const sortedEnemies = Object.entries(enemyCalculations).sort(([idA, dataA], [idB, dataB]) => {
-        return (dataA.angleDifference + dataA.squaredDistance + dataA.extraPenalty) - (dataB.angleDifference + dataB.squaredDistance + dataB.extraPenalty)
+        return ((dataA.angleDifference + dataA.squaredDistance + dataA.extraPenalty) * dataA.targetMultiplier) - ((dataB.angleDifference + dataB.squaredDistance + dataB.extraPenalty) * dataB.targetMultiplier)
     })
 
     const target = {

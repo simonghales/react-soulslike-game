@@ -30,7 +30,8 @@ export const AttackStateHandler: React.FC<{
     const isCharging = attackState.type === AttackStateType.CHARGING
     const isAttacking = attackState.type === AttackStateType.ATTACKING
     const [timedOut, setTimedOut] = useState(false)
-    const [isAggressive] = useState(damageRecentlyTaken)
+
+    const isAggressive = damageRecentlyTaken && collisionsState.enemiesInAttackRange
 
     const [damageActive, setDamageActive] = useState(false)
 
@@ -94,12 +95,12 @@ export const AttackStateHandler: React.FC<{
             type: AttackStateType.ATTACKING,
             time: Date.now(),
         })
-        const target = new Vec2(body.getPosition())
-        const angle = body.getAngle()
-        const angleVector = new Vec2()
-        angleToV2(angle, angleVector)
-        angleVector.mul(1.5)
-        target.add(angleVector)
+        // const target = new Vec2(body.getPosition())
+        // const angle = body.getAngle()
+        // const angleVector = new Vec2()
+        // angleToV2(angle, angleVector)
+        // angleVector.mul(1.5)
+        // target.add(angleVector)
     }, [shouldSwing])
 
     useEffect(() => {
@@ -215,7 +216,6 @@ export const DamageGoalHandler: React.FC<{
 
     useEffect(() => {
         if (!damageRecentlyTaken) return
-        console.log('set should sprint!')
         setShouldSprint(true)
     }, [damageRecentlyTaken])
 
