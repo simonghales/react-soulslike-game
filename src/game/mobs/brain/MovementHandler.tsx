@@ -72,7 +72,7 @@ export const MovementHandler: React.FC = () => {
 
     const localStateRef = useRef({})
 
-    const limitedMovement = (attackState?.type === AttackStateType.ATTACKING || attackState?.type === AttackStateType.COOLDOWN)
+    const limitedMovement = (attackState?.type === AttackStateType.COOLDOWN)
 
     const limitedMovementRef = useEffectRef(limitedMovement)
 
@@ -109,13 +109,13 @@ export const MovementHandler: React.FC = () => {
 
         angleV2.set(body.getPosition())
 
-        if (limitedMovementRef.current) {
-            if (movementStateRef.current.lockedTarget) {
-                // targetAngle = calculateAngleBetweenVectors(angleV2.x, movementStateRef.current.lockedTarget.x, movementStateRef.current.lockedTarget.y, angleV2.y)
-                // targetAngle += Math.PI / 2
-                // targetAngle = lerpRadians(movementStateRef.current.lockedAngle, targetAngle, 0.25)
-                // body.setAngle(targetAngle)
-            }
+        if (limitedMovementRef.current || movementStateRef.current.lockedTarget) {
+            // if (movementStateRef.current.lockedTarget) {
+            //     // targetAngle = calculateAngleBetweenVectors(angleV2.x, movementStateRef.current.lockedTarget.x, movementStateRef.current.lockedTarget.y, angleV2.y)
+            //     // targetAngle += Math.PI / 2
+            //     // targetAngle = lerpRadians(movementStateRef.current.lockedAngle, targetAngle, 0.25)
+            //     // body.setAngle(targetAngle)
+            // }
         } else if (targetBody) {
             prevAngle = body.getAngle()
             targetV2.set(targetBody.getPosition())

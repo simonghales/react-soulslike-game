@@ -49,7 +49,7 @@ export const mobsConfig: Record<string, MobConfig> = {
             attackRange: {
                 x: 0.8,
                 w: 1.6,
-                h: 1.5,
+                h: 1,
             },
             attack: {
                 x: 0.7,
@@ -70,7 +70,7 @@ export const mobsConfig: Record<string, MobConfig> = {
             attackRange: {
                 x: 1.4,
                 w: 2.6,
-                h: 1.8,
+                h: 0.6,
             },
             attack: {
                 x: 1.1,

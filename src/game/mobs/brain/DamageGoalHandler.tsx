@@ -41,7 +41,7 @@ export const AttackStateHandler: React.FC<{
         } else {
             const timeout = setTimeout(() => {
                 setDamageActive(true)
-            }, 250)
+            }, 500)
             return () => {
                 clearTimeout(timeout)
             }
@@ -79,10 +79,13 @@ export const AttackStateHandler: React.FC<{
     const shouldSwing = isCharging && (timedOut || inAttackRangeAwhile || isAggressive)
 
     useEffect(() => {
-        if (!isAttacking) return
+        if (!isAttacking) {
+            movementStateRef.current.lockedTarget = false
+            return
+        }
         const timeout = setTimeout(() => {
             movementStateRef.current.lockedTarget = true
-        }, 10)
+        }, 200)
         return () => {
             clearTimeout(timeout)
             movementStateRef.current.lockedTarget = false
