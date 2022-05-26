@@ -59,6 +59,7 @@ const impactVelocity: ImpactVelocity = {
     y: 0,
 }
 
+const offsetV2 = new Vec2()
 const v2 = new Vec2()
 const hitV2 = new Vec2()
 let now = 0
@@ -66,6 +67,8 @@ let HIT_MAX_AGE = 550
 let hitTimeElapsed = 0
 let hitProgress = 0
 let hitMultiplier = 0
+let cameraVelocityX = 0
+let cameraVelocityY = 0
 
 const addRecentHitsImpact = (recentHits: RecentHitData[], impactVelocity: ImpactVelocity, previousImpactVelocity: ImpactVelocity) => {
 
@@ -123,7 +126,11 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
             previousImpactVelocity: {
                 x: 0,
                 y: 0,
-            }
+            },
+            offsetX: 0,
+            offsetY: 0,
+            cameraVelocityX: 0,
+            cameraVelocityY: 0,
         }
     })
 
@@ -171,6 +178,22 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
 
         playerVelocityX = playerX - localStateRef.current.cameraData.prevPlayerX
         playerVelocityY = playerY - localStateRef.current.cameraData.prevPlayerY
+
+        if (playerVelocityX !== 0 && playerVelocityY !== 0) {
+            localStateRef.current.cameraData.offsetX = lerp(localStateRef.current.cameraData.offsetX, (playerVelocityX), 0.05)
+            localStateRef.current.cameraData.offsetY = lerp(localStateRef.current.cameraData.offsetY, (playerVelocityY), 0.05)
+        }
+
+        offsetV2.set(lerp(localStateRef.current.cameraData.offsetX, playerVelocityX, 0.25), lerp(localStateRef.current.cameraData.offsetY, playerVelocityY, 0.25))
+        offsetV2.normalize()
+        offsetV2.mul(2)
+
+
+        localStateRef.current.cameraData.cameraVelocityX = lerp(localStateRef.current.cameraData.cameraVelocityX, offsetV2.x, 0.015)
+        localStateRef.current.cameraData.cameraVelocityY = lerp(localStateRef.current.cameraData.cameraVelocityY, offsetV2.y, 0.015)
+
+        cameraVelocityX = lerp(localStateRef.current.cameraData.cameraVelocityX, offsetV2.x, 0.015)
+        cameraVelocityY = lerp(localStateRef.current.cameraData.cameraVelocityY, offsetV2.y, 0.015)
 
         lerpedVelocityX = lerp(localStateRef.current.cameraData.prevPlayerVelocityX, playerVelocityX, 0.5)
         lerpedVelocityY = lerp(localStateRef.current.cameraData.prevPlayerVelocityY, playerVelocityY, 0.5)
@@ -221,6 +244,9 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
             localStateRef.current.cameraData.previousImpactVelocity.x = 0
             localStateRef.current.cameraData.previousImpactVelocity.y = 0
         }
+
+        lerpedX += cameraVelocityX
+        lerpedY += cameraVelocityY
 
         groupRef.current.position.x = lerpedX
         groupRef.current.position.y = lerpedY
