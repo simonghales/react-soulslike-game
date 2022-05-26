@@ -3,7 +3,6 @@ import React, {useEffect, useState} from "react"
 import {KeysConsumer, PlanckjsCollisions, PlanckjsPhysicsProvider, SyncableComponents} from "@simonghales/react-three-physics";
 import {LgPlayer} from "../game/player/LgPlayer";
 import {WorldProvider} from "./WorldProvider";
-import {LgBasicMob} from "../game/mobs/LgBasicMob";
 import {MobsHandler} from "../game/mobs/MobsHandler";
 import {DeadBodiesHandler} from "../game/mobs/backend/DeadBodiesHandler";
 import {LgStateSync} from "../game/state/backend/LgStateSync";

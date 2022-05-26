@@ -36,7 +36,11 @@ const StyledStatusBarContainer = styled.div`
   border-radius: 3px;
 `
 
-const StyledStatusBarAmount = styled.div<{
+const StyledStatusBarAmount = styled.div.attrs((props: any) => ({
+    style: {
+        transform: `translateX(-${props.energyAmount}%)`,
+    },
+}))<{
     energyAmount: number,
 }>`
   position: absolute;
@@ -45,7 +49,6 @@ const StyledStatusBarAmount = styled.div<{
   bottom: 0;
   width: 100%;
   background-color: #1d7bce;
-  transform: translateX(-${props => props.energyAmount}%);
   transition: all 100ms linear;
   
   .${classNames.healthStyling} & {

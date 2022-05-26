@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react"
 import {useMobs} from "../state/game";
-import {LgBasicMob} from "./LgBasicMob";
 import {useEffectRef} from "../../utils/hooks";
 import {MobsManagerContext} from "./MobsManagerContext";
 import {LgMob} from "./LgMob";
@@ -435,7 +434,7 @@ export const MobsHandler: React.FC = () => {
                     Object.entries(mobs).map(([id, mob]) => {
                         if (mob.isDead) return null
                         return (
-                            <LgMob id={id} x={mob.x} y={mob.y} key={id}/>
+                            <LgMob id={id} type={mob.type} x={mob.x} y={mob.y} key={id}/>
                         )
                     })
                 }

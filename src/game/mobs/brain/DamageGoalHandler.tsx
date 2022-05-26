@@ -5,10 +5,11 @@ import {Vec2} from "planck";
 import {lerp} from "three/src/math/MathUtils";
 import {AttackGoalSubGoalTypes, AttackState, AttackStateType} from "./types";
 import {mobAttacksConfig} from "../../data/attacks";
-import {SLOW_SPEED, SPRINT_SPEED} from "./MovementHandler";
 import {angleToV2} from "../../../utils/angles";
 import {useGoalHandlerContext} from "./GoalHandlerContext";
 import {DamageHandler} from "./DamageHandler";
+import {useLgMobContext} from "../LgMobContext";
+import {getMobConfig} from "../../data/mobs";
 
 export const AttackStateHandler: React.FC<{
     attackState: AttackState,
@@ -173,6 +174,12 @@ export const DamageGoalHandler: React.FC<{
 }> = ({onAttack}) => {
 
     const {
+        type,
+    } = useLgMobContext()
+
+    const config = getMobConfig(type)
+
+    const {
         collisionsState,
         targetBodyRef,
         body,
@@ -229,14 +236,14 @@ export const DamageGoalHandler: React.FC<{
             return
         }
         if (shouldSprint) {
-            setSpeedLimit(SPRINT_SPEED)
+            setSpeedLimit(config.movement.sprintSpeed)
             return
         }
         if (!attackState) {
             setSpeedLimit(null)
             return
         }
-        setSpeedLimit(SLOW_SPEED)
+        setSpeedLimit(config.movement.slowSpeed)
         return
     }, [attackState, shouldSprint])
 

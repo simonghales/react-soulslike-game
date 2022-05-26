@@ -1,6 +1,7 @@
 import {proxy, ref, useSnapshot} from "valtio";
 import uniqid from 'uniqid';
-import {ItemType} from "../../mobs/backend/LgMobDeadBody";
+import {ItemType} from "../../data/types";
+import {emitPlayerItemReceived} from "../../events/player";
 
 export type PlayerInventoryItem = {
     type: ItemType,
@@ -8,7 +9,7 @@ export type PlayerInventoryItem = {
     count: number,
 }
 
-const COUNT_LIMIT = 32
+const COUNT_LIMIT = 64
 
 export type PlayerInventory = Record<string, PlayerInventoryItem>
 
@@ -17,12 +18,7 @@ export const backendPlayerStateProxy = proxy({
     targetItem: '',
     inventory: {
         ['0']: ref({
-            type: ItemType.MEDIUM_BRAIN,
-            count: 1,
-            order: Date.now(),
-        }),
-        ['1']: ref({
-            type: ItemType.MEDIUM_BONES,
+            type: ItemType.MEDIUM_MEAT,
             count: 1,
             order: Date.now(),
         }),
@@ -30,6 +26,9 @@ export const backendPlayerStateProxy = proxy({
 })
 
 export const addItemToPlayerInventory = (type: ItemType, count: number) => {
+
+
+    emitPlayerItemReceived(type, count)
 
     const matchedItem = Object.entries(backendPlayerStateProxy.inventory).find(([id, item]) => {
         if (item.type === type) {

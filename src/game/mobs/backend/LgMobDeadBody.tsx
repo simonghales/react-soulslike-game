@@ -3,13 +3,25 @@ import {componentSyncKeys} from "../../data/keys";
 import {SyncComponent, useAddBody} from "@simonghales/react-three-physics";
 import {useWorld} from "../../../worker/WorldProvider";
 import {Body, Circle, Vec2} from "planck";
-import {COLLISION_FILTER_GROUPS, MobCollisionTypes} from "../../data/collisions";
+import {COLLISION_FILTER_GROUPS} from "../../data/collisions";
 import {addItemToPlayerInventory, useIsTargetedItem} from "../../state/backend/player";
 import {InteractionEvent, InteractionEventType, useOnInteractionEvents} from "../../events/interaction";
 import {emitPlayerCarvingBegan, emitPlayerCarvingEnd} from "../../events/player";
-import {removeDeadBody} from "../../state/game";
+import {MobType, removeDeadBody} from "../../state/game";
+import {ChestInventoryItem, ItemType} from "../../data/types";
 
-const useMobDeadBody = (id: string, x: number, y: number) => {
+const deadBodyConfig = {
+    [MobType.BASIC]: {
+        shape: Circle(0.025),
+        density: 200,
+    },
+    [MobType.LARGE]: {
+        shape: Circle(0.05),
+        density: 200,
+    },
+}
+
+const useMobDeadBody = (id: string, x: number, y: number, type: MobType) => {
 
     const world = useWorld()
     const addBody = useAddBody()
@@ -33,13 +45,13 @@ const useMobDeadBody = (id: string, x: number, y: number) => {
             fixedRotation: true,
         })
 
+        const config = deadBodyConfig[type]
+
         body.setPosition(new Vec2(x, y))
 
-        const circleShape = Circle(0.025)
-
         const fixture = body.createFixture({
-            shape: circleShape,
-            density: 200,
+            shape: config.shape,
+            density: config.density,
             filterCategoryBits: COLLISION_FILTER_GROUPS.items,
             filterMaskBits: COLLISION_FILTER_GROUPS.player | COLLISION_FILTER_GROUPS.npcs | COLLISION_FILTER_GROUPS.playerRange,
             userData: {
@@ -83,24 +95,25 @@ const useMobDeadBody = (id: string, x: number, y: number) => {
 
 const CARVING_DURATION = 2000
 
-export enum ItemType {
-    MEDIUM_BRAIN = 'MEDIUM_BRAIN',
-    MEDIUM_BONES = 'MEDIUM_BONES',
-}
-
-export type ChestInventoryItem = {
-    type: ItemType,
-    count: number,
-}
-
 const defaultInventory: ChestInventoryItem[] = [
     {
         type: ItemType.MEDIUM_BRAIN,
         count: 1,
     },
     {
-        type: ItemType.MEDIUM_BONES,
-        count: 1,
+        type: ItemType.MEDIUM_MEAT,
+        count: 2,
+    },
+]
+
+const largeMobDefaultInventory: ChestInventoryItem[] = [
+    {
+        type: ItemType.MEDIUM_BRAIN,
+        count: 2,
+    },
+    {
+        type: ItemType.MEDIUM_MEAT,
+        count: 3,
     },
 ]
 
@@ -122,9 +135,10 @@ const BodyHandler: React.FC<{
     id: string,
     x: number,
     y: number,
-}> = ({id, x, y}) => {
+    type: MobType,
+}> = ({id, x, y, type}) => {
 
-    const body = useMobDeadBody(id, x, y)
+    const body = useMobDeadBody(id, x, y, type)
 
     return null
 
@@ -134,12 +148,13 @@ export const LgMobDeadBody: React.FC<{
     id: string,
     x: number,
     y: number,
-}> = ({id, x, y}) => {
+    type: MobType,
+}> = ({id, x, y, type}) => {
 
     const [interacting, setInteracting] = useState(false)
     const [interactionBegan, setInteractionBegan] = useState(0)
     const [carving, setCarving] = useState(0)
-    const [inventory, setInventory] = useState(defaultInventory)
+    const [inventory, setInventory] = useState(type === MobType.LARGE ? largeMobDefaultInventory : defaultInventory)
     const emptyInventory = inventory.length === 0
 
     const isTarget = useIsTargetedItem(id)
@@ -215,7 +230,7 @@ export const LgMobDeadBody: React.FC<{
         <>
             {
                 !emptyInventory && (
-                    <BodyHandler id={id} x={x} y={y}/>
+                    <BodyHandler id={id} x={x} y={y} type={type}/>
                 )
             }
             <SyncComponent id={id} carving={carving}
@@ -223,6 +238,7 @@ export const LgMobDeadBody: React.FC<{
                            isTarget={isTarget}
                            componentId={componentSyncKeys.basicMobDead}
                            empty={emptyInventory}
+                           type={type}
                            x={x}
                            y={y}/>
         </>

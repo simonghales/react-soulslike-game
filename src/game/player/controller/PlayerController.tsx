@@ -24,7 +24,7 @@ import {updateRollingFixtures} from "./rolling";
 import {SelectedTarget, SelectedTargetWithBody, useTargetControls} from "./targetHandler";
 import {defaultMovementState, defaultPlayerState, MovementState, PlayerState} from "./types";
 import {easeInOutBack, easeInOutQuad, easeInOutQuint, easeOutQuart} from "../../../utils/easing";
-import {getMobEventsKey, PLAYER_EVENTS_KEY} from "../../data/keys";
+import {getMobEventsKey, messageKeys, PLAYER_EVENTS_KEY} from "../../data/keys";
 import {MobEventType} from "../../mobs/brain/events";
 import {useInteractionHandler} from "./interactionHandler";
 import {emitInteractionBegan, emitInteractionEnded, emitInteractionInterrupted} from "../../events/interaction";
@@ -1354,6 +1354,8 @@ export const PlayerController: React.FC = () => {
 
     }, [])
 
+    const sendCustomMessage = useSendCustomMessage()
+
     useOnPlayerEvents('', useCallback((event) => {
         switch (event.type) {
             case PlayerEventType.DAMAGED:
@@ -1364,6 +1366,12 @@ export const PlayerController: React.FC = () => {
                 break;
             case PlayerEventType.CARVING_END:
                 controllerActions.onCarvingEnd(event.data.id, event.data.time)
+                break;
+            case PlayerEventType.ITEM_RECEIVED:
+                sendCustomMessage(messageKeys.playerInventoryChange, {
+                    type: PlayerEventType.ITEM_RECEIVED,
+                    data: event.data,
+                })
                 break;
         }
     }, []))

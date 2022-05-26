@@ -24,10 +24,8 @@ export const Game: React.FC = () => {
 
     useEffect(() => {
         window.addEventListener('blur', () => {
-            console.log('blur???')
         })
         window.addEventListener('focus', () => {
-            console.log('focus...')
         })
     }, [])
 
