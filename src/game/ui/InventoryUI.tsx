@@ -154,10 +154,10 @@ const ICON_PATHS: Record<string, string> = {
 
 const itemsConfig = {
     [ItemType.MEDIUM_MEAT]: {
-        name: 'Medium Meat',
+        name: 'Meat Portion',
     },
     [ItemType.MEDIUM_BRAIN]: {
-        name: 'Medium Brain',
+        name: 'Brain Portion',
     },
 }
 
@@ -288,7 +288,7 @@ const Messages: React.FC = () => {
     }, [])
 
     return (
-        <StyledMessageContainer ref={animationParent as any}>
+        <StyledMessageContainer>
             {
                 messageList.map((message => (
                     <Message data={message} removeMessage={removeMessage} key={message.id}/>

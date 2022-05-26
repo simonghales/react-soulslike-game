@@ -7,6 +7,8 @@ import {angleToV2, calculateAngleBetweenVectors, lerpRadians} from "../../../uti
 import {AttackState, AttackStateType} from "./types";
 import {mobAttacksConfig} from "../../data/attacks";
 import {lerp} from "three/src/math/MathUtils";
+import {useLgMobContext} from "../LgMobContext";
+import {getMobConfig, MAX_SPEED_MULTIPLIER} from "../../data/mobs";
 
 const v2 = new Vec2()
 const blankV2 = new Vec2()
@@ -17,19 +19,12 @@ let prevAngle = 0
 let targetAngle = 0
 let weight = 0
 
-const WALK_SPEED = 4
-export const SLOW_SPEED = WALK_SPEED
-const RUNNING_SPEED = WALK_SPEED * 2.75
-export const SPRINT_SPEED = RUNNING_SPEED * 1.75
-
 const angleV2 = new Vec2()
 const targetV2 = new Vec2()
 
-const MAX_ATTACK_SPEED = 10
-
 let progress = 0
 
-export const getAttackSpeed = (attackState: AttackState) => {
+export const getAttackSpeed = (attackState: AttackState, baseSpeed: number, attackSpeedMultiplier: number) => {
 
     progress = (Date.now() - attackState.time) / (mobAttacksConfig.basic.attackDuration - 300)
 
@@ -39,13 +34,19 @@ export const getAttackSpeed = (attackState: AttackState) => {
 
     progress = Math.pow(progress, 2)
 
-    return lerp(0, MAX_ATTACK_SPEED, progress)
+    return Math.pow(lerp(0, baseSpeed * MAX_SPEED_MULTIPLIER, progress), attackSpeedMultiplier)
 
 }
 
 let isAttacking = false
 
 export const MovementHandler: React.FC = () => {
+
+    const {
+        type,
+    } = useLgMobContext()
+
+    const config = getMobConfig(type)
 
     const {
         body,
@@ -62,9 +63,9 @@ export const MovementHandler: React.FC = () => {
             return speedLimit
         }
         if (running) {
-            return RUNNING_SPEED
+            return config.movement.runningSpeed
         }
-        return WALK_SPEED
+        return config.movement.baseSpeed
     }, [running, speedLimit])
 
     const movementSpeedRef = useEffectRef(movementSpeed)
@@ -99,7 +100,7 @@ export const MovementHandler: React.FC = () => {
         isAttacking = attackStateRef.current?.type === AttackStateType.ATTACKING
 
         if (isAttacking) {
-            speed = getAttackSpeed(attackStateRef.current)
+            speed = getAttackSpeed(attackStateRef.current, config.movement.baseSpeed, config.movement.attackSpeedMultiplier)
         }
 
         v2.mul((speed * 2) * delta)

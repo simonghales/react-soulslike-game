@@ -1,10 +1,16 @@
 import {proxy, snapshot, subscribe, useSnapshot} from "valtio";
 import {useEffect, useState} from "react";
 
+export enum MobType {
+    BASIC = 'BASIC',
+    LARGE = 'LARGE',
+}
+
 export type MobState = {
     id: string,
     x: number,
     y: number,
+    type: MobType,
     isDead?: boolean,
 }
 
@@ -12,40 +18,43 @@ export type DeadBody = {
     id: string,
     x: number,
     y: number,
+    type: MobType,
 }
 
 let mobCount = 0
 
-const generateMob = (x: number, y: number) => {
+const generateMob = (x: number, y: number, mobType: MobType): MobState => {
     return {
         id: `basicMob--${mobCount++}`,
         x: x,
         y: y,
+        type: mobType,
     }
 }
 
-const generateDeadBody = (id: string, x: number, y: number): DeadBody => {
+const generateDeadBody = (id: string, x: number, y: number, mobType: MobType): DeadBody => {
 
     return {
         id: `${id}--dead`,
         x,
         y,
+        type: mobType,
     }
 
 }
 
-const generateMobs = () => {
+const generateMobs = (): Record<string, MobState> => {
 
-    const mobs: any = {}
+    const mobs: Record<string, MobState> = {}
 
-    const addMob = (x: number, y: number) => {
-        const mob = generateMob(x, y)
+    const addMob = (x: number, y: number, mobType: MobType = MobType.BASIC) => {
+        const mob = generateMob(x, y, mobType)
         mobs[mob.id] = mob
     }
 
     addMob(-4, 6)
     addMob(4, 6)
-    addMob(0, 7)
+    addMob(0, 10, MobType.LARGE)
     addMob(8, 7)
     addMob(-8, 7)
 
@@ -87,8 +96,8 @@ export const useDeadBodies = () => {
 
 }
 
-export const addDeadBody = (id: string, x: number, y: number) => {
-    const deadBody = generateDeadBody(id, x, y)
+export const addDeadBody = (id: string, x: number, y: number, mobType: MobType) => {
+    const deadBody = generateDeadBody(id, x, y, mobType)
     gameStateProxy.deadBodies[deadBody.id] = deadBody
 }
 

@@ -1,12 +1,17 @@
 import React, {useEffect, useRef} from "react"
 import {useMobBrainContext} from "../mobBrainContext";
 import {emitPlayerDamaged} from "../../events/player";
-import {mobsConfig} from "../../data/mobs";
 import {Vec2} from "planck";
+import {getMobConfig} from "../../data/mobs";
+import {useLgMobContext} from "../LgMobContext";
 
 let v2 = new Vec2()
 
 export const DamageHandler: React.FC = () => {
+
+    const {
+        type,
+    } = useLgMobContext()
 
     const {
         collisionsState,
@@ -22,7 +27,7 @@ export const DamageHandler: React.FC = () => {
         Object.keys(collisionsState.attackRangeEnemies).forEach(id => {
             if (!localStateRef.current.attacked[id]) {
                 localStateRef.current.attacked[id] = true
-                emitPlayerDamaged(id, mobsConfig.basic.damage, v2)
+                emitPlayerDamaged(id, getMobConfig(type).damage, v2)
             }
         })
 

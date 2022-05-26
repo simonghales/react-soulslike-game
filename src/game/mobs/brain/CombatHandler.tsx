@@ -6,6 +6,8 @@ import {AttackGoalSubGoal, AttackGoalSubGoalTypes} from "./types";
 import {DamageGoalHandler} from "./DamageGoalHandler";
 import {lerp} from "three/src/math/MathUtils";
 import {Vec2} from "planck";
+import {useLgMobContext} from "../LgMobContext";
+import {getMobConfig} from "../../data/mobs";
 
 const v2 = new Vec2()
 
@@ -160,6 +162,12 @@ export const CombatHandler: React.FC<{
 }> = ({subGoal, setSubGoal}) => {
 
     const {
+        type,
+    } = useLgMobContext()
+
+    const config = getMobConfig(type)
+
+    const {
         id,
         collisionsState,
         body,
@@ -206,7 +214,7 @@ export const CombatHandler: React.FC<{
         const distance = v2.lengthSquared()
         v2.set(body.getPosition())
         v2.sub(targetBody.getPosition())
-        return distance
+        return distance * config.movementPriorityMultiplier
     }, [targetBody, body, recentlyAttacked])
 
     const calculateAttackWeightRef = useEffectRef(calculateAttackWeight)
@@ -216,7 +224,7 @@ export const CombatHandler: React.FC<{
         const distance = v2.lengthSquared()
         v2.set(body.getPosition())
         v2.sub(targetBody.getPosition())
-        return distance
+        return distance * config.movementPriorityMultiplier
     }, [targetBody, body, recentlyAttacked])
 
     const calculatePositionWeightRef = useEffectRef(calculatePositionWeight)

@@ -41,7 +41,7 @@ export const usePositioningHandler = () => {
             const positionTokensQueue = positionTokensQueueRef.current
 
             const sortedQueue = Object.entries(positionTokensQueue).sort(([,refA], [,refB]) => {
-                return refB.current() - refA.current()
+                return refA.current() - refB.current()
             })
 
             const tokens: Record<string, string> = {}
@@ -69,6 +69,7 @@ export const usePositioningHandler = () => {
     }, [])
 
     const requestPositionToken = useCallback((id: string, ref: MutableRefObject<() => number>) => {
+
         setPositionsTokenQueue(prevState => ({
             ...prevState,
             [id]: ref,
@@ -145,7 +146,7 @@ export const useCombatHandler = () => {
             const manualAttackTokens = manualAttackTokensRef.current
 
             const sortedQueue = Object.entries(attackTokensQueue).sort(([,refA], [,refB]) => {
-                return refB.current() - refA.current()
+                return refA.current() - refB.current()
             }).filter(([id]) => {
                 return !manualAttackTokens[id]
             }).map(([id]) => id)

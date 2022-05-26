@@ -14,8 +14,8 @@ export type AttackConfig = {
     angleRange: number,
 }
 
-// const ATTACK_MULTIPLIER = 1
-const ATTACK_MULTIPLIER = 10
+const ATTACK_MULTIPLIER = 1
+// const ATTACK_MULTIPLIER = 10
 
 export const playerAttacksConfig: Record<string, AttackConfig> = {
     [PlayerAttackType.SHORT]: {

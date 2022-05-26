@@ -1,14 +1,19 @@
-import {Box, Html, useTexture} from "@react-three/drei"
-import React, {Suspense, useEffect, useLayoutEffect, useRef, useState} from "react"
-import {Object3D} from "three";
+import {Html, useTexture} from "@react-three/drei"
+import React, {Suspense, useEffect, useLayoutEffect, useState} from "react"
 import {usePhysicsRef} from "@simonghales/react-three-physics";
 import styled, {css} from "styled-components";
 import {uiTheme} from "../../../ui/theme";
+import {MobType} from "../../state/game";
 
-const Visuals: React.FC = () => {
+const baseScale = [1.5, 1.5, 1.5]
+const largeScale = [2.5, 2.5, 2.5]
+
+const Visuals: React.FC<{
+    type: MobType,
+}> = ({type}) => {
     const texture = useTexture("assets/mob-dead.png")
     return (
-        <sprite scale={[1.5, 1.5, 1.5]} position={[0.125, 0, 0.05]}>
+        <sprite scale={(type === MobType.LARGE ? largeScale : baseScale) as any} position={[0.125, 0, 0.05]}>
             <spriteMaterial map={texture} depthWrite={false} depthTest={false}/>
         </sprite>
     )
@@ -82,7 +87,8 @@ export const MobDeadBody: React.FC<{
     interacting: boolean,
     carving: boolean,
     interactionBegan: number,
-}> = ({id, x, y, isTarget, interacting, carving}) => {
+    type: MobType,
+}> = ({id, x, y, isTarget, interacting, carving, type}) => {
 
     const ref = usePhysicsRef(id)
 
@@ -111,7 +117,7 @@ export const MobDeadBody: React.FC<{
     return (
         <group ref={ref}>
             <Suspense fallback={null}>
-                <Visuals/>
+                <Visuals type={type}/>
             </Suspense>
             {
                 (isTarget || engaged || carving) && (

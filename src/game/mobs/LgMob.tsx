@@ -4,14 +4,27 @@ import {SyncComponent, useAddBody, useTransmitData} from "@simonghales/react-thr
 import {Body, Box, Circle, Vec2} from "planck";
 import {COLLISION_FILTER_GROUPS, MobCollisionTypes} from "../data/collisions";
 import {halve} from "../../utils/physics";
-import {mobsConfig} from "../data/mobs";
+import {getMobConfig} from "../data/mobs";
 import {componentSyncKeys, getMobSyncKey} from "../data/keys";
 import {MobBrain} from "./MobBrain";
 import {useMobStatusState} from "./brain/StatusHandler";
 import {LgMobContext, useLgMobContext} from "./LgMobContext";
-import {LgMobDeadBody} from "./backend/LgMobDeadBody";
+import {MobType} from "../state/game";
 
-export const useMobBody = (id: string, x: number, y: number) => {
+const mobBodyConfig = {
+    [MobType.BASIC]: {
+        bodyShape: Circle(0.6),
+        attackRangeShape: Box(halve(getMobConfig(MobType.BASIC).sensors.attackRange.w),halve(getMobConfig(MobType.BASIC).sensors.attackRange.h), new Vec2(getMobConfig(MobType.BASIC).sensors.attackRange.x, 0)),
+        attackBoxShape: Box(halve(getMobConfig(MobType.BASIC).sensors.attack.w),halve(getMobConfig(MobType.BASIC).sensors.attack.h), new Vec2(getMobConfig(MobType.BASIC).sensors.attack.x, 0)),
+    },
+    [MobType.LARGE]: {
+        bodyShape: Circle(1),
+        attackRangeShape: Box(halve(getMobConfig(MobType.LARGE).sensors.attackRange.w),halve(getMobConfig(MobType.LARGE).sensors.attackRange.h), new Vec2(getMobConfig(MobType.LARGE).sensors.attackRange.x, 0)),
+        attackBoxShape: Box(halve(getMobConfig(MobType.LARGE).sensors.attack.w),halve(getMobConfig(MobType.LARGE).sensors.attack.h), new Vec2(getMobConfig(MobType.LARGE).sensors.attack.x, 0)),
+    },
+}
+
+export const useMobBody = (id: string, x: number, y: number, type: MobType) => {
 
     const world = useWorld()
 
@@ -27,12 +40,16 @@ export const useMobBody = (id: string, x: number, y: number) => {
             fixedRotation: true,
         })
 
-        body.setPosition(new Vec2(x ?? 2, y ?? 2))
+        body.setPosition(new Vec2(x, y))
 
-        const circleShape = Circle(0.6)
+        const config = mobBodyConfig[type]
+
+        if (!config) {
+            throw new Error(`No mob config found for type ${type}`)
+        }
 
         const fixture = body.createFixture({
-            shape: circleShape,
+            shape: config.bodyShape,
             filterCategoryBits: COLLISION_FILTER_GROUPS.npcs,
             filterMaskBits: COLLISION_FILTER_GROUPS.player | COLLISION_FILTER_GROUPS.playerRange | COLLISION_FILTER_GROUPS.npcs,
             density: 10,
@@ -43,7 +60,7 @@ export const useMobBody = (id: string, x: number, y: number) => {
         })
 
         const attackRangeFixture = body.createFixture({
-            shape: Box(halve(mobsConfig.basic.sensors.attackRange.w),halve(mobsConfig.basic.sensors.attackRange.h), new Vec2(mobsConfig.basic.sensors.attackRange.x, 0)),
+            shape: config.attackRangeShape,
             isSensor: true,
             filterCategoryBits: COLLISION_FILTER_GROUPS.npcs,
             filterMaskBits: COLLISION_FILTER_GROUPS.player,
@@ -54,7 +71,7 @@ export const useMobBody = (id: string, x: number, y: number) => {
         })
 
         const attackBoxFixture = body.createFixture({
-            shape: Box(halve(mobsConfig.basic.sensors.attack.w),halve(mobsConfig.basic.sensors.attack.h), new Vec2(mobsConfig.basic.sensors.attack.x, 0)),
+            shape: config.attackBoxShape,
             isSensor: true,
             filterCategoryBits: COLLISION_FILTER_GROUPS.npcs,
             filterMaskBits: COLLISION_FILTER_GROUPS.player,
@@ -95,11 +112,13 @@ const MobBody: React.FC<{
     y: number,
 }> = ({id, x, y}) => {
 
-    const body = useMobBody(id, x, y)
 
     const {
         setReady,
+        type,
     } = useLgMobContext()
+
+    const body = useMobBody(id, x, y, type)
 
     const hasBody = !!body
 
@@ -119,11 +138,12 @@ const MobBody: React.FC<{
 
 }
 
-export const LgMob: React.FC<{
+const MobCore: React.FC<{
     id: string,
     x: number,
     y: number,
-}> = ({id, x, y}) => {
+    type?: MobType,
+}> = ({id, x, y, type = MobType.BASIC}) => {
 
     const {
         damageTaken,
@@ -136,7 +156,7 @@ export const LgMob: React.FC<{
         deathPosition,
         ready,
         setReady,
-    } = useMobStatusState(id)
+    } = useMobStatusState(id, type)
 
     const removeBody = !isAlive && !!deathPosition
 
@@ -155,6 +175,7 @@ export const LgMob: React.FC<{
             healthRemaining,
             onDeath,
             setReady,
+            type,
         }}>
             {
                 !removeBody && (
@@ -164,10 +185,49 @@ export const LgMob: React.FC<{
             {
                 ready && (
                     <>
-                        <SyncComponent id={id} componentId={componentSyncKeys.basicMob} x={x} y={y}/>
+                        <SyncComponent id={id} componentId={componentSyncKeys.basicMob} type={type} x={x} y={y}/>
                     </>
                 )
             }
         </LgMobContext.Provider>
     )
+
+}
+
+const BasicMob: React.FC<{
+    id: string,
+    x: number,
+    y: number,
+}> = ({id, x, y}) => {
+
+    return <MobCore id={id} x={x} y={y}/>
+
+}
+
+const LargeMob: React.FC<{
+    id: string,
+    x: number,
+    y: number,
+}> = ({id, x, y}) => {
+
+    return <MobCore id={id} x={x} y={y} type={MobType.LARGE}/>
+
+}
+
+export const LgMob: React.FC<{
+    id: string,
+    x: number,
+    y: number,
+    type: MobType,
+}> = ({id, x, y, type}) => {
+
+    switch (type) {
+        case MobType.BASIC:
+            return <BasicMob id={id} x={x} y={y}/>
+        case MobType.LARGE:
+            return <LargeMob id={id} x={x} y={y}/>
+    }
+
+    return null
+
 }

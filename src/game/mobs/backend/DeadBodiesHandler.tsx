@@ -10,7 +10,7 @@ export const DeadBodiesHandler: React.FC = () => {
         <>
             {
                 Object.entries(deadBodies).map(([id, body]) => (
-                    <LgMobDeadBody id={id} x={body.x} y={body.y} key={id}/>
+                    <LgMobDeadBody id={id} x={body.x} y={body.y} type={body.type} key={id}/>
                 ))
             }
         </>

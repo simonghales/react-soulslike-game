@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect, useState} from "react"
-import {mobsConfig} from "../../data/mobs";
 import {Body, Vec2} from "planck";
-import {addDeadBody} from "../../state/game";
+import {addDeadBody, MobType} from "../../state/game";
+import {getMobConfig} from "../../data/mobs";
 
-export const useMobStatusState = (id: string) => {
+export const useMobStatusState = (id: string, type: MobType) => {
 
     const [ready, setReady] = useState(false)
     const [damageTaken, setDamageTaken] = useState(0)
@@ -26,7 +26,7 @@ export const useMobStatusState = (id: string) => {
         if (!stunned) return
         const timeout = setTimeout(() => {
             setStunned(false)
-        }, mobsConfig.basic.damageCooldownDuration)
+        }, getMobConfig(type).damageCooldownDuration)
         return () => {
             clearTimeout(timeout)
         }
@@ -43,13 +43,13 @@ export const useMobStatusState = (id: string) => {
         }
     }, [damageRecentlyTaken])
 
-    const healthRemaining = mobsConfig.basic.health - damageTaken
+    const healthRemaining = getMobConfig(type).health - damageTaken
 
     const isAlive = healthRemaining > 0
 
     const onDeath = useCallback((body: Body) => {
         setDeathPosition(body.getPosition().clone())
-        addDeadBody(id, body.getPosition().x, body.getPosition().y)
+        addDeadBody(id, body.getPosition().x, body.getPosition().y, type)
     }, [])
 
     return {
