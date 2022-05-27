@@ -27,8 +27,8 @@ const INTERVAL = 50
 export const useFootstepsHandler = (ref: MutableRefObject<Object3D>) => {
 
     const [data] = useState(() => ({
-        prevX: 0,
-        prevY: 0,
+        prevX: undefined as undefined | number,
+        prevY: undefined as undefined | number,
         lastUpdate: 0,
         movingWeight: 0,
         direction: 0,
@@ -44,6 +44,11 @@ export const useFootstepsHandler = (ref: MutableRefObject<Object3D>) => {
 
             x = object.position.x
             y = object.position.y
+
+            if (data.prevX === undefined || data.prevY === undefined) {
+                data.prevX = x
+                data.prevY = y
+            }
 
             xDiff = Math.abs(x - data.prevX)
             yDiff = Math.abs(y - data.prevY)

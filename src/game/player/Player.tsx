@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from "react"
+import React, {Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState} from "react"
 import {Box, Circle, Cylinder, Html, useTexture} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
 import {usePhysicsRef, usePhysicsSubscription, useSyncData} from "@simonghales/react-three-physics";
@@ -15,12 +15,39 @@ import {PlanckjsBuffersData} from "@simonghales/react-three-physics/dist/declara
 import {useEventsHandler} from "./frontend/eventsHandler";
 import {useFootstepsHandler} from "./frontend/footstepsHandler";
 
-export const Player: React.FC = () => {
+const Visuals: React.FC<{
+    shrink: boolean,
+    stretch: boolean,
+    color: string,
+}> = ({shrink, stretch, color}) => {
+
+    const texture = useTexture("assets/rat-sword.png")
+
+    return (
+        <>
+            <sprite scale={shrink ? [1.5, 1, 1.5] : stretch ? [1.5, 2, 1.5] : [1.5, 1.5, 1.5]} position={[0.125, 0.2, 0.10001]}>
+                <spriteMaterial color={color} map={texture} depthWrite={false} depthTest={false}/>
+            </sprite>
+        </>
+    )
+}
+
+export const Player: React.FC<{
+    x: number,
+    y: number,
+}> = ({x, y}) => {
 
     const combatBodyRef = usePhysicsRef('combatBody')
 
     const ref = useRef<Object3D>(null!)
     const rotateRef = useRef<Object3D>(null!)
+
+    useLayoutEffect(() => {
+        const object = ref.current
+        if (!object) return
+        object.position.x = x
+        object.position.y = y
+    }, [])
 
     usePhysicsSubscription('test', useCallback((
         buffers: PlanckjsBuffersData,
@@ -114,8 +141,6 @@ export const Player: React.FC = () => {
                     movementState === PlayerMovementState.PENDING_ATTACK ? 'yellow' :
                         movementState === PlayerMovementState.COOLDOWN ? 'grey' : 'white'
 
-    const texture = useTexture("assets/rat-sword.png")
-
     useEventsHandler(ref)
     useFootstepsHandler(ref)
 
@@ -165,9 +190,9 @@ export const Player: React.FC = () => {
                     {/*    <meshBasicMaterial color={'pink'} transparent opacity={0.05}/>*/}
                     {/*</Circle>*/}
                 </group>
-                <sprite scale={shrink ? [1.5, 1, 1.5] : stretch ? [1.5, 2, 1.5] : [1.5, 1.5, 1.5]} position={[0.125, 0.2, 0.10001]}>
-                    <spriteMaterial color={color} map={texture} depthWrite={false} depthTest={false}/>
-                </sprite>
+                <Suspense fallback={null}>
+                    <Visuals stretch={stretch} shrink={shrink} color={color}/>
+                </Suspense>
             </group>
             <group ref={combatBodyRef}>
                 <Box position={[playerConfig.sensors.shortAttack.x, 0, 0]} args={[playerConfig.sensors.shortAttack.w, playerConfig.sensors.shortAttack.h, 0.5]}>
@@ -177,7 +202,7 @@ export const Player: React.FC = () => {
                     <meshBasicMaterial color={'orange'} transparent opacity={0.15}/>
                 </Box>
             </group>
-            <PlayerCamera/>
+            <PlayerCamera x={x} y={y}/>
         </>
     )
 }

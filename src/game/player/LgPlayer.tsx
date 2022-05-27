@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 import {
+    SyncComponent,
     useAddBody,
     useIsKeyPressed,
     useOnCollisionBegin,
@@ -10,7 +11,7 @@ import {
 import {INPUT_KEYS} from "../input/INPUT_KEYS";
 import {Body, Box, Circle, Vec2} from "planck";
 import {useWorld} from "../../worker/WorldProvider";
-import {PlayerAttackStateType, syncKeys} from "../data/keys";
+import {componentSyncKeys, PlayerAttackStateType, syncKeys} from "../data/keys";
 import {
     angleToV2,
     calculateAngleBetweenVectors,
@@ -900,6 +901,9 @@ const Controller: React.FC<{
 
 export const LgPlayer: React.FC = () => {
 
+    const x = 0
+    const y = -10
+
     const world = useWorld()
 
     const addBody = useAddBody()
@@ -926,7 +930,7 @@ export const LgPlayer: React.FC = () => {
         const body = world.createBody(bodyDef)
         const combatBody = world.createBody(combatBodyDef)
 
-        body.setPosition(new Vec2(0, 0))
+        body.setPosition(new Vec2(x, y))
 
         const circleShape = Circle(0.5)
 
@@ -1179,42 +1183,51 @@ export const LgPlayer: React.FC = () => {
 
     const isAlive = healthRemaining > 0
 
-    if (!body || !combatBody || !fixtures) return null
+    const isActive = body && combatBody && fixtures
 
     return (
-        <PlayerContext.Provider value={{
-            body,
-            combatBody,
-            playerDamage,
-            increasePlayerDamage,
-            playerRolled,
-            setPlayerRolled,
-            energyUsage,
-            setEnergyUsage,
-            increaseEnergyUsage,
-            energyLastUsed,
-            movementState,
-            setMovementState,
-            fixtures,
-            collisions,
-            collisionsRef,
-            collisionsState,
-            collisionsStateRef,
-            selectedTarget,
-            setSelectedTarget,
-            targetItem,
-            setTargetItem,
-        }}>
-            {/*<Controller fixtures={fixtures} body={body} combatBody={combatBody}/>*/}
+        <>
             {
-                isAlive && (
+                isActive && (
                     <>
-                        <PlayerController/>
-                        <PlayerStateHandler/>
+                        <PlayerContext.Provider value={{
+                            body,
+                            combatBody,
+                            playerDamage,
+                            increasePlayerDamage,
+                            playerRolled,
+                            setPlayerRolled,
+                            energyUsage,
+                            setEnergyUsage,
+                            increaseEnergyUsage,
+                            energyLastUsed,
+                            movementState,
+                            setMovementState,
+                            fixtures,
+                            collisions,
+                            collisionsRef,
+                            collisionsState,
+                            collisionsStateRef,
+                            selectedTarget,
+                            setSelectedTarget,
+                            targetItem,
+                            setTargetItem,
+                        }}>
+                            {/*<Controller fixtures={fixtures} body={body} combatBody={combatBody}/>*/}
+                            {
+                                isAlive && (
+                                    <>
+                                        <PlayerController/>
+                                        <PlayerStateHandler/>
+                                    </>
+                                )
+                            }
+                            {/*<EventsHandler/>*/}
+                        </PlayerContext.Provider>
                     </>
                 )
             }
-            {/*<EventsHandler/>*/}
-        </PlayerContext.Provider>
+            <SyncComponent id={'player'} componentId={componentSyncKeys.player} x={x} y={y}/>
+        </>
     )
 }

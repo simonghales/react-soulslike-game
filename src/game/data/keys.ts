@@ -43,6 +43,7 @@ export enum PlayerAttackStateType {
 }
 
 export const componentSyncKeys = {
+    player: 'player',
     basicMob: 'basicMob',
     basicMobDead: 'basicMobDead',
 }

@@ -6,6 +6,7 @@ import {WorldProvider} from "./WorldProvider";
 import {MobsHandler} from "../game/mobs/MobsHandler";
 import {DeadBodiesHandler} from "../game/mobs/backend/DeadBodiesHandler";
 import {LgStateSync} from "../game/state/backend/LgStateSync";
+import {LgScene} from "../game/scene/LgScene";
 
 export const WorkerApp: React.FC<{
     worker: Worker
@@ -24,6 +25,7 @@ export const WorkerApp: React.FC<{
                 <KeysConsumer>
                     <PlanckjsCollisions world={world}>
                         <SyncableComponents components={{}}>
+                            <LgScene/>
                             <LgStateSync/>
                             <LgPlayer/>
                             <MobsHandler/>
