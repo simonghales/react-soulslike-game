@@ -6,7 +6,7 @@ import {usePlayerRef} from "../state/misc";
 import {lerp} from "three/src/math/MathUtils";
 import {playerMiscProxy, RecentHitData, useTargetRef} from "../state/frontend/player";
 import {normalize} from "../../utils/numbers";
-import {easeInOutCubic, easeInOutSine, easeInQuart} from "../../utils/easing";
+import {easeInOutCubic, easeInOutSine, easeInQuad, easeInQuart, easeInSine} from "../../utils/easing";
 import {useSnapshot} from "valtio";
 import {Vec2} from "planck";
 
@@ -69,6 +69,10 @@ let hitProgress = 0
 let hitMultiplier = 0
 let cameraVelocityX = 0
 let cameraVelocityY = 0
+let xDiff = 0
+let yDiff = 0
+let movingWeight = 0
+let amount = 0
 
 const addRecentHitsImpact = (recentHits: RecentHitData[], impactVelocity: ImpactVelocity, previousImpactVelocity: ImpactVelocity) => {
 
@@ -131,6 +135,13 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
             offsetY: 0,
             cameraVelocityX: 0,
             cameraVelocityY: 0,
+            targetCameraVelocityX: 0,
+            targetCameraVelocityY: 0,
+            previousCameraVelocityX: 0,
+            previousCameraVelocityY: 0,
+            cameraOffsetChanged: 0,
+            cameraOffsetCharge: 0,
+            isMovingWeight: 0,
         }
     })
 
@@ -168,7 +179,7 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
         }
     }, [targetRef])
 
-    useFrame(() => {
+    useFrame((state, delta) => {
 
         if (!playerRef || !playerRef.current) return
         if (!groupRef.current) return
@@ -255,20 +266,75 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
             offsetV2.set(playerVelocityX, playerVelocityY)
             offsetV2.normalize()
 
-            localStateRef.current.cameraData.offsetX = lerp(localStateRef.current.cameraData.offsetX, offsetV2.x, 0.05)
-            localStateRef.current.cameraData.offsetY = lerp(localStateRef.current.cameraData.offsetY, offsetV2.y, 0.05)
+            localStateRef.current.cameraData.offsetX = lerp(localStateRef.current.cameraData.offsetX, offsetV2.x, 0.0275)
+            localStateRef.current.cameraData.offsetY = lerp(localStateRef.current.cameraData.offsetY, offsetV2.y, 0.0275)
+
+            if (localStateRef.current.cameraData.isMovingWeight < 10) {
+                localStateRef.current.cameraData.isMovingWeight += 10 * delta
+                if (localStateRef.current.cameraData.isMovingWeight > 10) {
+                    localStateRef.current.cameraData.isMovingWeight = 10
+                }
+            }
+
+        } else {
+
+            if (localStateRef.current.cameraData.isMovingWeight > 0) {
+                localStateRef.current.cameraData.isMovingWeight = lerp(localStateRef.current.cameraData.isMovingWeight, 0, 0.5)
+                localStateRef.current.cameraData.isMovingWeight -= 100 * delta
+                if (localStateRef.current.cameraData.isMovingWeight < 0) {
+                    localStateRef.current.cameraData.isMovingWeight = 0
+                }
+            } else {
+                localStateRef.current.cameraData.targetCameraVelocityX = localStateRef.current.cameraData.cameraVelocityX
+                localStateRef.current.cameraData.targetCameraVelocityY = localStateRef.current.cameraData.cameraVelocityY
+            }
 
         }
 
         offsetV2.set(localStateRef.current.cameraData.offsetX, localStateRef.current.cameraData.offsetY)
 
         if (offsetV2.lengthSquared() >= 0.95) {
-            localStateRef.current.cameraData.cameraVelocityX = lerp(localStateRef.current.cameraData.cameraVelocityX, offsetV2.x, 0.005)
-            localStateRef.current.cameraData.cameraVelocityY = lerp(localStateRef.current.cameraData.cameraVelocityY, offsetV2.y, 0.005)
+            offsetV2.normalize()
+            xDiff = Math.abs(offsetV2.x - localStateRef.current.cameraData.targetCameraVelocityX)
+            yDiff = Math.abs(offsetV2.y - localStateRef.current.cameraData.targetCameraVelocityY)
+            if (xDiff >= 0.075 || yDiff >= 0.075) {
+                localStateRef.current.cameraData.previousCameraVelocityX = localStateRef.current.cameraData.cameraVelocityX
+                localStateRef.current.cameraData.previousCameraVelocityY = localStateRef.current.cameraData.cameraVelocityY
+                localStateRef.current.cameraData.targetCameraVelocityX = offsetV2.x
+                localStateRef.current.cameraData.targetCameraVelocityY = offsetV2.y
+                localStateRef.current.cameraData.cameraOffsetChanged = Date.now()
+                localStateRef.current.cameraData.cameraOffsetCharge = 20
+            }
+
         }
 
-        cameraVelocityX = localStateRef.current.cameraData.cameraVelocityX * 1.25
-        cameraVelocityY = localStateRef.current.cameraData.cameraVelocityY * 1.25
+        movingWeight = normalize(localStateRef.current.cameraData.isMovingWeight, 10, 0)
+
+        // todo - account for movingWeight
+
+        if (localStateRef.current.cameraData.cameraOffsetCharge) {
+            amount = movingWeight * 5 * delta
+            localStateRef.current.cameraData.cameraOffsetCharge -= amount
+            progress = 1 - normalize(localStateRef.current.cameraData.cameraOffsetCharge, 20, 0)
+            progress = easeInSine(progress)
+            localStateRef.current.cameraData.cameraVelocityX = lerp(localStateRef.current.cameraData.previousCameraVelocityX, localStateRef.current.cameraData.targetCameraVelocityX, progress)
+            localStateRef.current.cameraData.cameraVelocityY = lerp(localStateRef.current.cameraData.previousCameraVelocityY, localStateRef.current.cameraData.targetCameraVelocityY, progress)
+        }
+
+        // if (localStateRef.current.cameraData.cameraOffsetChanged) {
+        //     timeElapsed = Date.now() - localStateRef.current.cameraData.cameraOffsetChanged
+        //     progress = normalize(timeElapsed, 3000, 0)
+        //     if (progress >= 1) {
+        //         localStateRef.current.cameraData.cameraOffsetChanged = 0
+        //     }
+        //     progress = easeInSine(progress)
+        //     localStateRef.current.cameraData.cameraVelocityX = lerp(localStateRef.current.cameraData.previousCameraVelocityX, localStateRef.current.cameraData.targetCameraVelocityX, progress)
+        //     localStateRef.current.cameraData.cameraVelocityY = lerp(localStateRef.current.cameraData.previousCameraVelocityY, localStateRef.current.cameraData.targetCameraVelocityY, progress)
+        // }
+
+
+        cameraVelocityX = localStateRef.current.cameraData.cameraVelocityX * 1.75
+        cameraVelocityY = localStateRef.current.cameraData.cameraVelocityY * 1.75
 
         lerpedX += cameraVelocityX
         lerpedY += cameraVelocityY
