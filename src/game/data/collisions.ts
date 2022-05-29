@@ -13,9 +13,14 @@ export const COLLISION_FILTER_GROUPS = {
     player: BIT_FLAGS["1"],
     playerRolling: BIT_FLAGS["2"],
     playerRange: BIT_FLAGS["3"],
-    barrier: BIT_FLAGS["4"],
+    environment: BIT_FLAGS["4"],
     npcs: BIT_FLAGS["5"],
     items: BIT_FLAGS["6"],
+}
+
+export enum CollisionTypes {
+    BARRIER = 'BARRIER',
+    SENSOR = 'SENSOR',
 }
 
 export enum MobCollisionTypes {

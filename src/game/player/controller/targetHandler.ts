@@ -88,7 +88,7 @@ const selectIdealTarget = (
         }
 
         if (selectedTarget?.id === id) {
-            extraPenalty += 400
+            extraPenalty += 2000
         }
 
         enemyCalculations[id] = {

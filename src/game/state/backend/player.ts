@@ -23,7 +23,26 @@ export const backendPlayerStateProxy = proxy({
             order: Date.now(),
         }),
     } as PlayerInventory,
+    collidedSensors: [] as string[],
 })
+
+export const useIsPlayerInsideSensor = (id: string) => {
+
+    const collidedSensors = useSnapshot(backendPlayerStateProxy.collidedSensors)
+
+    return collidedSensors.includes(id)
+
+}
+
+export const setPlayerCollidedSensors = (ids: string[]) => {
+
+    backendPlayerStateProxy.collidedSensors.length = 0
+
+    ids.forEach(id => {
+        backendPlayerStateProxy.collidedSensors.push(id)
+    })
+
+}
 
 export const addItemToPlayerInventory = (type: ItemType, count: number) => {
 

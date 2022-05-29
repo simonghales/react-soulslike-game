@@ -1,17 +1,24 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
-import {AttackGoalSubGoal, AttackGoalSubGoalTypes, CollisionsState} from "./types";
+import {AttackGoalSubGoal, AttackGoalSubGoalTypes, CollisionsState, MainGoal, MainGoalTypes} from "./types";
 import {useMobBrainContext} from "../mobBrainContext";
 import {lerp} from "three/src/math/MathUtils";
 import random from "canvas-sketch-util/random";
 import {MoveGoalHandler} from "./MoveGoalHandler";
-import {PlayerRangeCollisionTypes} from "../../data/collisions";
+import {CollisionTypes, PlayerRangeCollisionTypes} from "../../data/collisions";
 import {FollowGoalHandler} from "./FollowGoalHandler";
 import {CombatHandler} from "./CombatHandler";
 import {GoalHandlerContext} from "./GoalHandlerContext";
+import {useLgMobContext} from "../LgMobContext";
+import {useWorld} from "../../../worker/WorldProvider";
+import {GoalType} from "../types";
+import {useIsPlayerInsideSensor} from "../../state/backend/player";
 
 export const useMobBrainGoalHandler = () => {
 
-    const [goal, setGoal] = useState(null)
+    const [goal, setGoal] = useState({
+        type: MainGoalTypes.IDLE,
+        time: Date.now()
+    } as MainGoal)
     const [subGoal, setSubGoal] = useState({
         type: AttackGoalSubGoalTypes.IDLE_INITIAL,
         time: Date.now()
@@ -157,11 +164,145 @@ const AttackPlayerGoalHandler: React.FC = () => {
     )
 }
 
+const useAggroHandler = () => {
+
+    const {
+        collisionsState,
+        body,
+        targetBody,
+        damageRecentlyTaken,
+        setGoal,
+    } = useMobBrainContext()
+
+    const playerInDangerZone = useIsPlayerInsideSensor('room')
+
+    const outOfRange = !collisionsState.isInExtraLargeCombatRange
+    const inAwakeRange = collisionsState.isInMediumCombatRange
+    const inCloseRange = collisionsState.isInSmallCombatRange
+
+    const [isAggro, setIsAggro] = useState(false)
+    const [inAwakeRangeAwhile, setInAwakeRangeAwhile] = useState(false)
+    const potentiallyAggro = inAwakeRangeAwhile || damageRecentlyTaken || playerInDangerZone
+
+    const enableInAwakeRangeAwhile = inAwakeRange && !inAwakeRangeAwhile
+
+    useEffect(() => {
+        if (!isAggro) return
+        setGoal({
+            type: MainGoalTypes.ATTACK,
+            time: Date.now(),
+        })
+        return () => {
+            setGoal({
+                type: MainGoalTypes.IDLE,
+                time: Date.now(),
+            })
+        }
+    }, [isAggro])
+
+    useEffect(() => {
+        if (inAwakeRange) return
+        const timeout = setTimeout(() => {
+            setInAwakeRangeAwhile(false)
+        }, 500)
+        return () => {
+            clearTimeout(timeout)
+        }
+    }, [inAwakeRange])
+
+    useEffect(() => {
+        if (!enableInAwakeRangeAwhile) return
+        const timeout = setTimeout(() => {
+            setInAwakeRangeAwhile(true)
+        }, 500)
+        return () => {
+            clearTimeout(timeout)
+        }
+    }, [enableInAwakeRangeAwhile])
+
+    const shouldLeaveAggro = !potentiallyAggro && outOfRange && isAggro
+    const shouldBecomeAggro = potentiallyAggro && !isAggro
+
+    const world = useWorld()
+
+    useEffect(() => {
+        if (!shouldBecomeAggro) return
+
+        const check = () => {
+
+            if (!targetBody) return
+
+            let barrierHit = false
+
+            world.rayCast(body.getPosition(), targetBody.getPosition(), (fixture, point, normal, fraction) => {
+
+                if ((fixture.getUserData() as any)?.collisionType === CollisionTypes.BARRIER) {
+                    barrierHit = true
+                    return 0
+                }
+
+                return 1
+            })
+
+            if (barrierHit) {
+                return
+            }
+
+            setIsAggro(true)
+
+        }
+
+        check()
+
+        const interval = setInterval(check, 1000)
+
+        return () => {
+            clearInterval(interval)
+        }
+
+    }, [shouldBecomeAggro])
+
+    const [leaveAggroTimeout, setLeaveAggroTimeout] = useState(false)
+
+    useEffect(() => {
+        if (!shouldLeaveAggro) {
+            setLeaveAggroTimeout(false)
+            return
+        }
+
+        const timeout = setTimeout(() => {
+            setLeaveAggroTimeout(true)
+        }, lerp(5000, 10000, Math.random()))
+
+        return () => {
+            clearTimeout(timeout)
+            setLeaveAggroTimeout(false)
+        }
+    }, [shouldLeaveAggro])
+
+    const stopAggro = isAggro && leaveAggroTimeout && !inCloseRange
+
+    useEffect(() => {
+        if (!stopAggro) return
+        setIsAggro(false)
+    }, [stopAggro])
+
+}
+
 export const GoalHandler: React.FC = () => {
 
-    return (
-        <>
-            <AttackPlayerGoalHandler/>
-        </>
-    )
+    const {
+        goal,
+    } = useMobBrainContext()
+
+    useAggroHandler()
+
+    switch (goal?.type) {
+        case MainGoalTypes.IDLE:
+            return null
+        case MainGoalTypes.ATTACK:
+            return <AttackPlayerGoalHandler/>
+    }
+
+    return null
 }

@@ -37,9 +37,6 @@ export const Game: React.FC = () => {
                         <SyncableComponents components={mainSyncableComponents}>
                             <StateSync/>
                             <Scenery/>
-                            <Suspense fallback={null}>
-                                <Player/>
-                            </Suspense>
                             {/*<OrbitControls/>*/}
                         </SyncableComponents>
                     </Engine>
