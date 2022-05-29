@@ -21,4 +21,5 @@ export type PlayerFixtures = {
 export type PlayerCollisionsState = {
     enemiesInLongAttackSensor: string[],
     enemiesInShortAttackSensor: string[],
+    collidedSensors: string[],
 }

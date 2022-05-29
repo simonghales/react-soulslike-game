@@ -1,5 +1,15 @@
 import {Body} from "planck";
 
+export enum MainGoalTypes {
+    IDLE = 'IDLE',
+    ATTACK = 'ATTACK',
+}
+
+export type MainGoal = {
+    type: MainGoalTypes,
+    time: number,
+}
+
 export enum AttackGoalSubGoalTypes {
     IDLE_INITIAL = 'IDLE_INITIAL',
     IDLE = 'IDLE',

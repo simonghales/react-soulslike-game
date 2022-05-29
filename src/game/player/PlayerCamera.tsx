@@ -279,8 +279,8 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
         } else {
 
             if (localStateRef.current.cameraData.isMovingWeight > 0) {
-                localStateRef.current.cameraData.isMovingWeight = lerp(localStateRef.current.cameraData.isMovingWeight, 0, 0.5)
-                localStateRef.current.cameraData.isMovingWeight -= 100 * delta
+                localStateRef.current.cameraData.isMovingWeight = lerp(localStateRef.current.cameraData.isMovingWeight, 0, 0.33)
+                localStateRef.current.cameraData.isMovingWeight -= 2 * delta
                 if (localStateRef.current.cameraData.isMovingWeight < 0) {
                     localStateRef.current.cameraData.isMovingWeight = 0
                 }
@@ -336,8 +336,8 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
         cameraVelocityX = localStateRef.current.cameraData.cameraVelocityX * 1.75
         cameraVelocityY = localStateRef.current.cameraData.cameraVelocityY * 1.75
 
-        lerpedX += cameraVelocityX
-        lerpedY += cameraVelocityY
+        // lerpedX += cameraVelocityX
+        // lerpedY += cameraVelocityY
 
         groupRef.current.position.x = lerpedX
         groupRef.current.position.y = lerpedY

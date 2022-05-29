@@ -1,10 +1,10 @@
-import React, {useCallback, useMemo, useRef} from "react"
+import React, {useCallback, useEffect, useMemo, useState} from "react"
 import {useMobBrainContext} from "../mobBrainContext";
 import {useOnPhysicsUpdate} from "@simonghales/react-three-physics";
 import {Vec2} from "planck";
 import {useEffectRef} from "../../../utils/hooks";
 import {angleToV2, calculateAngleBetweenVectors, lerpRadians} from "../../../utils/angles";
-import {AttackState, AttackStateType} from "./types";
+import {AttackState, AttackStateType, MainGoalTypes} from "./types";
 import {mobAttacksConfig} from "../../data/attacks";
 import {lerp} from "three/src/math/MathUtils";
 import {useLgMobContext} from "../LgMobContext";
@@ -56,6 +56,7 @@ export const MovementHandler: React.FC = () => {
         targetBodyRef,
         attackState,
         attackStateRef,
+        goal,
     } = useMobBrainContext()
 
     const movementSpeed = useMemo(() => {
@@ -70,11 +71,17 @@ export const MovementHandler: React.FC = () => {
 
     const movementSpeedRef = useEffectRef(movementSpeed)
 
-    const localStateRef = useRef({})
-
     const limitedMovement = (attackState?.type === AttackStateType.COOLDOWN)
 
     const limitedMovementRef = useEffectRef(limitedMovement)
+
+    const [localState] = useState({
+        followTarget: goal.type === MainGoalTypes.ATTACK,
+    })
+
+    useEffect(() => {
+        localState.followTarget = goal.type === MainGoalTypes.ATTACK
+    }, [goal])
 
     useOnPhysicsUpdate(useCallback((delta) => {
 
@@ -116,7 +123,7 @@ export const MovementHandler: React.FC = () => {
             //     // targetAngle = lerpRadians(movementStateRef.current.lockedAngle, targetAngle, 0.25)
             //     // body.setAngle(targetAngle)
             // }
-        } else if (targetBody) {
+        } else if (targetBody && localState.followTarget) {
             prevAngle = body.getAngle()
             targetV2.set(targetBody.getPosition())
             targetAngle = calculateAngleBetweenVectors(angleV2.x, targetV2.x, targetV2.y, angleV2.y)

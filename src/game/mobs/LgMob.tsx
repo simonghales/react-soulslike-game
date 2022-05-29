@@ -54,7 +54,7 @@ export const useMobBody = (id: string, x: number, y: number, type: MobType) => {
         const fixture = body.createFixture({
             shape: config.bodyShape,
             filterCategoryBits: COLLISION_FILTER_GROUPS.npcs,
-            filterMaskBits: COLLISION_FILTER_GROUPS.player | COLLISION_FILTER_GROUPS.playerRange | COLLISION_FILTER_GROUPS.npcs,
+            filterMaskBits: COLLISION_FILTER_GROUPS.player | COLLISION_FILTER_GROUPS.playerRange | COLLISION_FILTER_GROUPS.npcs | COLLISION_FILTER_GROUPS.environment,
             density: 10,
             userData: {
                 collisionId: id,

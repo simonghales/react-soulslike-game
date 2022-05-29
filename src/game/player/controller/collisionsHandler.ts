@@ -2,9 +2,10 @@ import {useEffect, useMemo, useState} from "react";
 import {useOnCollisionBegin, useOnCollisionEnd} from "@simonghales/react-three-physics";
 import {Fixture} from "planck/dist/planck-with-testbed";
 import {getFixtureCollisionId, getFixtureCollisionType} from "../../../utils/physics";
-import {PlayerAttackCollisionTypes} from "../../data/collisions";
+import {CollisionTypes, PlayerAttackCollisionTypes, PlayerRangeCollisionTypes} from "../../data/collisions";
 import {PlayerCollisionsState} from "../types";
 import {Body} from "planck";
+import {setPlayerCollidedSensors} from "../../state/backend/player";
 
 export type PlayerCollisionsData = Record<string, Record<string, Body>>
 
@@ -55,6 +56,13 @@ export const useCollisionsState = (collisions: PlayerCollisionsData, combatColli
 
         const enemiesInLongAttackSensor: string[] = []
         const enemiesInShortAttackSensor: string[] = []
+        const collidedSensors: string[] = []
+
+        Object.entries(collisions[PlayerRangeCollisionTypes.PLAYER] ?? {}).forEach(([id, body]) => {
+            if ((body.getUserData() as any)?.collisionType === CollisionTypes.SENSOR) {
+                collidedSensors.push(id)
+            }
+        })
 
         Object.keys(combatCollisions[PlayerAttackCollisionTypes.QUICK_ATTACK] ?? {}).forEach((id) => {
             enemiesInShortAttackSensor.push(id)
@@ -63,9 +71,12 @@ export const useCollisionsState = (collisions: PlayerCollisionsData, combatColli
             enemiesInLongAttackSensor.push(id)
         })
 
+        setPlayerCollidedSensors(collidedSensors)
+
         return {
             enemiesInLongAttackSensor,
             enemiesInShortAttackSensor,
+            collidedSensors,
         }
     }, [collisions, combatCollisions])
 
