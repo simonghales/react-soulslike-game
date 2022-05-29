@@ -63,6 +63,9 @@ export const MovementHandler: React.FC = () => {
         if (speedLimit !== null) {
             return speedLimit
         }
+        if (goal.type === MainGoalTypes.IDLE) {
+            return config.movement.walkingSpeed
+        }
         if (running) {
             return config.movement.runningSpeed
         }
@@ -87,6 +90,7 @@ export const MovementHandler: React.FC = () => {
 
         const targetBody = targetBodyRef.current
         const targetPosition = movementStateRef.current.targetPosition
+
         if (movementStateRef.current.lockedTarget) {
             v2.set(body.getPosition())
             angleToV2(body.getAngle(), angleV2)
@@ -135,7 +139,15 @@ export const MovementHandler: React.FC = () => {
             angle = lerpRadians(prevAngle, targetAngle, weight)
             body.setAngle(angle)
         } else {
-            // todo - rotate in movement direction...
+
+            // todo - calculate if moving, if not, dont update angle
+
+            prevAngle = body.getAngle()
+            targetV2.set(targetPosition ?? 0, 0)
+            targetAngle = calculateAngleBetweenVectors(angleV2.x, targetV2.x, targetV2.y, angleV2.y)
+            targetAngle += Math.PI / 2
+            angle = lerpRadians(prevAngle, targetAngle, delta * 0.1)
+            body.setAngle(angle)
         }
 
     }, [body]))

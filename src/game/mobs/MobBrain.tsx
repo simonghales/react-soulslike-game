@@ -30,6 +30,7 @@ export const MobBrain: React.FC<{
         isInExtraSmallCombatRange: false,
         isInMediumCombatRange: false,
         attackRangeEnemies: [],
+        collidedSensors: [],
     })
 
     const collisionsStateRef = useEffectRef(collisionsState)

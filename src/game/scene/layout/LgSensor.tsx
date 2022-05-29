@@ -30,7 +30,7 @@ const useSensorBody = (
         body.createFixture({
             isSensor: true,
             shape: Box(halve(w), halve(h)),
-            filterMaskBits: COLLISION_FILTER_GROUPS.player,
+            filterMaskBits: COLLISION_FILTER_GROUPS.player | COLLISION_FILTER_GROUPS.npcs,
             filterCategoryBits: COLLISION_FILTER_GROUPS.environment,
             userData: {
                 collisionId: sensorId,

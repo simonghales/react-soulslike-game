@@ -12,6 +12,9 @@ import {useLgMobContext} from "../LgMobContext";
 import {useWorld} from "../../../worker/WorldProvider";
 import {GoalType} from "../types";
 import {useIsPlayerInsideSensor} from "../../state/backend/player";
+import {IdleGoalHandler} from "./IdleGoalHandler";
+import {Vec2} from "planck";
+import {normalize} from "../../../utils/numbers";
 
 export const useMobBrainGoalHandler = () => {
 
@@ -64,7 +67,7 @@ const getClosestDistanceDelayRange = (distance: string) => {
     }
 }
 
-const IdleGoalHandler: React.FC<{
+const AttackIdleGoalHandler: React.FC<{
     type: string,
     setSubGoal: any,
 }> = ({type, setSubGoal}) => {
@@ -146,7 +149,7 @@ const AttackPlayerGoalHandler: React.FC = () => {
         }}>
             {
                 (subGoal.type === AttackGoalSubGoalTypes.IDLE || subGoal.type === AttackGoalSubGoalTypes.IDLE_INITIAL) && (
-                    <IdleGoalHandler type={subGoal.type} setSubGoal={setSubGoal}/>
+                    <AttackIdleGoalHandler type={subGoal.type} setSubGoal={setSubGoal}/>
                 )
             }
             {
@@ -164,9 +167,12 @@ const AttackPlayerGoalHandler: React.FC = () => {
     )
 }
 
+const v2 = new Vec2()
+
 const useAggroHandler = () => {
 
     const {
+        id,
         collisionsState,
         body,
         targetBody,
@@ -176,15 +182,44 @@ const useAggroHandler = () => {
 
     const playerInDangerZone = useIsPlayerInsideSensor('room')
 
-    const outOfRange = !collisionsState.isInExtraLargeCombatRange
+    const outOfRange = !collisionsState.isInLargeCombatRange
     const inAwakeRange = collisionsState.isInMediumCombatRange
     const inCloseRange = collisionsState.isInSmallCombatRange
 
+    const isAtHome = collisionsState.collidedSensors.includes('room')
+
     const [isAggro, setIsAggro] = useState(false)
     const [inAwakeRangeAwhile, setInAwakeRangeAwhile] = useState(false)
-    const potentiallyAggro = inAwakeRangeAwhile || damageRecentlyTaken || playerInDangerZone
+    const [recentlyBecameAggroCooldown, setRecentlyBecameAggroCooldown] = useState(0)
+    const [recentlyLeftAggroCooldown, setRecentlyLeftAggroCooldown] = useState(0)
+
+    const potentiallyAggro = ((inAwakeRangeAwhile && inAwakeRange) && !recentlyLeftAggroCooldown) || inCloseRange || damageRecentlyTaken || playerInDangerZone
+    const shouldLeaveAggro = !potentiallyAggro && outOfRange && isAggro && !recentlyBecameAggroCooldown
+    const shouldBecomeAggro = !isAggro && potentiallyAggro && !shouldLeaveAggro
 
     const enableInAwakeRangeAwhile = inAwakeRange && !inAwakeRangeAwhile
+
+    useEffect(() => {
+        if (!recentlyBecameAggroCooldown) return
+        const timeLeft = Date.now() - recentlyBecameAggroCooldown + 5000
+        const timeout = setTimeout(() => {
+            setRecentlyBecameAggroCooldown(0)
+        }, timeLeft)
+        return () => {
+            clearTimeout(timeout)
+        }
+    }, [recentlyBecameAggroCooldown])
+
+    useEffect(() => {
+        if (!recentlyLeftAggroCooldown) return
+        const timeLeft = Date.now() - recentlyLeftAggroCooldown + 4000
+        const timeout = setTimeout(() => {
+            setRecentlyLeftAggroCooldown(0)
+        }, timeLeft)
+        return () => {
+            clearTimeout(timeout)
+        }
+    }, [recentlyLeftAggroCooldown])
 
     useEffect(() => {
         if (!isAggro) return
@@ -203,6 +238,7 @@ const useAggroHandler = () => {
     useEffect(() => {
         if (inAwakeRange) return
         const timeout = setTimeout(() => {
+            console.log('setInAwakeRangeAwhile!')
             setInAwakeRangeAwhile(false)
         }, 500)
         return () => {
@@ -220,13 +256,48 @@ const useAggroHandler = () => {
         }
     }, [enableInAwakeRangeAwhile])
 
-    const shouldLeaveAggro = !potentiallyAggro && outOfRange && isAggro
-    const shouldBecomeAggro = potentiallyAggro && !isAggro
+    const [awayFromHome, setAwayFromHome] = useState(false)
+
+    useEffect(() => {
+        if (isAtHome) {
+            const timeout = setTimeout(() => {
+                console.log('setAwayFromHome !')
+                setAwayFromHome(false)
+            }, 500)
+            return () => {
+                clearTimeout(timeout)
+            }
+        } else {
+            const timeout = setTimeout(() => {
+                console.log('setAwayFromHome')
+                setAwayFromHome(true)
+            }, 1000)
+            return () => {
+                clearTimeout(timeout)
+            }
+        }
+    }, [isAtHome])
 
     const world = useWorld()
 
+    const [localState] = useState({
+        intervalId: '' as any,
+    })
+
     useEffect(() => {
         if (!shouldBecomeAggro) return
+        if (!targetBody) return
+
+        console.log('shouldBecomeAggro', id)
+
+        v2.set(body.getPosition())
+        v2.sub(targetBody.getPosition())
+
+        const normalized = normalize(v2.lengthSquared(), 150, 20)
+        const delay = lerp(250, 1500, normalized)
+
+        console.log('delay', delay)
+
 
         const check = () => {
 
@@ -248,16 +319,24 @@ const useAggroHandler = () => {
                 return
             }
 
+            // range 10 to 100
+
+            return // todo - remove this line...
+
+            console.log('setIsAggro++', id)
+
             setIsAggro(true)
+            setRecentlyBecameAggroCooldown(Date.now())
 
         }
 
         check()
 
-        const interval = setInterval(check, 1000)
+        localState.intervalId = setInterval(check, 1000)
 
         return () => {
-            clearInterval(interval)
+            console.log('clearing interval...')
+            clearInterval(localState.intervalId)
         }
 
     }, [shouldBecomeAggro])
@@ -280,11 +359,17 @@ const useAggroHandler = () => {
         }
     }, [shouldLeaveAggro])
 
-    const stopAggro = isAggro && leaveAggroTimeout && !inCloseRange
+    const stopAggro = isAggro && (leaveAggroTimeout || awayFromHome) && !inCloseRange && !recentlyBecameAggroCooldown
 
     useEffect(() => {
         if (!stopAggro) return
-        setIsAggro(false)
+        const timeout = setTimeout(() => {
+            setIsAggro(false)
+            setRecentlyLeftAggroCooldown(Date.now())
+        }, 500)
+        return () => {
+            clearTimeout(timeout)
+        }
     }, [stopAggro])
 
 }
@@ -299,7 +384,7 @@ export const GoalHandler: React.FC = () => {
 
     switch (goal?.type) {
         case MainGoalTypes.IDLE:
-            return null
+            return <IdleGoalHandler/>
         case MainGoalTypes.ATTACK:
             return <AttackPlayerGoalHandler/>
     }
