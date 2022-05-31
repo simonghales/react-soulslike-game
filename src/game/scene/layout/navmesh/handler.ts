@@ -95,8 +95,8 @@ export const getNavMeshPath = (fromX: number, fromY: number, toX: number, toY: n
     endPoint.x = toX
     endPoint.y = toY
 
-    const startingPoint = globalNavMeshHandler.navMesh.findClosestMeshPoint(startPoint as any, 2)
-    const endingPoint = globalNavMeshHandler.navMesh.findClosestMeshPoint(endPoint as any, 2)
+    const startingPoint = globalNavMeshHandler.navMesh.findClosestMeshPoint(startPoint as any, 3)
+    const endingPoint = globalNavMeshHandler.navMesh.findClosestMeshPoint(endPoint as any, 3)
 
     if (!startingPoint.point || !endingPoint.point) {
         return null

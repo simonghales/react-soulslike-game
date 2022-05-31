@@ -40,7 +40,7 @@ const useMovementControls = (body: Body) => {
         if (!position) {
             movementStateRef.current.targetPosition = null
             movementStateRef.current.finalDestination = null
-            return
+            return null
         }
 
         if (!movementStateRef.current.finalDestination) {
@@ -51,19 +51,25 @@ const useMovementControls = (body: Body) => {
 
         const path = getNavMeshPath(body.getPosition().x, body.getPosition().y, position.x, position.y)
         if (!path || path.length <= 2) {
+            if (!path) {
+                console.warn('no path returned')
+                return null
+            }
             setTargetPosition(position)
-            return
+            return path[path.length - 1]
         }
 
         path.shift()
 
         const firstStep = path.shift()
 
-        if (!firstStep) return
+        if (!firstStep) return null
 
         setTargetPosition(new Vec2(firstStep.x, firstStep.y))
 
         movementStateRef.current.remainingMovementPath = path
+
+        return path[path.length - 1]
 
     }, [])
 

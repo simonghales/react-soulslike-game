@@ -92,6 +92,9 @@ export const getPosition = (
         v2.mul(targetDistance)
         v2.add(targetBody.getPosition())
         if (isNavMeshPointValid(v2.x, v2.y)) {
+            tempV2.set(body.getPosition())
+            tempV2.sub(v2)
+            currentDistance = tempV2.length()
             return {
                 v2,
                 currentDistance,
@@ -101,6 +104,10 @@ export const getPosition = (
             initialV2.set(v2)
         }
     }
+
+    tempV2.set(body.getPosition())
+    tempV2.sub(v2)
+    currentDistance = tempV2.length()
 
     return {
         v2: initialV2, // return initial angle
@@ -182,9 +189,9 @@ export const MoveGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGoal
                 setRunning(false)
             }
 
-            updateTargetPosition(v2)
+            const endPosition = updateTargetPosition(v2)
 
-            setTarget(new Vec2(v2))
+            setTarget(endPosition ? new Vec2(endPosition.x, endPosition.y) : null)
 
             setDebugData((prevState: any) => ({
                 ...prevState,
