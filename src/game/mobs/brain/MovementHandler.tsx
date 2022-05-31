@@ -26,7 +26,7 @@ let progress = 0
 
 export const getAttackSpeed = (attackState: AttackState, baseSpeed: number, attackSpeedMultiplier: number) => {
 
-    progress = (Date.now() - attackState.time) / (mobAttacksConfig.basic.attackDuration - 300)
+    progress = (performance.now() - attackState.time) / (mobAttacksConfig.basic.attackDuration - 300)
 
     if (progress > 1) {
         progress = 1
@@ -39,6 +39,7 @@ export const getAttackSpeed = (attackState: AttackState, baseSpeed: number, atta
 }
 
 let isAttacking = false
+let distanceSquared = 0
 
 export const MovementHandler: React.FC = () => {
 
@@ -51,6 +52,7 @@ export const MovementHandler: React.FC = () => {
     const {
         body,
         movementStateRef,
+        nextStepInPath,
         running,
         speedLimit,
         targetBodyRef,
@@ -62,6 +64,9 @@ export const MovementHandler: React.FC = () => {
     const movementSpeed = useMemo(() => {
         if (speedLimit !== null) {
             return speedLimit
+        }
+        if (goal.type === MainGoalTypes.IDLE) {
+            return config.movement.walkingSpeed
         }
         if (running) {
             return config.movement.runningSpeed
@@ -87,6 +92,7 @@ export const MovementHandler: React.FC = () => {
 
         const targetBody = targetBodyRef.current
         const targetPosition = movementStateRef.current.targetPosition
+
         if (movementStateRef.current.lockedTarget) {
             v2.set(body.getPosition())
             angleToV2(body.getAngle(), angleV2)
@@ -96,6 +102,7 @@ export const MovementHandler: React.FC = () => {
         } else {
             v2.set(body.getPosition())
         }
+
 
         v2.sub(body.getPosition())
         sqrLength = v2.lengthSquared()
@@ -135,7 +142,27 @@ export const MovementHandler: React.FC = () => {
             angle = lerpRadians(prevAngle, targetAngle, weight)
             body.setAngle(angle)
         } else {
-            // todo - rotate in movement direction...
+
+            // todo - calculate if moving, if not, dont update angle
+
+            prevAngle = body.getAngle()
+            targetV2.set(targetPosition ?? 0, 0)
+            targetAngle = calculateAngleBetweenVectors(angleV2.x, targetV2.x, targetV2.y, angleV2.y)
+            targetAngle += Math.PI / 2
+            angle = lerpRadians(prevAngle, targetAngle, delta * 0.1)
+            body.setAngle(angle)
+        }
+
+        if (!targetPosition) {
+            return
+        }
+
+        if (sqrLength > 0.05) {
+            return
+        }
+
+        if (movementStateRef.current.remainingMovementPath.length) {
+            nextStepInPath()
         }
 
     }, [body]))

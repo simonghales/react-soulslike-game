@@ -93,6 +93,7 @@ export const MoveGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGoal
         targetBodyRef,
         body,
         movementStateRef,
+        updateTargetPosition,
         setDebugData,
         setRunning,
         positionToken,
@@ -113,8 +114,8 @@ export const MoveGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGoal
 
         localStateRef.current.previousTargetDistance = 0
 
-        let tryForDifferentAngle = movementStateRef.current.lastMovementGoal < Date.now() - 2000
-        movementStateRef.current.lastMovementGoal = Date.now()
+        let tryForDifferentAngle = movementStateRef.current.lastMovementGoal < performance.now() - 2000
+        movementStateRef.current.lastMovementGoal = performance.now()
 
         const update = () => {
 
@@ -155,11 +156,7 @@ export const MoveGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGoal
                 setRunning(false)
             }
 
-            if (!movementStateRef.current.targetPosition) {
-                movementStateRef.current.targetPosition = new Vec2(v2)
-            } else {
-                movementStateRef.current.targetPosition.set(v2)
-            }
+            updateTargetPosition(v2)
 
             setTarget(new Vec2(v2))
 
@@ -213,10 +210,10 @@ export const MoveGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGoal
         if (!reachedTarget) return
         const delay = lerp(500, 2000, Math.random())
         const timeout = setTimeout(() => {
-            movementStateRef.current.targetPosition = null
+            updateTargetPosition(null)
             setSubGoal({
                 type: AttackGoalSubGoalTypes.IDLE,
-                time: Date.now(),
+                time: performance.now(),
             })
         }, delay)
         return () => {

@@ -269,13 +269,13 @@ export const CombatHandler: React.FC<{
         if (!shouldAttack) return
         setSubGoal({
             type: AttackGoalSubGoalTypes.DAMAGE,
-            time: Date.now()
+            time: performance.now()
         })
         setHasAttackToken(false)
     }, [shouldAttack])
 
     const onAttack = useCallback(() => {
-        setLastAttacked(Date.now())
+        setLastAttacked(performance.now())
         setRecentlyAttacked(true)
         setLargeRangeAwhile(false)
         setMediumRangeAwhile(false)
@@ -285,7 +285,7 @@ export const CombatHandler: React.FC<{
     useEffect(() => {
         if (!lastAttacked) return
         const end = lastAttacked + lerp(1500, 2000, Math.random())
-        const delay = end - Date.now()
+        const delay = end - performance.now()
         const update = () => {
             setRecentlyAttacked(false)
         }

@@ -96,7 +96,7 @@ export const AttackStateHandler: React.FC<{
         if (!shouldSwing) return
         setAttackState({
             type: AttackStateType.ATTACKING,
-            time: Date.now(),
+            time: performance.now(),
         })
         // const target = new Vec2(body.getPosition())
         // const angle = body.getAngle()
@@ -110,11 +110,11 @@ export const AttackStateHandler: React.FC<{
 
         const handleAttacking = () => {
             const end = attackState.time + mobAttacksConfig.basic.attackDuration
-            const delay = end - Date.now()
+            const delay = end - performance.now()
             const update = () => {
                 setAttackState({
                     type: AttackStateType.COOLDOWN,
-                    time: Date.now(),
+                    time: performance.now(),
                 })
             }
             if (delay <= 0) {
@@ -129,12 +129,12 @@ export const AttackStateHandler: React.FC<{
 
         const handleCooldown = () => {
             const end = attackState.time + mobAttacksConfig.basic.cooldown
-            const delay = end - Date.now()
+            const delay = end - performance.now()
             const update = () => {
                 setAttackState(null)
                 setSubGoal({
                     type: AttackGoalSubGoalTypes.IDLE,
-                    time: Date.now(),
+                    time: performance.now(),
                 })
             }
             if (delay <= 0) {
@@ -187,7 +187,7 @@ export const DamageGoalHandler: React.FC<{
         collisionsState,
         targetBodyRef,
         body,
-        movementStateRef,
+        updateTargetPosition,
         setDebugData,
         setRunning,
         setSpeedLimit,
@@ -209,7 +209,7 @@ export const DamageGoalHandler: React.FC<{
         }
         setSubGoal({
             type: AttackGoalSubGoalTypes.IDLE,
-            time: Date.now(),
+            time: performance.now(),
         })
     }, [stunned])
 
@@ -260,7 +260,7 @@ export const DamageGoalHandler: React.FC<{
         setPendingAttack(false)
         setAttackState({
             type: AttackStateType.CHARGING,
-            time: Date.now(),
+            time: performance.now(),
         })
         onAttack()
     }, [])
@@ -322,11 +322,7 @@ export const DamageGoalHandler: React.FC<{
                 difference,
             } = getPosition(body, targetBody, idealDistance, false, true, true, true, isAttacking ? 4 : 2)
 
-            if (!movementStateRef.current.targetPosition) {
-                movementStateRef.current.targetPosition = new Vec2(v2)
-            } else {
-                movementStateRef.current.targetPosition.set(v2)
-            }
+            updateTargetPosition(v2)
 
             timeout = setTimeout(update, delay)
         }

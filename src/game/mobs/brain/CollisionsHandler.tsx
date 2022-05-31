@@ -4,7 +4,7 @@ import {useOnCollisionBegin, useOnCollisionEnd} from "@simonghales/react-three-p
 import {Fixture} from "planck";
 import {getFixtureCollisionId, getFixtureCollisionType} from "../../../utils/physics";
 import {useMobBrainContext} from "../mobBrainContext";
-import {MobCollisionTypes, PlayerRangeCollisionTypes} from "../../data/collisions";
+import {CollisionTypes, MobCollisionTypes, PlayerRangeCollisionTypes} from "../../data/collisions";
 
 export const CollisionsHandler: React.FC = () => {
 
@@ -67,6 +67,13 @@ export const CollisionsHandler: React.FC = () => {
 
         let enemiesInAttackRange = attackRangeEnemies.length > 0
 
+        const collidedSensors: string[] = []
+
+        Object.entries(collisions[MobCollisionTypes.BODY] ?? {}).forEach(([id, {fixtureTypes}]) => {
+            if (fixtureTypes[CollisionTypes.SENSOR]) {
+                collidedSensors.push(id)
+            }
+        })
 
         return {
             isInExtraSmallCombatRange,
@@ -76,6 +83,7 @@ export const CollisionsHandler: React.FC = () => {
             isInExtraLargeCombatRange,
             enemiesInAttackRange,
             attackRangeEnemies,
+            collidedSensors,
         }
 
     }, [collisions])
@@ -96,7 +104,7 @@ export const CollisionsHandler: React.FC = () => {
                 [collidedId]: {
                     fixtureTypes: {
                         ...(state?.[collisionType]?.[collidedId]?.fixtureTypes ?? {}),
-                        [collidedCollisionType]: Date.now(),
+                        [collidedCollisionType]: performance.now(),
                     },
                     body: state?.[collisionType]?.body ?? fixture.getBody(),
                 },

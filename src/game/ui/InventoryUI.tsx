@@ -214,7 +214,7 @@ const Message: React.FC<{
 }> = ({data, removeMessage}) => {
 
     useEffect(() => {
-        const timeToWait = (data.time + 3000) - Date.now()
+        const timeToWait = (data.time + 3000) - performance.now()
         const timeout = setTimeout(() => {
             removeMessage(data.id)
         }, timeToWait)
@@ -270,7 +270,7 @@ const Messages: React.FC = () => {
                         const copy = [...messages]
                         copy.push({
                             id: uniqid(),
-                            time: Date.now(),
+                            time: performance.now(),
                             type: data.data.type,
                             count: data.data.count,
                         })

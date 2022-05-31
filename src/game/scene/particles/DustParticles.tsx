@@ -42,7 +42,7 @@ let scale = 0
 export type DustData = [x: number, y: number, angle: number, time: number, type: DustType]
 
 const cleanupOldData = (particles: DustData[]) => {
-    now = Date.now()
+    now = performance.now()
     particles.forEach(([,,,time, type], index) => {
         ageLimit = dustAgeLimit[type] ?? 0
         timeElapsed = now - time
@@ -119,7 +119,7 @@ export const DustParticles: React.FC = () => {
 
         if (!mesh || !alphaAttribute) return
 
-        now = Date.now()
+        now = performance.now()
 
         data.particles.forEach((data, index) => {
 
@@ -152,7 +152,7 @@ export const DustParticles: React.FC = () => {
                 type,
                            }: DustParticleArgs) => {
 
-                data.particles.push([x, y, degToRad( lerp(0, 360, Math.random())), Date.now(), type])
+                data.particles.push([x, y, degToRad( lerp(0, 360, Math.random())), performance.now(), type])
 
                 cleanupOldData(data.particles)
 

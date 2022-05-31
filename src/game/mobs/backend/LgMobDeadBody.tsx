@@ -173,7 +173,7 @@ export const LgMobDeadBody: React.FC<{
         switch (data.type) {
             case InteractionEventType.INTERACTION_BEGIN:
                 setInteracting(true)
-                setInteractionBegan(Date.now())
+                setInteractionBegan(performance.now())
                 break;
             case InteractionEventType.INTERACTION_END:
                 setInteracting(false)
@@ -188,11 +188,11 @@ export const LgMobDeadBody: React.FC<{
     useEffect(() => {
         if (!interacting) return
 
-        const remainingTime = (interactionBegan + 200) - Date.now()
+        const remainingTime = (interactionBegan + 200) - performance.now()
 
         const timeout = setTimeout(() => {
-            setCarving(Date.now())
-            emitPlayerCarvingBegan(id, Date.now())
+            setCarving(performance.now())
+            emitPlayerCarvingBegan(id, performance.now())
         }, remainingTime)
 
         return () => {
@@ -203,14 +203,14 @@ export const LgMobDeadBody: React.FC<{
 
     useEffect(() => {
         if (!carving) return
-        const timeRemaining = (carving + CARVING_DURATION) - Date.now()
+        const timeRemaining = (carving + CARVING_DURATION) - performance.now()
         let cleared = false
 
         const timeout = setTimeout(() => {
             setCarving(0)
             setInteracting(false)
             setInteractionBegan(0)
-            emitPlayerCarvingEnd(id, Date.now())
+            emitPlayerCarvingEnd(id, performance.now())
             cleared = true
 
             retrieveNextInventoryItem(inventory, setInventory)
@@ -220,7 +220,7 @@ export const LgMobDeadBody: React.FC<{
         return () => {
             clearTimeout(timeout)
             if (!cleared) {
-                emitPlayerCarvingEnd(id, Date.now())
+                emitPlayerCarvingEnd(id, performance.now())
             }
         }
 

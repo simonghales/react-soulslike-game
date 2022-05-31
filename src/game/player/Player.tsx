@@ -92,7 +92,7 @@ export const Player: React.FC<{
     useEffect(() => {
         setPlayerHealthRemaining(healthRemaining)
         if (healthRemaining < localStateRef.current.previousHealthRemaining) {
-            setPlayerDamaged(Date.now())
+            setPlayerDamaged(performance.now())
         }
         localStateRef.current.previousHealthRemaining = healthRemaining
     }, [healthRemaining])
@@ -114,14 +114,14 @@ export const Player: React.FC<{
 
         if (playerAttackState.type === PlayerAttackStateType.SHORT) {
             const completed = playerAttackState.time + 250
-            const timeLeft = completed - Date.now()
+            const timeLeft = completed - performance.now()
             timeouts.push(setTimeout(() => {
                 setAttackCompleted(true)
             }, timeLeft))
 
         } else if (playerAttackState.type === PlayerAttackStateType.LONG) {
             const completed = playerAttackState.time + 1000
-            const timeLeft = completed - Date.now()
+            const timeLeft = completed - performance.now()
             timeouts.push(setTimeout(() => {
                 setAttackCompleted(true)
             }, timeLeft))

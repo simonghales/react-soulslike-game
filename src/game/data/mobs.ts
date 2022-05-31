@@ -3,12 +3,14 @@ import {MobType} from "../state/game";
 export type MovementConfig = {
     baseSpeed: number,
     slowSpeed: number,
+    walkingSpeed: number,
     runningSpeed: number,
     sprintSpeed: number,
     attackSpeedMultiplier: number,
 }
 
 export const SLOW_SPEED_MULTIPLIER = 1
+export const WALKING_SPEED_MULTIPLIER = 2
 export const RUNNING_SPEED_MULTIPLIER = 2.75
 export const SPRINT_SPEED_MULTIPLIER = RUNNING_SPEED_MULTIPLIER * 1.75
 export const MAX_SPEED_MULTIPLIER = 3
@@ -17,6 +19,7 @@ const generateMovementConfig = (baseSpeed: number, attackSpeedMultiplier: number
     return {
         baseSpeed,
         slowSpeed: baseSpeed * SLOW_SPEED_MULTIPLIER,
+        walkingSpeed: baseSpeed * WALKING_SPEED_MULTIPLIER,
         runningSpeed: baseSpeed * RUNNING_SPEED_MULTIPLIER,
         sprintSpeed: baseSpeed * SPRINT_SPEED_MULTIPLIER,
         attackSpeedMultiplier: attackSpeedMultiplier,

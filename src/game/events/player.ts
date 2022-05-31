@@ -53,7 +53,7 @@ export const emitPlayerItemReceived = (type: ItemType, count: number) => {
         data: {
             type,
             count,
-            time: Date.now(),
+            time: performance.now(),
         }
     })
 }
@@ -64,7 +64,7 @@ export const emitPlayerInventoryItemReceived = (type: ItemType, count: number) =
         data: {
             type,
             count,
-            time: Date.now(),
+            time: performance.now(),
         }
     })
 }

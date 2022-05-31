@@ -20,7 +20,7 @@ export const backendPlayerStateProxy = proxy({
         ['0']: ref({
             type: ItemType.MEDIUM_MEAT,
             count: 1,
-            order: Date.now(),
+            order: performance.now(),
         }),
     } as PlayerInventory,
     collidedSensors: [] as string[],
@@ -83,7 +83,7 @@ export const addItemToPlayerInventory = (type: ItemType, count: number) => {
         backendPlayerStateProxy.inventory[uniqid()] = ref({
             type,
             count: numberToAdd,
-            order: Date.now(),
+            order: performance.now(),
         })
     }
 

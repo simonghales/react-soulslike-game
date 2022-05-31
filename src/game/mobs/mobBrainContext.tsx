@@ -1,5 +1,5 @@
 import {createContext, MutableRefObject, useContext} from "react";
-import {Body} from "planck";
+import {Body, Vec2} from "planck";
 import {CollisionsState, MainGoal} from "./brain/types";
 
 export const MobBrainContext = createContext(null! as {
@@ -29,6 +29,8 @@ export const MobBrainContext = createContext(null! as {
     onDamage: any,
     damageRecentlyTaken: boolean,
     stunned: boolean,
+    updateTargetPosition: (position: null | Vec2) => void,
+    nextStepInPath: () => void,
 })
 
 export const useMobBrainContext = () => {

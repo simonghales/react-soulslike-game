@@ -144,7 +144,7 @@ export const BasicMob: React.FC<{
 
     useEffect(() => {
         if (healthRemaining >= localStateRef.current.previousHealthRemaining) return
-        setLastDamaged(Date.now())
+        setLastDamaged(performance.now())
     }, [healthRemaining])
 
     useEffect(() => {

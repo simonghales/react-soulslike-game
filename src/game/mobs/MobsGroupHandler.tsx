@@ -154,7 +154,7 @@ export const useCombatHandler = () => {
             for (let i = 0; i < spareTokens; i++) {
                 const id = sortedQueue[i]
                 if (!id) break
-                newAssignedTokens[id] = grantedAttackTokens[id] ?? Date.now()
+                newAssignedTokens[id] = grantedAttackTokens[id] ?? performance.now()
             }
 
             setGrantedAttackTokens(newAssignedTokens)
@@ -190,7 +190,7 @@ export const useCombatHandler = () => {
     const setHasManualToken = useCallback((id: string) => {
         setManualAttackTokens(prevState => ({
             ...prevState,
-            [id]: Date.now(),
+            [id]: performance.now(),
         }))
         return () => {
             setManualAttackTokens(prevState => {

@@ -11,6 +11,10 @@ export const LgMobContext = createContext(null! as {
     onDeath: any,
     setReady: any,
     type: MobType,
+    startingPosition: {
+        x: number,
+        y: number,
+    },
 })
 
 export const useLgMobContext = () => {

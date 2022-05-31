@@ -1585,10 +1585,10 @@
   resolved "https://registry.yarnpkg.com/@rushstack/eslint-patch/-/eslint-patch-1.1.1.tgz#782fa5da44c4f38ae9fd38e9184b54e451936118"
   integrity sha512-BUyKJGdDWqvWC5GEhyOiUrGNi9iJUr4CU0O2WxJL6QJhHeeA/NVBalH+FeK0r/x/W0rPymXt5s78TDS7d6lCwg==
 
-"@simonghales/react-three-physics@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@simonghales/react-three-physics/-/react-three-physics-0.1.4.tgz#153105c3ec2f97fbd34706df931b56557a2c8dee"
-  integrity sha512-NQ85bXbOdWMCXf25Xzusxl4lzsvmLCy/5F37TY60aALD58E5Z0zjsEH/lSsDSE9Mucx+mzbsmlYmnlYbuoaL1g==
+"@simonghales/react-three-physics@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@simonghales/react-three-physics/-/react-three-physics-0.1.5.tgz#fb26398bf2946950a324258b4a207563532f5ddf"
+  integrity sha512-a+8kZeR9n4Radx4sFMYQYlDAw+yw9FLjSmr3nUOF4LOw4CF9WQAIWa50QmMRTIhQL3Ti0DfB8aXututB8SSPGg==
   dependencies:
     hotkeys-js "^3.8.7"
     react-nil "^0.0.3"
@@ -3378,6 +3378,11 @@ core-js-pure@^3.20.2, core-js-pure@^3.8.1:
   version "3.21.1"
   resolved "https://registry.yarnpkg.com/core-js-pure/-/core-js-pure-3.21.1.tgz#8c4d1e78839f5f46208de7230cebfb72bc3bdb51"
   integrity sha512-12VZfFIu+wyVbBebyHmRTuEE/tZrB4tJToWcwAMcsp3h4+sHR+fMJWbKpYiCRWlhFBq+KNyO8rIV9rTkeVmznQ==
+
+core-js@3:
+  version "3.22.7"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.22.7.tgz#8d6c37f630f6139b8732d10f2c114c3f1d00024f"
+  integrity sha512-Jt8SReuDKVNZnZEzyEQT5eK6T2RRCXkfTq7Lo09kpm+fHjgGewSbNjV+Wt4yZMhPDdzz2x1ulI5z/w4nxpBseg==
 
 core-js@^3.19.2:
   version "3.21.1"
@@ -5403,6 +5408,10 @@ jake@^10.6.1:
     filelist "^1.0.1"
     minimatch "^3.0.4"
 
+"javascript-astar@github:mikewesthad/javascript-astar":
+  version "0.4.2"
+  resolved "https://codeload.github.com/mikewesthad/javascript-astar/tar.gz/c0304b12861eda334e27f2f15d701c10b296593f"
+
 jest-changed-files@^27.5.1:
   version "27.5.1"
   resolved "https://registry.yarnpkg.com/jest-changed-files/-/jest-changed-files-27.5.1.tgz#a348aed00ec9bf671cc58a66fcbe7c3dfd6a68f5"
@@ -6342,6 +6351,14 @@ natural-compare@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
+
+navmesh@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/navmesh/-/navmesh-2.3.1.tgz#056ad258b3070878248f49ddcaadad0f77799ae4"
+  integrity sha512-psNjH0lNJbprtlTNo4gmhqIgNhZxQgxiGtnGAOmtL7I/tByoGfAfDX+/LD/5b26XuLZw3XXTr0+tHScnm5MBWw==
+  dependencies:
+    core-js "3"
+    javascript-astar "github:mikewesthad/javascript-astar"
 
 negotiator@0.6.3:
   version "0.6.3"

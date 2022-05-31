@@ -54,7 +54,7 @@ export const useFootstepsHandler = (ref: MutableRefObject<Object3D>) => {
             yDiff = Math.abs(y - data.prevY)
 
 
-            now = Date.now()
+            now = performance.now()
             timeElapsed = now - data.lastUpdate
             data.lastUpdate = now
             delta = timeElapsed / INTERVAL

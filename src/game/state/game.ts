@@ -23,9 +23,9 @@ export type DeadBody = {
 
 let mobCount = 0
 
-const generateMob = (x: number, y: number, mobType: MobType): MobState => {
+const generateMob = (x: number, y: number, mobType: MobType, id?: string): MobState => {
     return {
-        id: `basicMob--${mobCount++}`,
+        id: `basicMob--${mobCount++}-${id ?? ''}`,
         x: x,
         y: y,
         type: mobType,
@@ -47,14 +47,14 @@ const generateMobs = (): Record<string, MobState> => {
 
     const mobs: Record<string, MobState> = {}
 
-    const addMob = (x: number, y: number, mobType: MobType = MobType.BASIC) => {
-        const mob = generateMob(x, y, mobType)
+    const addMob = (x: number, y: number, mobType: MobType = MobType.BASIC, id?: string) => {
+        const mob = generateMob(x, y, mobType, id)
         mobs[mob.id] = mob
     }
 
     addMob(-4, 6)
     addMob(4, 6)
-    addMob(0, 10, MobType.LARGE)
+    addMob(0, 10, MobType.LARGE, 'large')
     addMob(8, 7)
     addMob(-8, 7)
 

@@ -17,6 +17,7 @@ export const FollowGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGo
         targetBodyRef,
         body,
         movementStateRef,
+        updateTargetPosition,
         setDebugData,
         setRunning,
         positionToken,
@@ -58,11 +59,7 @@ export const FollowGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGo
                 difference,
             } = getPosition(body, targetBody, idealDistance, false, true, true, true)
 
-            if (!movementStateRef.current.targetPosition) {
-                movementStateRef.current.targetPosition = new Vec2(v2)
-            } else {
-                movementStateRef.current.targetPosition.set(v2)
-            }
+            updateTargetPosition(v2)
 
             setReachedTarget(currentDistance <= idealDistance + 0.2)
 
@@ -84,10 +81,10 @@ export const FollowGoalHandler: React.FC<GoalHandlerProps> = ({subGoal, setSubGo
     useEffect(() => {
         if (!reachedTarget) return
         const timeout = setTimeout(() => {
-            movementStateRef.current.targetPosition = null
+            updateTargetPosition(null)
             setSubGoal({
                 type: AttackGoalSubGoalTypes.IDLE,
-                time: Date.now(),
+                time: performance.now(),
             })
         }, 200)
         return () => {

@@ -14,7 +14,7 @@ export const useMobStatusState = (id: string, type: MobType) => {
 
     const onDamage = useCallback((damage: number) => {
         setDamageTaken(prevState => prevState + damage)
-        setDamageLastTaken(Date.now())
+        setDamageLastTaken(performance.now())
     }, [])
 
     useEffect(() => {

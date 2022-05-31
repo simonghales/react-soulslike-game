@@ -148,6 +148,11 @@ const MobCore: React.FC<{
     type?: MobType,
 }> = ({id, x, y, type = MobType.BASIC}) => {
 
+    const [startingPosition] = useState({
+        x,
+        y,
+    })
+
     const {
         damageTaken,
         damageRecentlyTaken,
@@ -179,6 +184,7 @@ const MobCore: React.FC<{
             onDeath,
             setReady,
             type,
+            startingPosition,
         }}>
             {
                 !removeBody && (
