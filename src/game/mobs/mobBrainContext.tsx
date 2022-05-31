@@ -29,7 +29,7 @@ export const MobBrainContext = createContext(null! as {
     onDamage: any,
     damageRecentlyTaken: boolean,
     stunned: boolean,
-    updateTargetPosition: (position: null | Vec2) => void,
+    updateTargetPosition: (position: null | Vec2) => null | {x: number, y: number},
     nextStepInPath: () => void,
 })
 
