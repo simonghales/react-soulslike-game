@@ -9,14 +9,32 @@ import random from "canvas-sketch-util/random"
 import {useGoalLimitReset} from "./misc";
 import {AttackGoalSubGoalTypes} from "./types";
 import {PositionDistance} from "../MobsGroupHandler";
+import {isNavMeshPointValid} from "../../scene/layout/navmesh/handler";
 
 let v2 = new Vec2()
+let initialV2 = new Vec2()
+let tempV2 = new Vec2()
 const spareV2 = new Vec2()
 
 let currentDistance = 0
 let targetDistance = 0
 let difference = 0
 let roundAmount = 45 / 2
+
+const DEFAULT_ANGLE_ORDER = [0, 1, -1]
+const CLOCKWISE_ANGLE_ORDER = [1, 0, -1]
+const ANTI_CLOCKWISE_ANGLE_ORDER = [-1, 0, 1]
+
+const getAngleOrder = (tryForDifferentAngle: boolean) => {
+    if (tryForDifferentAngle) {
+        const differentAngle = random.chance(0.2)
+        if (differentAngle) {
+            const odd = random.boolean()
+            return odd ? CLOCKWISE_ANGLE_ORDER : ANTI_CLOCKWISE_ANGLE_ORDER
+        }
+    }
+    return DEFAULT_ANGLE_ORDER
+}
 
 export const getPosition = (
     body: Body,
@@ -53,31 +71,39 @@ export const getPosition = (
     difference = currentDistance - targetDistance
 
     const angle = v2ToAngleDegrees(v2.x, v2.y)
+
     let roundedAngle = angle
+
     if (!conditionalRound || currentDistance <= 3) {
         roundedAngle = roundAngleDegrees(angle, roundAmount)
     }
 
-    if (tryForDifferentAngle && difference > 0.5) {
-        const differentAngle = random.chance(0.2)
-        if (differentAngle) {
-            const odd = random.boolean()
-            if (odd) {
-                roundedAngle += roundAmount
-            } else {
-                roundedAngle -= roundAmount
+    let originalAngle = roundedAngle
+
+    const angleOrder = getAngleOrder(tryForDifferentAngle && difference > 0.5)
+
+    tempV2.set(v2)
+
+    for (let i = 0, len = angleOrder.length; i < len; i++) {
+        const angleMultiplier = angleOrder[i]
+        roundedAngle = originalAngle + (angleMultiplier * roundAmount)
+        v2.set(tempV2)
+        angleToV2(degToRad(roundedAngle), v2)
+        v2.mul(targetDistance)
+        v2.add(targetBody.getPosition())
+        if (isNavMeshPointValid(v2.x, v2.y)) {
+            return {
+                v2,
+                currentDistance,
+                difference,
             }
+        } else if (i === 0) {
+            initialV2.set(v2)
         }
     }
 
-    angleToV2(degToRad(roundedAngle), v2)
-
-    v2.mul(targetDistance)
-
-    v2.add(targetBody.getPosition())
-
     return {
-        v2,
+        v2: initialV2, // return initial angle
         currentDistance,
         difference,
     }

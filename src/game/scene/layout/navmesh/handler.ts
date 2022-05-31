@@ -82,6 +82,12 @@ const startPoint = new NavmeshVector2()
 
 const endPoint = new NavmeshVector2()
 
+export const isNavMeshPointValid = (x: number, y: number) =>{
+    startPoint.x = x
+    startPoint.y = y
+    return globalNavMeshHandler.navMesh.isPointInMesh(startPoint)
+}
+
 export const getNavMeshPath = (fromX: number, fromY: number, toX: number, toY: number) => {
 
     startPoint.x = fromX
