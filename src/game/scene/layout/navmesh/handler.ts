@@ -96,5 +96,15 @@ export const getNavMeshPath = (fromX: number, fromY: number, toX: number, toY: n
         return null
     }
 
-    return globalNavMeshHandler.getPath(startingPoint.point.x, startingPoint.point.y, endingPoint.point.x, endingPoint.point.y)
+    const path = globalNavMeshHandler.getPath(startingPoint.point.x, startingPoint.point.y, endingPoint.point.x, endingPoint.point.y)
+
+    if (path && (fromX !== startingPoint.point.x || fromY !== startingPoint.point.y)) {
+        path.unshift({
+            x: fromX,
+            y: fromY,
+        })
+    }
+
+    return path
+
 }
