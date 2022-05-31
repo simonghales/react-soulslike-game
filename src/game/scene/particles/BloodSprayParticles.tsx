@@ -210,7 +210,7 @@ export const BloodSprayParticles: React.FC = () => {
     const smallSprayRef = useRef<any>()
 
     const update = () => {
-        now = Date.now()
+        now = performance.now()
 
         let mainIndex = 0
         let sprayIndex = 0
@@ -324,7 +324,7 @@ export const BloodSprayParticles: React.FC = () => {
                 data.instances.push({
                     x,
                     y,
-                    time: Date.now(),
+                    time: performance.now(),
                     main: generateMainParticles(numberOfMain, xVel, yVel),
                     spray: generateSprayParticles(numberOfSpray, xVel, yVel),
                 })

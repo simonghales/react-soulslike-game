@@ -41,7 +41,7 @@ export const useMobsAttackManager = () => {
 
         setManualAttackTokens(prevState => ({
             ...prevState,
-            [id]: Date.now(),
+            [id]: performance.now(),
         }))
 
         return () => {
@@ -106,7 +106,7 @@ export const useMobsAttackManager = () => {
                 sorted.forEach(([id]) => {
                     if (remainingSpots === 0) return
                     update[id] = {
-                        time: Date.now(),
+                        time: performance.now(),
                     }
                     if (!prevState[id]) {
                         isUpdated = true
@@ -146,7 +146,7 @@ export const useMobsAttackManager = () => {
                 sorted.forEach(([id]) => {
                     if (remainingSpots === 0) return
                     update[id] = {
-                        time: Date.now(),
+                        time: performance.now(),
                     }
                     remainingSpots--
                 })
@@ -170,7 +170,7 @@ export const useMobsAttackManager = () => {
             ...prevState,
             [id]: {
                 calculateWeight,
-                date: Date.now(),
+                date: performance.now(),
             }
         }))
         return () => {
@@ -198,7 +198,7 @@ export const useMobsAttackManager = () => {
         setGrantedTokens(prevState => ({
             ...prevState,
             [id]: {
-                time: Date.now(),
+                time: performance.now(),
                 manual: true,
             },
         }))
@@ -238,7 +238,7 @@ export const useMobsAttackManager = () => {
 
             const remainingTokens = ATTACK_TOKEN_LIMIT - Object.keys(manualAttackTokensRef.current).length
 
-            const now = Date.now()
+            const now = performance.now()
 
             const sortedQueue = Object.entries(requestQueueRef.current).sort(([, itemA], [, itemB]) => {
                 let itemATimeWeight = (now - itemA.date) / 1000
@@ -259,7 +259,7 @@ export const useMobsAttackManager = () => {
                         hasUpdate = true
                     }
                     newTokens[item[0]] = {
-                        time: Date.now(),
+                        time: performance.now(),
                     }
                 }
             }
@@ -295,7 +295,7 @@ export const useMobsAttackManager = () => {
             ...requests,
             [id]: {
                 weight,
-                date: Date.now(),
+                date: performance.now(),
             }
         }))
         return () => {
@@ -326,7 +326,7 @@ export const useMobsAttackManager = () => {
             return {
                 ...prevState,
                 [id]: {
-                    date: prevState[id]?.date ?? Date.now(),
+                    date: prevState[id]?.date ?? performance.now(),
                     weight,
                 }
             }
@@ -355,7 +355,7 @@ const TokenHandler: React.FC<{
 
     // useEffect(() => {
     //
-    //     const timeRemaining = (time + 1500) - Date.now()
+    //     const timeRemaining = (time + 1500) - performance.now()
     //
     //     if (timeRemaining <= 0) {
     //         removeToken(id)

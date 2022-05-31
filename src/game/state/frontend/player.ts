@@ -29,7 +29,7 @@ export const playerMiscProxy = proxy({
 })
 
 export const addRecentHit = (xVel: number, yVel: number) => {
-    playerMiscProxy.recentHits.push([xVel, yVel, Date.now()])
+    playerMiscProxy.recentHits.push([xVel, yVel, performance.now()])
 }
 
 export const useTargetRef = () => {

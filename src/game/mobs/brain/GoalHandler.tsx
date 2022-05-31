@@ -20,11 +20,11 @@ export const useMobBrainGoalHandler = () => {
 
     const [goal, setGoal] = useState({
         type: MainGoalTypes.IDLE,
-        time: Date.now()
+        time: performance.now()
     } as MainGoal)
     const [subGoal, setSubGoal] = useState({
         type: AttackGoalSubGoalTypes.IDLE_INITIAL,
-        time: Date.now()
+        time: performance.now()
     } as AttackGoalSubGoal)
 
     return {
@@ -88,12 +88,12 @@ const AttackIdleGoalHandler: React.FC<{
         if (chase) {
             setSubGoal({
                 type: AttackGoalSubGoalTypes.FOLLOW,
-                time: Date.now(),
+                time: performance.now(),
             })
         } else {
             setSubGoal({
                 type: AttackGoalSubGoalTypes.MOVE,
-                time: Date.now(),
+                time: performance.now(),
             })
         }
     }, [])
@@ -201,7 +201,7 @@ const useAggroHandler = () => {
 
     useEffect(() => {
         if (!recentlyBecameAggroCooldown) return
-        const timeLeft = Date.now() - recentlyBecameAggroCooldown + 5000
+        const timeLeft = performance.now() - recentlyBecameAggroCooldown + 5000
         const timeout = setTimeout(() => {
             setRecentlyBecameAggroCooldown(0)
         }, timeLeft)
@@ -212,7 +212,7 @@ const useAggroHandler = () => {
 
     useEffect(() => {
         if (!recentlyLeftAggroCooldown) return
-        const timeLeft = Date.now() - recentlyLeftAggroCooldown + 4000
+        const timeLeft = performance.now() - recentlyLeftAggroCooldown + 4000
         const timeout = setTimeout(() => {
             setRecentlyLeftAggroCooldown(0)
         }, timeLeft)
@@ -225,12 +225,12 @@ const useAggroHandler = () => {
         if (!isAggro) return
         setGoal({
             type: MainGoalTypes.ATTACK,
-            time: Date.now(),
+            time: performance.now(),
         })
         return () => {
             setGoal({
                 type: MainGoalTypes.IDLE,
-                time: Date.now(),
+                time: performance.now(),
             })
         }
     }, [isAggro])
@@ -288,8 +288,6 @@ const useAggroHandler = () => {
         if (!shouldBecomeAggro) return
         if (!targetBody) return
 
-        console.log('shouldBecomeAggro', id)
-
         v2.set(body.getPosition())
         v2.sub(targetBody.getPosition())
 
@@ -298,45 +296,43 @@ const useAggroHandler = () => {
 
         console.log('delay', delay)
 
+        const timeout = setTimeout(() => {
 
-        const check = () => {
+            const check = () => {
 
-            if (!targetBody) return
+                if (!targetBody) return
 
-            let barrierHit = false
+                let barrierHit = false
 
-            world.rayCast(body.getPosition(), targetBody.getPosition(), (fixture, point, normal, fraction) => {
+                world.rayCast(body.getPosition(), targetBody.getPosition(), (fixture, point, normal, fraction) => {
 
-                if ((fixture.getUserData() as any)?.collisionType === CollisionTypes.BARRIER) {
-                    barrierHit = true
-                    return 0
+                    if ((fixture.getUserData() as any)?.collisionType === CollisionTypes.BARRIER) {
+                        barrierHit = true
+                        return 0
+                    }
+
+                    return 1
+                })
+
+                if (barrierHit) {
+                    return
                 }
 
-                return 1
-            })
+                setIsAggro(true)
+                setRecentlyBecameAggroCooldown(performance.now())
+                clearInterval(localState.intervalId)
 
-            if (barrierHit) {
-                return
             }
 
-            // range 10 to 100
+            check()
 
-            return // todo - remove this line...
+            localState.intervalId = setInterval(check, 1000)
 
-            console.log('setIsAggro++', id)
-
-            setIsAggro(true)
-            setRecentlyBecameAggroCooldown(Date.now())
-
-        }
-
-        check()
-
-        localState.intervalId = setInterval(check, 1000)
+        }, delay)
 
         return () => {
-            console.log('clearing interval...')
             clearInterval(localState.intervalId)
+            clearTimeout(timeout)
         }
 
     }, [shouldBecomeAggro])
@@ -365,7 +361,7 @@ const useAggroHandler = () => {
         if (!stopAggro) return
         const timeout = setTimeout(() => {
             setIsAggro(false)
-            setRecentlyLeftAggroCooldown(Date.now())
+            setRecentlyLeftAggroCooldown(performance.now())
         }, 500)
         return () => {
             clearTimeout(timeout)

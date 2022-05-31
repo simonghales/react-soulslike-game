@@ -104,7 +104,7 @@ export const CollisionsHandler: React.FC = () => {
                 [collidedId]: {
                     fixtureTypes: {
                         ...(state?.[collisionType]?.[collidedId]?.fixtureTypes ?? {}),
-                        [collidedCollisionType]: Date.now(),
+                        [collidedCollisionType]: performance.now(),
                     },
                     body: state?.[collisionType]?.body ?? fixture.getBody(),
                 },

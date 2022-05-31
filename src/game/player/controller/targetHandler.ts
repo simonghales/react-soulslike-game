@@ -66,7 +66,7 @@ const selectIdealTarget = (
         targetMultiplier: number,
     }> = {}
 
-    now = Date.now()
+    now = performance.now()
 
     Object.entries(enemiesInRange).forEach(([id, targetBody]) => {
 
@@ -149,7 +149,7 @@ export const useTargetControls = (
                 const target = selectIdealTarget(collisions, body, movementState, keysState, playerState, recentlySelected, selectedTarget, favourDistance)
                 setSelectedTarget(target)
                 if (target) {
-                    recentlySelected[target.id] = Date.now()
+                    recentlySelected[target.id] = performance.now()
                 }
                 return target
             },

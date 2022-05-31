@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from "react"
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react"
 import {Body, Vec2} from "planck";
 import {MobBrainContext} from "./mobBrainContext";
 import {MovementHandler} from "./brain/MovementHandler";
@@ -15,6 +15,72 @@ import {useLgMobContext} from "./LgMobContext";
 import {DamageHandler} from "./brain/DamageHandler";
 import {useIsSelectedTarget} from "../state/backend/player";
 import {getMobDebugSyncKey, getMobStateSyncKey} from "../data/keys";
+import {getNavMeshPath} from "../scene/layout/navmesh/handler";
+
+const useMovementControls = (body: Body) => {
+
+    const movementStateRef = useRef({
+        targetPosition: null as null | Vec2,
+        finalDestination: null as null | Vec2,
+        remainingMovementPath: [] as any[],
+        lastMovementGoal: 0,
+        lockedTarget: false,
+    })
+
+    const setTargetPosition = useCallback((position: Vec2) => {
+        if (!movementStateRef.current.targetPosition) {
+            movementStateRef.current.targetPosition = new Vec2(position)
+            return
+        }
+        movementStateRef.current.targetPosition.set(position)
+    }, [])
+
+    const updateTargetPosition = useCallback((position: null | Vec2) => {
+        movementStateRef.current.remainingMovementPath.length = 0
+        if (!position) {
+            movementStateRef.current.targetPosition = null
+            movementStateRef.current.finalDestination = null
+            return
+        }
+
+        if (!movementStateRef.current.finalDestination) {
+            movementStateRef.current.finalDestination = new Vec2(position)
+        } else {
+            movementStateRef.current.finalDestination.set(position)
+        }
+
+        const path = getNavMeshPath(body.getPosition().x, body.getPosition().y, position.x, position.y)
+        if (!path || path.length <= 2) {
+            setTargetPosition(position)
+            return
+        }
+
+        path.shift()
+
+        const firstStep = path.shift()
+
+        if (!firstStep) return
+
+        setTargetPosition(new Vec2(firstStep.x, firstStep.y))
+
+        movementStateRef.current.remainingMovementPath = path
+
+    }, [])
+
+    const nextStepInPath = useCallback(() => {
+        console.log('go to next step!')
+        const nextStep = movementStateRef.current.remainingMovementPath.shift()
+        if (!nextStep) return
+        setTargetPosition(new Vec2(nextStep.x, nextStep.y))
+    }, [])
+
+    return {
+        movementStateRef,
+        updateTargetPosition,
+        nextStepInPath,
+    }
+
+}
 
 export const MobBrain: React.FC<{
     id: string,
@@ -39,11 +105,11 @@ export const MobBrain: React.FC<{
 
     const attackStateRef = useEffectRef(attackState)
 
-    const movementStateRef = useRef({
-        targetPosition: null as null | Vec2,
-        lastMovementGoal: 0,
-        lockedTarget: false,
-    })
+    const {
+        movementStateRef,
+        updateTargetPosition,
+        nextStepInPath,
+    } = useMovementControls(body)
 
     const targetBody = useGetBody('player')
     const targetBodyRef = useEffectRef(targetBody)
@@ -121,6 +187,8 @@ export const MobBrain: React.FC<{
             onDamage,
             damageRecentlyTaken,
             stunned,
+            updateTargetPosition,
+            nextStepInPath,
             ...goalHandler,
         }}>
             {

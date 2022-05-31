@@ -18,7 +18,7 @@ export const emitInteractionInterrupted = (id: string) => {
     eventEmitter.emit(getInteractionEventsKey(id), {
         type: InteractionEventType.INTERACTION_INTERRUPTED,
         data: {
-            time: Date.now(),
+            time: performance.now(),
         }
     })
 }
@@ -27,7 +27,7 @@ export const emitInteractionBegan = (id: string) => {
     eventEmitter.emit(getInteractionEventsKey(id), {
         type: InteractionEventType.INTERACTION_BEGIN,
         data: {
-            time: Date.now(),
+            time: performance.now(),
         }
     })
 }
@@ -36,7 +36,7 @@ export const emitInteractionEnded = (id: string) => {
     eventEmitter.emit(getInteractionEventsKey(id), {
         type: InteractionEventType.INTERACTION_END,
         data: {
-            time: Date.now(),
+            time: performance.now(),
         }
     })
 }

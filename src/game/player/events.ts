@@ -21,7 +21,7 @@ export const useEventsHandler = () => {
 
     useEffect(() => {
 
-        const now = Date.now()
+        const now = performance.now()
         const timeRemaining = (playerRolled + 300) - now
         const isRecent = now >= playerRolled && timeRemaining > 0
 

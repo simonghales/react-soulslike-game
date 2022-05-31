@@ -13,18 +13,14 @@ export const IdleGoalHandler: React.FC = () => {
     } = useLgMobContext()
 
     const {
-        movementStateRef,
+        updateTargetPosition,
     } = useMobBrainContext()
 
     useEffect(() => {
 
         const timeout = setTimeout(() => {
             v2.set(startingPosition.x, startingPosition.y)
-            if (!movementStateRef.current.targetPosition) {
-                movementStateRef.current.targetPosition = new Vec2(v2)
-            } else {
-                movementStateRef.current.targetPosition.set(v2)
-            }
+            updateTargetPosition(v2)
         }, lerp(2000, 3000, Math.random()))
 
         return () => {

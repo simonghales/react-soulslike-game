@@ -28,14 +28,14 @@ let targetX = 0
 let targetY = 0
 
 const calculateTargetLerpAmount = (time: number) => {
-    timeElapsed = Date.now() - time
+    timeElapsed = performance.now() - time
     progress = normalize(timeElapsed, 400, 0)
     progress = easeInOutSine(progress)
     return progress * 0.5
 }
 
 const calculateTargetUnlockedLerpAmount = (time: number) => {
-    timeElapsed = Date.now() - time
+    timeElapsed = performance.now() - time
     progress = normalize(timeElapsed, 350, 50)
     progress = 1 - progress
     progress = easeInOutSine(progress)
@@ -43,7 +43,7 @@ const calculateTargetUnlockedLerpAmount = (time: number) => {
 }
 
 const calculateTargetSwitchLerpAmount = (time: number) => {
-    timeElapsed = Date.now() - time
+    timeElapsed = performance.now() - time
     progress = normalize(timeElapsed, 300, 0)
     progress = easeInOutCubic(progress)
     return progress
@@ -76,7 +76,7 @@ let amount = 0
 
 const addRecentHitsImpact = (recentHits: RecentHitData[], impactVelocity: ImpactVelocity, previousImpactVelocity: ImpactVelocity) => {
 
-    now = Date.now()
+    now = performance.now()
 
     v2.set(0, 0)
 
@@ -164,15 +164,15 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
 
     useEffect(() => {
         if (recentlyHasLocked) {
-            localStateRef.current.cameraData.targetLocked = Date.now()
+            localStateRef.current.cameraData.targetLocked = performance.now()
         }
     }, [recentlyHasLocked])
 
     useEffect(() => {
         if (targetRef) {
-            localStateRef.current.cameraData.targetChanged = Date.now()
+            localStateRef.current.cameraData.targetChanged = performance.now()
             return () => {
-                localStateRef.current.cameraData.targetUnlocked = Date.now()
+                localStateRef.current.cameraData.targetUnlocked = performance.now()
                 localStateRef.current.cameraData.previousTargetPosition.x = targetRef.current ? targetRef.current.position.x : localStateRef.current.cameraData.latestTargetPosition.x
                 localStateRef.current.cameraData.previousTargetPosition.y = targetRef.current ? targetRef.current.position.y : localStateRef.current.cameraData.latestTargetPosition.y
             }
@@ -302,7 +302,7 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
                 localStateRef.current.cameraData.previousCameraVelocityY = localStateRef.current.cameraData.cameraVelocityY
                 localStateRef.current.cameraData.targetCameraVelocityX = offsetV2.x
                 localStateRef.current.cameraData.targetCameraVelocityY = offsetV2.y
-                localStateRef.current.cameraData.cameraOffsetChanged = Date.now()
+                localStateRef.current.cameraData.cameraOffsetChanged = performance.now()
                 localStateRef.current.cameraData.cameraOffsetCharge = 20
             }
 
@@ -322,7 +322,7 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
         }
 
         // if (localStateRef.current.cameraData.cameraOffsetChanged) {
-        //     timeElapsed = Date.now() - localStateRef.current.cameraData.cameraOffsetChanged
+        //     timeElapsed = performance.now() - localStateRef.current.cameraData.cameraOffsetChanged
         //     progress = normalize(timeElapsed, 3000, 0)
         //     if (progress >= 1) {
         //         localStateRef.current.cameraData.cameraOffsetChanged = 0
@@ -376,7 +376,7 @@ export const PlayerCamera: React.FC<{
 
     return (
         <group ref={groupRef}>
-            <PerspectiveCamera ref={cameraRef} makeDefault position={[0, 0, 30]} fov={60} />
+            <PerspectiveCamera ref={cameraRef} makeDefault position={[0, 0, 30]} fov={30} />
         </group>
     )
 }

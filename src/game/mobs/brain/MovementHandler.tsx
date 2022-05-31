@@ -26,7 +26,7 @@ let progress = 0
 
 export const getAttackSpeed = (attackState: AttackState, baseSpeed: number, attackSpeedMultiplier: number) => {
 
-    progress = (Date.now() - attackState.time) / (mobAttacksConfig.basic.attackDuration - 300)
+    progress = (performance.now() - attackState.time) / (mobAttacksConfig.basic.attackDuration - 300)
 
     if (progress > 1) {
         progress = 1
@@ -39,6 +39,7 @@ export const getAttackSpeed = (attackState: AttackState, baseSpeed: number, atta
 }
 
 let isAttacking = false
+let distanceSquared = 0
 
 export const MovementHandler: React.FC = () => {
 
@@ -51,6 +52,7 @@ export const MovementHandler: React.FC = () => {
     const {
         body,
         movementStateRef,
+        nextStepInPath,
         running,
         speedLimit,
         targetBodyRef,
@@ -101,6 +103,7 @@ export const MovementHandler: React.FC = () => {
             v2.set(body.getPosition())
         }
 
+
         v2.sub(body.getPosition())
         sqrLength = v2.lengthSquared()
         if (sqrLength > 1) {
@@ -148,6 +151,18 @@ export const MovementHandler: React.FC = () => {
             targetAngle += Math.PI / 2
             angle = lerpRadians(prevAngle, targetAngle, delta * 0.1)
             body.setAngle(angle)
+        }
+
+        if (!targetPosition) {
+            return
+        }
+
+        if (sqrLength > 0.05) {
+            return
+        }
+
+        if (movementStateRef.current.remainingMovementPath.length) {
+            nextStepInPath()
         }
 
     }, [body]))

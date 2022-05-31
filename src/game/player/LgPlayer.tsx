@@ -182,7 +182,7 @@ export const useSelectTarget = (target: SelectedTarget, body: Body, setTarget: a
     const selectTarget = useCallback((id: string, body: Body) => {
         setRecentlySelected(state => ({
             ...state,
-            [id]: Date.now(),
+            [id]: performance.now(),
         }))
         setTarget({
             id,
@@ -206,7 +206,7 @@ export const useSelectTarget = (target: SelectedTarget, body: Body, setTarget: a
                     distance += 16
                 }
                 if (recentlySelectedRef.current[id]) {
-                    const timeSinceSelected = Date.now() - recentlySelectedRef.current[id]
+                    const timeSinceSelected = performance.now() - recentlySelectedRef.current[id]
                     if (timeSinceSelected > 5000) {
                         setRecentlySelected(state => {
                             const update = {
@@ -299,7 +299,7 @@ let timeElapsed = 0
 
 const getAttackingMomentum = (attackState: AttackState) => {
     progress = 0
-    timeElapsed = Date.now() - attackState.time
+    timeElapsed = performance.now() - attackState.time
     if (attackState.type === PlayerAttackStateType.SHORT) {
         if (timeElapsed > attacksConfig.short.duration) return 0
         progress = normalize(timeElapsed, attacksConfig.short.duration,0)
@@ -400,7 +400,7 @@ const Controller: React.FC<{
 
         const delay = attackState.type === PlayerAttackStateType.SHORT ? attacksConfig.short.duration + attacksConfig.short.cooldown : attacksConfig.long.duration + attacksConfig.long.cooldown
 
-        const timeRemaining = (attackState.time + delay) - Date.now()
+        const timeRemaining = (attackState.time + delay) - performance.now()
         if (timeRemaining > 0) {
             const timeout = setTimeout(clear, timeRemaining)
             return () => {
@@ -429,7 +429,7 @@ const Controller: React.FC<{
             }
             return newUsage
         })
-        setEnergyLastUsed(Date.now())
+        setEnergyLastUsed(performance.now())
     }
 
     const energyHasBeenUsed = energyUsage > 0
@@ -514,11 +514,11 @@ const Controller: React.FC<{
 
         // if (targetKey && !prevTargetKey) {
         //     selectNextTarget()
-        //     localStateRef.current.lastTargetDown = Date.now()
+        //     localStateRef.current.lastTargetDown = performance.now()
         // }
 
         // if (prevTargetKey && !targetKey && localStateRef.current.lastTargetDown) {
-        //     const timeSinceDown = Date.now() - localStateRef.current.lastTargetDown
+        //     const timeSinceDown = performance.now() - localStateRef.current.lastTargetDown
         //     if (timeSinceDown > 500) {
         //         setTarget(null)
         //     }
@@ -563,19 +563,19 @@ const Controller: React.FC<{
             // todo - check has enough energy remaining...
             isRolling = true
             rollingStateRef.current.isRolling = true
-            rollingStateRef.current.rollingStart = Date.now()
+            rollingStateRef.current.rollingStart = performance.now()
             rollingStateRef.current.rollXVel = v2.x
             rollingStateRef.current.rollYVel = v2.y
             setRolling(true)
             increaseEnergyUsage(60)
-            setPlayerRolled(Date.now())
+            setPlayerRolled(performance.now())
         } else {
             if (!isRolling && roll && !prevRoll && !isMoving && !isBackwards) {
                 const currentAngle = body.getAngle() - degToRad(180)
                 angleToV2(currentAngle, aV2)
                 isBackwards = true
                 rollingStateRef.current.isBackwards = true
-                rollingStateRef.current.backwardsStart = Date.now()
+                rollingStateRef.current.backwardsStart = performance.now()
                 rollingStateRef.current.backwardsXVel = aV2.x
                 rollingStateRef.current.backwardsYVel = aV2.y
                 increaseEnergyUsage(30)
@@ -584,7 +584,7 @@ const Controller: React.FC<{
 
         if (isBackwards) {
 
-            if (Date.now() > rollingStateRef.current.backwardsStart + backDuration) {
+            if (performance.now() > rollingStateRef.current.backwardsStart + backDuration) {
                 rollingStateRef.current.isBackwards = false
                 isBackwards = false
             } else {
@@ -598,13 +598,13 @@ const Controller: React.FC<{
 
         if (isRolling) {
 
-            if (Date.now() > rollingStateRef.current.rollingStart + rollDuration) {
+            if (performance.now() > rollingStateRef.current.rollingStart + rollDuration) {
                 rollingStateRef.current.isRolling = false
                 isRolling = false
                 setRolling(false)
                 updateRollingFixtures(fixtures, false, 0)
             } else {
-                const progress = 1 - (((rollingStateRef.current.rollingStart + rollDuration) - Date.now()) / rollDuration)
+                const progress = 1 - (((rollingStateRef.current.rollingStart + rollDuration) - performance.now()) / rollDuration)
                 updateRollingFixtures(fixtures, true, progress)
 
                 v2.x = lerp(rollingStateRef.current.rollXVel, v2.x, 0.3)
@@ -687,7 +687,7 @@ const Controller: React.FC<{
             const from = attackStateRef.current.time + (isShort ? 150 : 250)
             const duration = isShort ? 150 : 250
             const to = from + duration
-            const progress = normalize(Date.now(), to, from)
+            const progress = normalize(performance.now(), to, from)
             const startAngle = isShort ? -45 : -70
             const endAngle = isShort ? 45 : 70
             const attackAngle = lerp(startAngle, endAngle, progress)
@@ -714,7 +714,7 @@ const Controller: React.FC<{
         const process = () => {
             // setAttackState({
             //     type: pendingAttackState.type,
-            //     time: Date.now(),
+            //     time: performance.now(),
             //     xDir: localStateRef.current.prevX,
             //     yDir: localStateRef.current.prevY,
             // })
@@ -738,7 +738,7 @@ const Controller: React.FC<{
         if (currentAttack || !pendingAttack) return
         setCurrentAttack({
             type: pendingAttack,
-            time: Date.now(),
+            time: performance.now(),
             xDir: localStateRef.current.prevX,
             yDir: localStateRef.current.prevY,
         })
@@ -753,7 +753,7 @@ const Controller: React.FC<{
         } else {
             cooldown = attacksConfig.long.duration + attacksConfig.long.cooldown + 50
         }
-        const timeRemaining = currentAttack.time + cooldown - Date.now()
+        const timeRemaining = currentAttack.time + cooldown - performance.now()
         const clear = () => {
             setCurrentAttack(null)
         }
@@ -776,7 +776,7 @@ const Controller: React.FC<{
 
         setCurrentAttack({
             type: attackType,
-            time: Date.now(),
+            time: performance.now(),
             xDir: localStateRef.current.prevX,
             yDir: localStateRef.current.prevY,
         })
@@ -787,14 +787,14 @@ const Controller: React.FC<{
 
         if (!spacePressed) return
 
-        let spaceDown = Date.now()
+        let spaceDown = performance.now()
         let released = false
 
         const onRelease = () => {
             if (released) return
             released = true
             if (!hasEnergyRemainingRef.current) return
-            let timeElapsed = Date.now() - spaceDown
+            let timeElapsed = performance.now() - spaceDown
             let attackType
 
             if (timeElapsed <= 250) {
@@ -822,7 +822,7 @@ const Controller: React.FC<{
     //     if (!spacePressed) return
     //
     //
-    //     let spaceDown = Date.now()
+    //     let spaceDown = performance.now()
     //     const cooldownRemaining = localStateRef.current.cooldown - spaceDown
     //
     //
@@ -850,7 +850,7 @@ const Controller: React.FC<{
     //             return
     //         }
     //
-    //         const now = Date.now()
+    //         const now = performance.now()
     //
     //         const timeDown = now - spaceDown
     //
@@ -1146,7 +1146,7 @@ export const LgPlayer: React.FC = () => {
             }
             return prev + amount
         })
-        setEnergyLastUsed(Date.now())
+        setEnergyLastUsed(performance.now())
     }, [])
 
     const [movementState, setMovementState] = useState('' as '' | PlayerMovementState)

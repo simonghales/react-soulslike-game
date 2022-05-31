@@ -7,12 +7,12 @@ export const useGoalLimitReset = (subGoal: AttackGoalSubGoal, setSubGoal: any, t
             time,
         } = subGoal
 
-        const timeLimit = (time + (timeLimitInSeconds * 1000)) - Date.now()
+        const timeLimit = (time + (timeLimitInSeconds * 1000)) - performance.now()
 
         const timeout = setTimeout(() => {
             setSubGoal({
                 type: AttackGoalSubGoalTypes.IDLE,
-                time: Date.now(),
+                time: performance.now(),
             })
         }, timeLimit)
 

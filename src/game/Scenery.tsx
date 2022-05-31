@@ -2,6 +2,7 @@ import React, {Suspense, useEffect, useLayoutEffect} from "react"
 import {Plane, useTexture} from "@react-three/drei";
 import {degToRad} from "three/src/math/MathUtils";
 import {RepeatWrapping} from "three";
+import {NavMeshGuide} from "./scene/layout/navmesh/NavMeshGuide";
 
 const size = 64
 const texture_size = 256
@@ -35,6 +36,7 @@ export const Scenery: React.FC = () => {
                 <Floor/>
             </Suspense>
             {/*<gridHelper args={[256, 256]} rotation={[degToRad(90), 0, 0]}/>*/}
+            {/*<NavMeshGuide/>*/}
         </>
     )
 }

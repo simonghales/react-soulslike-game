@@ -165,7 +165,7 @@ const JUMP_THRESHOLD = PENDING_JUMP_THRESHOLD + 100
 
 const handleSpaceInput = (inputsState: InputsState, energyState: EnergyState) => {
 
-    timeElapsed = Date.now() - inputsState.spacePressed
+    timeElapsed = performance.now() - inputsState.spacePressed
 
     if (timeElapsed < JUMP_THRESHOLD) {
         inputsState.queue.push({
@@ -188,7 +188,7 @@ const handleSpaceInput = (inputsState: InputsState, energyState: EnergyState) =>
 
 const handleSpaceHeld = (inputsState: InputsState, energyState: EnergyState) => {
 
-    timeElapsed = Date.now() - inputsState.spacePressed
+    timeElapsed = performance.now() - inputsState.spacePressed
 
     inputsState.pendingJump = timeElapsed > PENDING_JUMP_THRESHOLD
 
@@ -200,7 +200,7 @@ let lookPressed = false
 
 const handleAttackInputs = (keysState: KeysProcessedState, inputsState: InputsState, energyState: EnergyState) => {
 
-    now = Date.now()
+    now = performance.now()
 
     if (keysState.aimRightPressed) {
         inputsState.attackX = 1
@@ -358,7 +358,7 @@ const handleInteractInput = (
         }
 
         inputsState.interactionId = playerState.targetItem
-        inputsState.interactionBegan = Date.now()
+        inputsState.interactionBegan = performance.now()
 
     } else if (keysState.interactReleased) {
 
@@ -385,7 +385,7 @@ const processInputs = (
     controllerActions: ControllerActions,
 ) => {
 
-    now = Date.now()
+    now = performance.now()
 
     if (keysState.spacePressed) {
         inputsState.spacePressed = now
@@ -414,11 +414,11 @@ const processInputs = (
 }
 
 const getTimeElapsed = (queuedInput: QueuedInput) => {
-    return Date.now() - queuedInput.time
+    return performance.now() - queuedInput.time
 }
 
 const checkHasExpired = (queuedInput: QueuedInput, maxAge: number) => {
-    timeElapsed = Date.now() - queuedInput.time
+    timeElapsed = performance.now() - queuedInput.time
     return timeElapsed > maxAge
 }
 
@@ -450,10 +450,10 @@ const processJumpInput = (
 
     actionState.currentAction = {
         type: PlayerActionType.JUMP,
-        time: Date.now(),
+        time: performance.now(),
     }
 
-    actionState.specialMoveCooldown = Date.now() + playerConfig.actions.jump.duration + playerConfig.actions.jump.cooldown
+    actionState.specialMoveCooldown = performance.now() + playerConfig.actions.jump.duration + playerConfig.actions.jump.cooldown
 
     return true
 }
@@ -495,14 +495,14 @@ const processRollInput = (
 
         actionState.currentAction = {
             type: PlayerActionType.ROLL,
-            time: Date.now(),
+            time: performance.now(),
             data: {
                 moveX: v2.x,
                 moveY: v2.y,
             }
         }
 
-        actionState.specialMoveCooldown = Date.now() + playerConfig.actions.roll.duration + playerConfig.actions.roll.cooldown
+        actionState.specialMoveCooldown = performance.now() + playerConfig.actions.roll.duration + playerConfig.actions.roll.cooldown
 
     } else {
 
@@ -512,13 +512,13 @@ const processRollInput = (
 
         actionState.currentAction = {
             type: PlayerActionType.BACK_STEP,
-            time: Date.now(),
+            time: performance.now(),
             data: {
                 angle,
             }
         }
 
-        actionState.specialMoveCooldown = Date.now() + playerConfig.actions.backStep.duration + playerConfig.actions.backStep.cooldown
+        actionState.specialMoveCooldown = performance.now() + playerConfig.actions.backStep.duration + playerConfig.actions.backStep.cooldown
 
     }
 
@@ -552,7 +552,7 @@ const processAttackInput = (
 
     actionState.currentAction = {
         type: PlayerActionType.ATTACK,
-        time: Date.now(),
+        time: performance.now(),
         data: queuedInput.data,
     }
 
@@ -563,11 +563,11 @@ const processAttackInput = (
     }
 
     setCurrentAttack({
-        time: Date.now(),
+        time: performance.now(),
         type: queuedInput.data.attackType,
     })
 
-    actionState.attackCooldown = Date.now() + getAttackDurationAndCooldown(queuedInput.data.attackType)
+    actionState.attackCooldown = performance.now() + getAttackDurationAndCooldown(queuedInput.data.attackType)
 
     return true
 }
@@ -614,7 +614,7 @@ const processInputsQueue = (
 
 const processActionAttack = (action: PlayerAction, actionState: PlayerActionState, setCurrentAttack: any) => {
 
-    now = Date.now()
+    now = performance.now()
     timeElapsed = now - action.time
 
     if (timeElapsed > getAttackDuration(action.data.attackType)) {
@@ -626,7 +626,7 @@ const processActionAttack = (action: PlayerAction, actionState: PlayerActionStat
 
 const processActionRoll = (action: PlayerAction, actionState: PlayerActionState, fixtures: PlayerFixtures) => {
 
-    now = Date.now()
+    now = performance.now()
     timeElapsed = now - action.time
 
     if (timeElapsed > playerConfig.actions.roll.duration) {
@@ -644,7 +644,7 @@ const processActionRoll = (action: PlayerAction, actionState: PlayerActionState,
 
 const processActionBackStep = (action: PlayerAction, actionState: PlayerActionState) => {
 
-    now = Date.now()
+    now = performance.now()
     timeElapsed = now - action.time
 
     if (timeElapsed > playerConfig.actions.backStep.duration) {
@@ -655,7 +655,7 @@ const processActionBackStep = (action: PlayerAction, actionState: PlayerActionSt
 
 const processActionJump = (action: PlayerAction, actionState: PlayerActionState) => {
 
-    now = Date.now()
+    now = performance.now()
     timeElapsed = now - action.time
 
     if (timeElapsed > playerConfig.actions.roll.duration) {
@@ -702,7 +702,7 @@ const processState = (
     playerState: PlayerState,
 ) => {
 
-    now = Date.now()
+    now = performance.now()
 
     isStunned = false
 
@@ -749,7 +749,7 @@ let from = 0
 let to = 0
 
 const processAttackSpeed = (action: PlayerAction) => {
-    now = Date.now()
+    now = performance.now()
     timeElapsed = now - action.time
     progress = timeElapsed / getAttackDuration(action.data.attackType)
     if (progress < 0) {
@@ -767,14 +767,14 @@ const processAttackSpeed = (action: PlayerAction) => {
 }
 
 const processRollingSpeed = (action: PlayerAction) => {
-    now = Date.now()
+    now = performance.now()
     timeElapsed = now - action.time
     progress = normalize(timeElapsed, playerConfig.actions.roll.duration, 0)
     return lerp(RUNNING_SPEED, CHARGING_SPEED, progress)
 }
 
 const processBackSteppingSpeed = (action: PlayerAction) => {
-    now = Date.now()
+    now = performance.now()
     timeElapsed = now - action.time
     progress = normalize(timeElapsed, playerConfig.actions.backStep.duration, 50)
     if (progress <= 0) return 0
@@ -782,7 +782,7 @@ const processBackSteppingSpeed = (action: PlayerAction) => {
 }
 
 const processBackJumpingSpeed = (action: PlayerAction) => {
-    now = Date.now()
+    now = performance.now()
     timeElapsed = now - action.time
     progress = normalize(timeElapsed, playerConfig.actions.jump.duration, 0)
     progress = Math.pow(progress, 2)
@@ -859,7 +859,7 @@ const processCombatAngle = (bodyAngle: number, combatBody: Body, isAttacking: bo
     }
 
 
-    now = Date.now()
+    now = performance.now()
     targetAngle = angle
 
     timeElapsed = now - (actionState.currentAction?.time ?? 0)
@@ -913,7 +913,7 @@ const processAngle = (
     prevLookViaMovement = movementState.lookViaMovement
     lookViaMovement = prevLookViaMovement
 
-    now = Date.now()
+    now = performance.now()
 
     recentlyLooked = (now - movementState.lastLooked) < 500
 
@@ -1122,7 +1122,7 @@ const defaultEnergyState: EnergyState = {
 
 const handleIsInvincibleDuringRoll = (action: PlayerAction) => {
 
-    now = Date.now()
+    now = performance.now()
     timeElapsed = now - action.time
     progress = normalize(timeElapsed, playerConfig.actions.roll.duration, 0)
 
@@ -1331,10 +1331,10 @@ export const PlayerController: React.FC = () => {
         body.applyLinearImpulse(v2, plainV2)
 
 
-        if ((Date.now() - localStateRef.current.playerState.lastStunned) > 1500) {
+        if ((performance.now() - localStateRef.current.playerState.lastStunned) > 1500) {
             localStateRef.current.inputsState.pendingAttack = 0
-            localStateRef.current.playerState.lastStunned = Date.now()
-            localStateRef.current.playerState.stunnedCooldown = Date.now() + 750
+            localStateRef.current.playerState.lastStunned = performance.now()
+            localStateRef.current.playerState.stunnedCooldown = performance.now() + 750
         }
 
         if (playerState.currentInteractionId) {
