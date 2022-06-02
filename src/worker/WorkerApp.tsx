@@ -7,6 +7,7 @@ import {MobsHandler} from "../game/mobs/MobsHandler";
 import {DeadBodiesHandler} from "../game/mobs/backend/DeadBodiesHandler";
 import {LgStateSync} from "../game/state/backend/LgStateSync";
 import {LgScene} from "../game/scene/LgScene";
+import {CollisionsChecker} from "../game/physics/CollisionsChecker";
 
 export const WorkerApp: React.FC<{
     worker: Worker
@@ -25,6 +26,7 @@ export const WorkerApp: React.FC<{
                 <KeysConsumer>
                     <PlanckjsCollisions world={world}>
                         <SyncableComponents components={{}}>
+                            <CollisionsChecker/>
                             <LgScene/>
                             <LgStateSync/>
                             <LgPlayer/>

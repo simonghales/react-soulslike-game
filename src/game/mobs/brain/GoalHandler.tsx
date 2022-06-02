@@ -261,7 +261,6 @@ const useAggroHandler = () => {
     useEffect(() => {
         if (isAtHome) {
             const timeout = setTimeout(() => {
-                console.log('setAwayFromHome !')
                 setAwayFromHome(false)
             }, 500)
             return () => {
@@ -269,9 +268,8 @@ const useAggroHandler = () => {
             }
         } else {
             const timeout = setTimeout(() => {
-                console.log('setAwayFromHome')
                 setAwayFromHome(true)
-            }, 1000)
+            }, lerp(5000, 10000, Math.random()))
             return () => {
                 clearTimeout(timeout)
             }
@@ -293,8 +291,6 @@ const useAggroHandler = () => {
 
         const normalized = normalize(v2.lengthSquared(), 150, 20)
         const delay = lerp(250, 1500, normalized)
-
-        console.log('delay', delay)
 
         const timeout = setTimeout(() => {
 
@@ -355,7 +351,7 @@ const useAggroHandler = () => {
         }
     }, [shouldLeaveAggro])
 
-    const stopAggro = isAggro && (leaveAggroTimeout || awayFromHome) && !inCloseRange && !recentlyBecameAggroCooldown
+    const stopAggro = isAggro && (leaveAggroTimeout || (awayFromHome && !inAwakeRange)) && !inCloseRange && !recentlyBecameAggroCooldown
 
     useEffect(() => {
         if (!stopAggro) return

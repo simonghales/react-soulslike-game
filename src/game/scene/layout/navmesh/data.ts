@@ -44,7 +44,9 @@ export const navMeshData = {
         generatePolygonFromRectangle(0, 1.25, 21, 1.5),
         // generatePolygonFromRectangle(6.5, 1.25, 9, 2),
         // generatePolygonFromRectangle(-6.5, 1.25, 9, 2),
-        generatePolygonFromRectangle(0, -5, 3, 11),
+        generatePolygonFromRectangle(0, -7.5, 3, 16), // bottom corridor
+        generatePolygonFromRectangle(-3, -14, 3, 3), // bottom corridor
+        generatePolygonFromRectangle(-5.25, -9, 1.5, 13), // bottom corridor
         // generatePolygonFromRectangle(-1.5, -5.5, 1, 11),
         // generatePolygonFromRectangle(1.5, -5.5, 1, 11),
         generatePolygonFromRectangle(0, 7.75, 21, 11.5),

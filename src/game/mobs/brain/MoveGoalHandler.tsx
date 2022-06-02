@@ -100,7 +100,7 @@ export const getPosition = (
                 currentDistance,
                 difference,
             }
-        } else if (i === 0) {
+        } else if (i === 0 || angleMultiplier === 0) { // just to ensure it is set...
             initialV2.set(v2)
         }
     }
