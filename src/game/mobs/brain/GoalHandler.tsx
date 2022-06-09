@@ -15,6 +15,7 @@ import {useIsPlayerInsideSensor} from "../../state/backend/player";
 import {IdleGoalHandler} from "./IdleGoalHandler";
 import {Vec2} from "planck";
 import {normalize} from "../../../utils/numbers";
+import {sensorIds} from "../../data/sensors";
 
 export const useMobBrainGoalHandler = () => {
 
@@ -180,13 +181,13 @@ const useAggroHandler = () => {
         setGoal,
     } = useMobBrainContext()
 
-    const playerInDangerZone = useIsPlayerInsideSensor('room')
+    const playerInDangerZone = useIsPlayerInsideSensor(sensorIds.mainRoom)
 
     const outOfRange = !collisionsState.isInLargeCombatRange
     const inAwakeRange = collisionsState.isInMediumCombatRange
     const inCloseRange = collisionsState.isInSmallCombatRange
 
-    const isAtHome = collisionsState.collidedSensors.includes('room')
+    const isAtHome = collisionsState.collidedSensors.includes(sensorIds.mainRoom)
 
     const [isAggro, setIsAggro] = useState(false)
     const [inAwakeRangeAwhile, setInAwakeRangeAwhile] = useState(false)
@@ -343,7 +344,7 @@ const useAggroHandler = () => {
 
         const timeout = setTimeout(() => {
             setLeaveAggroTimeout(true)
-        }, lerp(5000, 10000, Math.random()))
+        }, lerp(10000, 20000, Math.random()))
 
         return () => {
             clearTimeout(timeout)

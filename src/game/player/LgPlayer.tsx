@@ -901,8 +901,8 @@ const Controller: React.FC<{
 
 export const LgPlayer: React.FC = () => {
 
-    const x = -18
-    const y = -12
+    const x = -15.5
+    const y = 14
 
     const world = useWorld()
 

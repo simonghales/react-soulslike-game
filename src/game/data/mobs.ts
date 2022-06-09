@@ -44,7 +44,7 @@ export type MobConfig = {
 }
 
 export const mobsConfig: Record<string, MobConfig> = {
-    [MobType.BASIC]: {
+    [MobType.BASIC_RAT]: {
         health: 18,
         damage: 42,
         damageCooldownDuration: 750,
@@ -65,7 +65,7 @@ export const mobsConfig: Record<string, MobConfig> = {
         attackPriorityMultiplier: 5,
         targetPriorityMultiplier: 5,
     },
-    [MobType.LARGE]: {
+    [MobType.LARGE_RAT]: {
         health: 36,
         damage: 78,
         damageCooldownDuration: 750,
@@ -92,7 +92,7 @@ export const mobsConfig: Record<string, MobConfig> = {
     },
 }
 
-export const getMobConfig = (type: MobType = MobType.BASIC) => {
+export const getMobConfig = (type: MobType = MobType.BASIC_RAT) => {
     const config = mobsConfig[type]
     if (!config) {
         throw new Error(`No config found for type ${type}`)

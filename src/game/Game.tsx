@@ -11,16 +11,21 @@ import {mainSyncableComponents} from "./data/mainSyncableComponents";
 import {GameUI} from "./ui/GameUI";
 import {SceneManager} from "./scene/SceneManager";
 import {StateSync} from "./state/frontend/StateSync";
+import {GameContext} from "./GameContext";
+import { SceneEditor, SceneEditorControls } from "@simonghales/react-three-scene-editor";
+import {Scene} from "./scene/Scene";
 
 const StyledContainer = styled.div`
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
 `
 
-export const Game: React.FC = () => {
+export const Game: React.FC<{
+    isPlayMode?: boolean,
+}> = ({children, isPlayMode = true}) => {
 
     useEffect(() => {
         window.addEventListener('blur', () => {
@@ -29,21 +34,42 @@ export const Game: React.FC = () => {
         })
     }, [])
 
+    const inner = (
+        <>
+            <Scenery/>
+            <Scene/>
+            {children}
+        </>
+    )
+
     return (
-        <StyledContainer>
-            <Canvas>
-                <SceneManager>
-                    <Engine>
-                        <SyncableComponents components={mainSyncableComponents}>
-                            <StateSync/>
-                            <Scenery/>
-                            {/*<OrbitControls/>*/}
-                        </SyncableComponents>
-                    </Engine>
-                    {/*<Stats/>*/}
-                </SceneManager>
-            </Canvas>
-            <GameUI/>
-        </StyledContainer>
+        <>
+            <StyledContainer>
+                <Canvas>
+                    <GameContext.Provider value={{
+                        isPlayMode,
+                    }}>
+                        <SceneManager>
+                            {
+                                isPlayMode ? (
+                                    <Engine>
+                                        <SyncableComponents components={mainSyncableComponents}>
+                                            <StateSync/>
+                                            {inner}
+                                        </SyncableComponents>
+                                    </Engine>
+                                ) : inner
+                            }
+                            {/*<Stats/>*/}
+                        </SceneManager>
+                    </GameContext.Provider>
+                </Canvas>
+                {
+                    isPlayMode && (
+                        <GameUI/>
+                    )
+                }
+            </StyledContainer>
+        </>
     )
 }

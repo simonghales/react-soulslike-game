@@ -11,11 +11,11 @@ import {MobType, removeDeadBody} from "../../state/game";
 import {ChestInventoryItem, ItemType} from "../../data/types";
 
 const deadBodyConfig = {
-    [MobType.BASIC]: {
+    [MobType.BASIC_RAT]: {
         shape: Circle(0.025),
         density: 200,
     },
-    [MobType.LARGE]: {
+    [MobType.LARGE_RAT]: {
         shape: Circle(0.05),
         density: 200,
     },
@@ -154,7 +154,7 @@ export const LgMobDeadBody: React.FC<{
     const [interacting, setInteracting] = useState(false)
     const [interactionBegan, setInteractionBegan] = useState(0)
     const [carving, setCarving] = useState(0)
-    const [inventory, setInventory] = useState(type === MobType.LARGE ? largeMobDefaultInventory : defaultInventory)
+    const [inventory, setInventory] = useState(type === MobType.LARGE_RAT ? largeMobDefaultInventory : defaultInventory)
     const emptyInventory = inventory.length === 0
 
     const isTarget = useIsTargetedItem(id)

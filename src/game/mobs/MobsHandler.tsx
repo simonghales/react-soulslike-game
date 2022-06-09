@@ -395,7 +395,7 @@ const TokensHandler: React.FC<{
 
 }
 
-const MobsManager: React.FC = ({children}) => {
+export const MobsManager: React.FC = ({children}) => {
 
     const {
         requestAttackToken,

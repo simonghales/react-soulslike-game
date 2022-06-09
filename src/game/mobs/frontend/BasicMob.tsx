@@ -1,5 +1,5 @@
 import React, {Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState} from "react"
-import {Box, Html, useTexture} from "@react-three/drei";
+import {Box, Html, Sphere, useTexture} from "@react-three/drei";
 import {usePhysicsSubscription, useSyncData} from "@simonghales/react-three-physics";
 import styled, {css} from "styled-components";
 import {getMobStateSyncKey, getMobSyncKey} from "../../data/keys";
@@ -12,6 +12,7 @@ import {useSetPlayerTargetRef} from "../../state/frontend/player";
 import {useFootstepsHandler} from "../../player/frontend/footstepsHandler";
 import {MobType} from "../../state/game";
 import {getMobConfig} from "../../data/mobs";
+import {DebugPath} from "./DebugPath";
 
 
 const cssSelected = css`
@@ -53,7 +54,7 @@ const Visuals: React.FC<{
 }> = ({color, type}) => {
     const texture = useTexture("assets/mob-sword.png")
     return (
-        <sprite scale={type === MobType.BASIC ? baseScale as any : largeScale as any} position={[0.125, 0, 0.1]}>
+        <sprite scale={type === MobType.BASIC_RAT ? baseScale as any : largeScale as any} position={[0.125, 0, 0.1]}>
             <spriteMaterial color={color} map={texture} depthWrite={false} depthTest={false}/>
         </sprite>
     )
@@ -122,14 +123,20 @@ export const BasicMob: React.FC<{
 
     const {
         attackState,
+        goal,
         subGoal,
         healthRemaining,
         isSelectedTarget,
+        // currentTargetPosition,
+        // movementPath,
     } = useSyncData(getMobStateSyncKey(id), {
         attackState: null,
+        goal: null,
         subGoal: null,
         healthRemaining: getMobConfig(type).health,
         isSelectedTarget: false,
+        // currentTargetPosition: null,
+        // movementPath: [],
     })
 
     useSetPlayerTargetRef(isSelectedTarget && isAlive, ref)
@@ -187,6 +194,9 @@ export const BasicMob: React.FC<{
                                     <StyledContainer isSelectedTarget={isSelectedTarget}>
                                         <StyledBar healthPercent={healthPercent}/>
                                     </StyledContainer>
+                                    {/*<div>*/}
+                                    {/*    Goal: {goal?.type}*/}
+                                    {/*</div>*/}
                                 </Html>
                             </>
                         )
@@ -203,10 +213,11 @@ export const BasicMob: React.FC<{
                 </Suspense>
             </group>
             {/*{*/}
-            {/*    (targetPosition && isAlive) && (*/}
-            {/*        <Sphere args={[0.2]} position={[targetPosition[0], targetPosition[1], 0]}/>*/}
+            {/*    (currentTargetPosition && isAlive) && (*/}
+            {/*        <Sphere args={[0.2]} position={[currentTargetPosition[0], currentTargetPosition[1], 0]}/>*/}
             {/*    )*/}
             {/*}*/}
+            {/*<DebugPath path={movementPath}/>*/}
         </>
     )
 }

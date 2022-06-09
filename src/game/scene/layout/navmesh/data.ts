@@ -27,7 +27,7 @@ const generatePolygon = (x1: number, y1: number, x2: number, y2: number, x3: num
     ]
 }
 
-const generatePolygonFromRectangle = (x: number, y: number, w: number, h: number) => {
+export const generatePolygonFromRectangle = (x: number, y: number, w: number, h: number) => {
 
     const left = x - (w / 2)
     const top = y + (h / 2)

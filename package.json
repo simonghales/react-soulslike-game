@@ -8,6 +8,7 @@
     "@react-three/drei": "^9.1.2",
     "@react-three/fiber": "^8.0.8",
     "@simonghales/react-three-physics": "^0.1.5",
+    "@simonghales/react-three-scene-editor": "link:.yalc/@simonghales/react-three-scene-editor",
     "@testing-library/jest-dom": "^5.16.3",
     "@testing-library/react": "^12.1.4",
     "@testing-library/user-event": "^13.5.0",
@@ -19,10 +20,12 @@
     "canvas-sketch-util": "^1.10.0",
     "eventemitter3": "^4.0.7",
     "js-easing-functions": "^1.0.3",
+    "lodash": "^4.17.21",
     "navmesh": "^2.3.1",
     "planck": "^1.0.0-alpha.4",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "react-router-dom": "6",
     "react-scripts": "5.0.0",
     "styled-components": "^5.3.5",
     "three": "^0.139.2",
@@ -57,6 +60,7 @@
     ]
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.182",
     "@types/styled-components": "^5.1.24",
     "@types/three": "^0.139.0",
     "@types/uniqid": "^5.3.2",

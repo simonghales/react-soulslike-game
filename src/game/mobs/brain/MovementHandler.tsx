@@ -106,9 +106,11 @@ export const MovementHandler: React.FC = () => {
 
         v2.sub(body.getPosition())
         sqrLength = v2.lengthSquared()
+
         if (sqrLength > 1) {
             v2.normalize()
         }
+
         speed = movementSpeedRef.current
 
         isAttacking = attackStateRef.current?.type === AttackStateType.ATTACKING
@@ -157,7 +159,15 @@ export const MovementHandler: React.FC = () => {
             return
         }
 
-        if (sqrLength > 0.05) {
+        // if (sqrLength < 0.25) {
+        //     console.log('close to destination', body.getLinearVelocity().x, body.getLinearVelocity().y)
+        // } else {
+        //     if (body.getLinearVelocity().x < 0.1 && body.getLinearVelocity().y < 0.1) {
+        //         console.log('barely moving towards target...', sqrLength)
+        //     }
+        // }
+
+        if ((sqrLength > 0.3) || (body.getLinearVelocity().x > 0.1 || body.getLinearVelocity().y > 0.1)) {
             return
         }
 
