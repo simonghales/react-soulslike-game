@@ -4,11 +4,20 @@ import {LgNavMeshHandler, WalkableAreaData} from "./layout/navmesh/LgNavMeshHand
 import { useSceneData } from "@simonghales/react-three-scene-editor";
 import {useOnCustomMessage, useSendCustomMessage} from "@simonghales/react-three-physics";
 import {messageKeys} from "../data/keys";
-import {basicRatConfig, sceneWallConfig, sensorConfig, walkableAreaConfig} from "./layout/types";
+import {
+    basicRatConfig,
+    sceneWallConfig,
+    sensorConfig,
+    sensorPolygonConfig,
+    visibilityZoneConfig,
+    walkableAreaConfig
+} from "./layout/types";
 import {LgWallsHandler, WallData} from "./layout/LgWallsHandler";
 import {LgSensorsHandler, SensorData} from "./layout/LgSensorsHandler";
 import {LgMobsHandler, MobData} from "./mobs/LgMobsHandler";
 import {MobType} from "../state/game";
+import {LgVisibilityZonesHandler, VisibilityZoneData} from "./layout/LgVisibilityZonesHandler";
+import {LgSensorZonesHandler, SensorZoneData} from "./layout/LgSensorZonesHandler";
 
 export const LgScene: React.FC = () => {
 
@@ -29,14 +38,20 @@ export const LgScene: React.FC = () => {
         sensors,
         mobs,
         walkableAreas,
+        visibilityZones,
+        sensorZones,
     } = useMemo(() => {
 
         const walls: WallData[] = []
         const sensors: SensorData[] = []
         const mobs: MobData[] = []
         const walkableAreas: WalkableAreaData[] = []
+        const visibilityZones: VisibilityZoneData[] = []
+        const sensorZones: SensorZoneData[] = []
 
         Object.entries(instances).forEach(([id, instance]) => {
+
+            if (instance._disabled) return
 
             switch (instance._type) {
                 case sceneWallConfig.id:
@@ -75,6 +90,31 @@ export const LgScene: React.FC = () => {
                         h: instance._depth,
                     })
                     break;
+                case visibilityZoneConfig.id:
+                    const hiddenZones: string[] = []
+                    if (instance.hiddenZones) {
+                        hiddenZones.push(instance.hiddenZones)
+                    }
+                    if (instance.hiddenZonesList) {
+                        hiddenZones.push(...instance.hiddenZonesList.split(','))
+                    }
+                    visibilityZones.push({
+                        id,
+                        x: instance._position[0],
+                        y: instance._position[1],
+                        polygons: instance._polygons,
+                        hiddenZones: hiddenZones,
+                    })
+                    break;
+                case sensorPolygonConfig.id:
+                    sensorZones.push({
+                        id,
+                        sensorId: instance.zoneId,
+                        x: instance._position[0],
+                        y: instance._position[1],
+                        polygons: instance._polygons,
+                    })
+                    break;
             }
 
         })
@@ -84,6 +124,8 @@ export const LgScene: React.FC = () => {
             sensors,
             mobs,
             walkableAreas,
+            visibilityZones,
+            sensorZones,
         }
     }, [instances])
 
@@ -93,6 +135,10 @@ export const LgScene: React.FC = () => {
             <LgWallsHandler walls={walls}/>
             <LgSensorsHandler sensors={sensors}/>
             <LgMobsHandler mobs={mobs}/>
+            <LgVisibilityZonesHandler data={visibilityZones}/>
+            <LgSensorZonesHandler zones={sensorZones}/>
         </>
     )
 }
+
+// -5.897269730308776,-12.362094879863545

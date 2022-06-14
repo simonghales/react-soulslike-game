@@ -34,6 +34,14 @@ export const useIsPlayerInsideSensor = (id: string) => {
 
 }
 
+export const useIsPlayerInsideSensors = (ids: string[]) => {
+
+    const collidedSensors = useSnapshot(backendPlayerStateProxy.collidedSensors)
+
+    return collidedSensors.some(id => ids.includes(id))
+
+}
+
 export const setPlayerCollidedSensors = (ids: string[]) => {
 
     backendPlayerStateProxy.collidedSensors.length = 0

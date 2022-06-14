@@ -16,6 +16,7 @@ import {IdleGoalHandler} from "./IdleGoalHandler";
 import {Vec2} from "planck";
 import {normalize} from "../../../utils/numbers";
 import {sensorIds} from "../../data/sensors";
+import {SensorId} from "../../data/ids";
 
 export const useMobBrainGoalHandler = () => {
 
@@ -181,13 +182,15 @@ const useAggroHandler = () => {
         setGoal,
     } = useMobBrainContext()
 
-    const playerInDangerZone = useIsPlayerInsideSensor(sensorIds.mainRoom)
+    const sensorId = SensorId.MOB_ROOM
+
+    const playerInDangerZone = useIsPlayerInsideSensor(sensorId)
 
     const outOfRange = !collisionsState.isInLargeCombatRange
     const inAwakeRange = collisionsState.isInMediumCombatRange
     const inCloseRange = collisionsState.isInSmallCombatRange
 
-    const isAtHome = collisionsState.collidedSensors.includes(sensorIds.mainRoom)
+    const isAtHome = collisionsState.collidedSensors.includes(sensorId)
 
     const [isAggro, setIsAggro] = useState(false)
     const [inAwakeRangeAwhile, setInAwakeRangeAwhile] = useState(false)

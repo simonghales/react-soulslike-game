@@ -376,7 +376,7 @@ export const PlayerCamera: React.FC<{
 
     return (
         <group ref={groupRef}>
-            <PerspectiveCamera ref={cameraRef} makeDefault position={[0, 0, 30]} fov={60} />
+            <PerspectiveCamera ref={cameraRef} makeDefault position={[0, 0, 30]} fov={30} />
         </group>
     )
 }

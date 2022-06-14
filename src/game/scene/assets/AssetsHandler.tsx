@@ -12,8 +12,8 @@ import {
     visibilityZoneConfig,
     walkableAreaConfig
 } from "../layout/types";
-import {VisibilityZone} from "../layout/VisibilityZone";
-import {SensorPolygon} from "../layout/SensorPolygon";
+import {VisibilityZoneAsset, visibilityZoneInputsConfig} from "../layout/VisibilityZone";
+import {SensorPolygonAsset, sensorZoneInputsConfig} from "../layout/SensorPolygon";
 
 registerAsset({
     ...boxLikeAssetConfig,
@@ -40,13 +40,15 @@ registerAsset({
 })
 
 registerAsset({
+    ...visibilityZoneInputsConfig,
     ...visibilityZoneConfig,
-    component: VisibilityZone,
+    component: VisibilityZoneAsset,
 })
 
 registerAsset({
+    ...sensorZoneInputsConfig,
     ...sensorPolygonConfig,
-    component: SensorPolygon,
+    component: SensorPolygonAsset,
 })
 
 export const AssetsHandler: React.FC = () => {

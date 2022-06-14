@@ -31,6 +31,7 @@ const useSensorBody = (
             position: new Vec2(x, y),
             userData: {
                 collisionType: CollisionTypes.SENSOR,
+                sensorId: sensorId,
             },
         })
 

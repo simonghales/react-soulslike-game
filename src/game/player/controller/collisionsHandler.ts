@@ -17,6 +17,7 @@ export const useCollisionsHandler = (id: string) => {
         const collidedId = getFixtureCollisionId(fixture)
         if (!collidedId) return
         const collisionType = getFixtureCollisionType(currentFixture)
+        // console.log('useOnCollisionBegin', collidedId, collisionType)
         setActiveCollisions(prev => {
             const update = {
                 ...prev
@@ -33,6 +34,7 @@ export const useCollisionsHandler = (id: string) => {
         const collidedId = getFixtureCollisionId(fixture)
         if (!collidedId) return
         const collisionType = getFixtureCollisionType(currentFixture)
+        // console.log('useOnCollisionEnd', collidedId, collisionType)
         setActiveCollisions(prev => {
             const update = {
                 ...prev
@@ -59,8 +61,14 @@ export const useCollisionsState = (collisions: PlayerCollisionsData, combatColli
         const collidedSensors: string[] = []
 
         Object.entries(collisions[PlayerRangeCollisionTypes.PLAYER] ?? {}).forEach(([id, body]) => {
-            if ((body.getUserData() as any)?.collisionType === CollisionTypes.SENSOR) {
-                collidedSensors.push(id)
+            const data = body.getUserData() as any
+            if (data?.collisionType === CollisionTypes.SENSOR) {
+                if (!data.sensorId) {
+                    throw new Error('No sensor id found.')
+                }
+                if (!collidedSensors.includes(data.sensorId)) {
+                    collidedSensors.push(data.sensorId)
+                }
             }
         })
 
