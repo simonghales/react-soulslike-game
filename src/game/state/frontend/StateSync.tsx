@@ -1,9 +1,10 @@
-import React, {useCallback, useEffect, useState} from "react"
+import React, {useCallback, useEffect, useLayoutEffect, useState} from "react"
 import {useOnCustomMessage, useSendCustomMessage, useSyncData} from "@simonghales/react-three-physics";
 import {messageKeys, syncKeys} from "../../data/keys";
 import {updatePlayerInventory} from "./player";
 import {emitPlayerInventoryItemReceived} from "../../events/player";
-import { getSceneData } from "@simonghales/react-three-scene-editor";
+import data from "../../scene/data.json"
+import {getSceneData, setInstancesData} from "@simonghales/react-three-scene-editor";
 
 export const StateSync: React.FC = () => {
 
@@ -25,6 +26,10 @@ export const StateSync: React.FC = () => {
     useOnCustomMessage(messageKeys.sceneDataReady, () => {
         setSceneDataReady(true)
     })
+
+    useLayoutEffect(() => {
+        setInstancesData(data)
+    }, [])
 
     useEffect(() => {
         if (!sceneDataReady) return
