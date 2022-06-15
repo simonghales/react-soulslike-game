@@ -14,6 +14,7 @@ import {mapBufferDataToObjectRef} from "../physics/custom";
 import {PlanckjsBuffersData} from "@simonghales/react-three-physics/dist/declarations/src/physics/planckjs/buffers";
 import {useEventsHandler} from "./frontend/eventsHandler";
 import {useFootstepsHandler} from "./frontend/footstepsHandler";
+import {useIsPlayMode} from "../GameContext";
 
 const Visuals: React.FC<{
     shrink: boolean,

@@ -12,15 +12,15 @@ import {LgMobContext, useLgMobContext} from "./LgMobContext";
 import {MobType} from "../state/game";
 
 const mobBodyConfig = {
-    [MobType.BASIC]: {
+    [MobType.BASIC_RAT]: {
         bodyShape: Circle(0.6),
-        attackRangeShape: Box(halve(getMobConfig(MobType.BASIC).sensors.attackRange.w),halve(getMobConfig(MobType.BASIC).sensors.attackRange.h), new Vec2(getMobConfig(MobType.BASIC).sensors.attackRange.x, 0)),
-        attackBoxShape: Box(halve(getMobConfig(MobType.BASIC).sensors.attack.w),halve(getMobConfig(MobType.BASIC).sensors.attack.h), new Vec2(getMobConfig(MobType.BASIC).sensors.attack.x, 0)),
+        attackRangeShape: Box(halve(getMobConfig(MobType.BASIC_RAT).sensors.attackRange.w),halve(getMobConfig(MobType.BASIC_RAT).sensors.attackRange.h), new Vec2(getMobConfig(MobType.BASIC_RAT).sensors.attackRange.x, 0)),
+        attackBoxShape: Box(halve(getMobConfig(MobType.BASIC_RAT).sensors.attack.w),halve(getMobConfig(MobType.BASIC_RAT).sensors.attack.h), new Vec2(getMobConfig(MobType.BASIC_RAT).sensors.attack.x, 0)),
     },
-    [MobType.LARGE]: {
+    [MobType.LARGE_RAT]: {
         bodyShape: Circle(1),
-        attackRangeShape: Box(halve(getMobConfig(MobType.LARGE).sensors.attackRange.w),halve(getMobConfig(MobType.LARGE).sensors.attackRange.h), new Vec2(getMobConfig(MobType.LARGE).sensors.attackRange.x, 0)),
-        attackBoxShape: Box(halve(getMobConfig(MobType.LARGE).sensors.attack.w),halve(getMobConfig(MobType.LARGE).sensors.attack.h), new Vec2(getMobConfig(MobType.LARGE).sensors.attack.x, 0)),
+        attackRangeShape: Box(halve(getMobConfig(MobType.LARGE_RAT).sensors.attackRange.w),halve(getMobConfig(MobType.LARGE_RAT).sensors.attackRange.h), new Vec2(getMobConfig(MobType.LARGE_RAT).sensors.attackRange.x, 0)),
+        attackBoxShape: Box(halve(getMobConfig(MobType.LARGE_RAT).sensors.attack.w),halve(getMobConfig(MobType.LARGE_RAT).sensors.attack.h), new Vec2(getMobConfig(MobType.LARGE_RAT).sensors.attack.x, 0)),
     },
 }
 
@@ -146,7 +146,7 @@ const MobCore: React.FC<{
     x: number,
     y: number,
     type?: MobType,
-}> = ({id, x, y, type = MobType.BASIC}) => {
+}> = ({id, x, y, type = MobType.BASIC_RAT}) => {
 
     const [startingPosition] = useState({
         x,
@@ -219,7 +219,7 @@ const LargeMob: React.FC<{
     y: number,
 }> = ({id, x, y}) => {
 
-    return <MobCore id={id} x={x} y={y} type={MobType.LARGE}/>
+    return <MobCore id={id} x={x} y={y} type={MobType.LARGE_RAT}/>
 
 }
 
@@ -231,9 +231,9 @@ export const LgMob: React.FC<{
 }> = ({id, x, y, type}) => {
 
     switch (type) {
-        case MobType.BASIC:
+        case MobType.BASIC_RAT:
             return <BasicMob id={id} x={x} y={y}/>
-        case MobType.LARGE:
+        case MobType.LARGE_RAT:
             return <LargeMob id={id} x={x} y={y}/>
     }
 

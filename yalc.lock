@@ -10,6 +10,10 @@
       "signature": "850c3a97acacfca87041a5518b8bf4ab",
       "link": true,
       "replaced": "^0.1.2"
+    },
+    "@simonghales/react-three-scene-editor": {
+      "signature": "9ba28b211adcb87e48da52a17f764cb2",
+      "link": true
     }
   }
 }

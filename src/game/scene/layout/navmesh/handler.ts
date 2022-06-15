@@ -1,7 +1,9 @@
 import {NavMesh} from "navmesh";
-import {navMeshData} from "./data";
+import {generatePolygonFromRectangle, navMeshData, PolygonData} from "./data";
 import {Vec2} from "planck";
 import NavmeshVector2 from "../../../../utils/navmesh";
+import {PolyPoints} from "navmesh/src/common-types";
+import uniqid from "uniqid";
 
 export type NavMeshPath = {
     x: number,
@@ -12,8 +14,39 @@ class NavMeshHandler {
 
     navMesh: NavMesh
 
+    polygons: Record<string, PolygonData> = {}
+
+    getPolygonMeshPoints() {
+        return Object.values(this.polygons)
+    }
+
     constructor() {
-        this.navMesh = new NavMesh(navMeshData.polygons)
+        this.navMesh = new NavMesh(this.getPolygonMeshPoints())
+    }
+
+    updateNavMesh() {
+        this.navMesh = new NavMesh(this.getPolygonMeshPoints())
+    }
+
+    setPolygons(data: any[]) {
+        const polygons: Record<string, PolygonData> = {}
+        data.forEach((entry) => {
+            polygons[entry.id] = generatePolygonFromRectangle(entry.x, entry.y, entry.w, entry.h)
+        })
+        this.polygons = polygons
+        this.updateNavMesh()
+    }
+
+    addPolygon(x: number, y: number, w: number, h: number) {
+        const id = uniqid()
+        this.polygons[id] = generatePolygonFromRectangle(x, y, w, h)
+        this.updateNavMesh()
+        return id
+    }
+
+    removePolygon(id: string) {
+        delete this.polygons[id]
+        this.updateNavMesh()
     }
 
     getPath(fromX: number, fromY: number, toX: number, toY: number): null | NavMeshPath {
@@ -99,6 +132,7 @@ export const getNavMeshPath = (fromX: number, fromY: number, toX: number, toY: n
     const endingPoint = globalNavMeshHandler.navMesh.findClosestMeshPoint(endPoint as any, 3)
 
     if (!startingPoint.point || !endingPoint.point) {
+        console.log('no starting point or ending point')
         return null
     }
 
@@ -111,6 +145,9 @@ export const getNavMeshPath = (fromX: number, fromY: number, toX: number, toY: n
         })
     }
 
+    // console.log('generated path...', path)
+
     return path
 
 }
+

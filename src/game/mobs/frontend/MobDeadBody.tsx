@@ -13,7 +13,7 @@ const Visuals: React.FC<{
 }> = ({type}) => {
     const texture = useTexture("assets/mob-dead.png")
     return (
-        <sprite scale={(type === MobType.LARGE ? largeScale : baseScale) as any} position={[0.125, 0, 0.05]}>
+        <sprite scale={(type === MobType.LARGE_RAT ? largeScale : baseScale) as any} position={[0.125, 0, 0.05]}>
             <spriteMaterial map={texture} depthWrite={false} depthTest={false}/>
         </sprite>
     )

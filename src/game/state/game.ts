@@ -2,8 +2,8 @@ import {proxy, snapshot, subscribe, useSnapshot} from "valtio";
 import {useEffect, useState} from "react";
 
 export enum MobType {
-    BASIC = 'BASIC',
-    LARGE = 'LARGE',
+    BASIC_RAT = 'BASIC_RAT',
+    LARGE_RAT = 'LARGE_RAT',
 }
 
 export type MobState = {
@@ -47,16 +47,16 @@ const generateMobs = (): Record<string, MobState> => {
 
     const mobs: Record<string, MobState> = {}
 
-    const addMob = (x: number, y: number, mobType: MobType = MobType.BASIC, id?: string) => {
+    const addMob = (x: number, y: number, mobType: MobType = MobType.BASIC_RAT, id?: string) => {
         const mob = generateMob(x, y, mobType, id)
         mobs[mob.id] = mob
     }
 
-    addMob(-4, 6)
-    addMob(4, 6)
-    addMob(0, 10, MobType.LARGE, 'large')
-    addMob(8, 7)
-    addMob(-8, 7)
+    // addMob(-4, 6)
+    // addMob(4, 6)
+    // addMob(0, 10, MobType.LARGE, 'large')
+    // addMob(8, 7)
+    // addMob(-8, 7)
 
 
 

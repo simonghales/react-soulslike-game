@@ -16,6 +16,7 @@ import {DamageHandler} from "./brain/DamageHandler";
 import {useIsSelectedTarget} from "../state/backend/player";
 import {getMobDebugSyncKey, getMobStateSyncKey} from "../data/keys";
 import {getNavMeshPath} from "../scene/layout/navmesh/handler";
+import {useIsEntityVisible} from "../state/backend/scene";
 
 const useMovementControls = (body: Body) => {
 
@@ -27,6 +28,9 @@ const useMovementControls = (body: Body) => {
         lockedTarget: false,
     })
 
+    // const [movementPath, setMovementPath] = useState([] as any[])
+    // const [currentTargetPosition, setCurrentTargetPosition] = useState(null as null | Vec2)
+
     const setTargetPosition = useCallback((position: Vec2) => {
         if (!movementStateRef.current.targetPosition) {
             movementStateRef.current.targetPosition = new Vec2(position)
@@ -36,10 +40,14 @@ const useMovementControls = (body: Body) => {
     }, [])
 
     const updateTargetPosition = useCallback((position: null | Vec2) => {
+
+        // setCurrentTargetPosition(position)
+
         movementStateRef.current.remainingMovementPath.length = 0
         if (!position) {
             movementStateRef.current.targetPosition = null
             movementStateRef.current.finalDestination = null
+            // setMovementPath([])
             return null
         }
 
@@ -50,6 +58,14 @@ const useMovementControls = (body: Body) => {
         }
 
         const path = getNavMeshPath(body.getPosition().x, body.getPosition().y, position.x, position.y)
+
+        if (path) {
+            // console.log('setMovementPath', path)
+            // setMovementPath(path)
+        } else {
+            // setMovementPath([])
+        }
+
         if (!path || path.length <= 2) {
             if (!path) {
                 console.warn('no path returned')
@@ -59,13 +75,14 @@ const useMovementControls = (body: Body) => {
             return path[path.length - 1]
         }
 
-        path.shift()
-
         const firstStep = path.shift()
 
         if (!firstStep) return null
 
+
         setTargetPosition(new Vec2(firstStep.x, firstStep.y))
+
+        // console.log('remainingMovementPath', path)
 
         movementStateRef.current.remainingMovementPath = path
 
@@ -74,7 +91,7 @@ const useMovementControls = (body: Body) => {
     }, [])
 
     const nextStepInPath = useCallback(() => {
-        console.log('go to next step!')
+        // console.log('go to next step!')
         const nextStep = movementStateRef.current.remainingMovementPath.shift()
         if (!nextStep) return
         setTargetPosition(new Vec2(nextStep.x, nextStep.y))
@@ -84,6 +101,8 @@ const useMovementControls = (body: Body) => {
         movementStateRef,
         updateTargetPosition,
         nextStepInPath,
+        // currentTargetPosition,
+        // movementPath,
     }
 
 }
@@ -103,6 +122,7 @@ export const MobBrain: React.FC<{
         isInMediumCombatRange: false,
         attackRangeEnemies: [],
         collidedSensors: [],
+        visibilitySensors: [],
     })
 
     const collisionsStateRef = useEffectRef(collisionsState)
@@ -115,6 +135,8 @@ export const MobBrain: React.FC<{
         movementStateRef,
         updateTargetPosition,
         nextStepInPath,
+        // currentTargetPosition,
+        // movementPath,
     } = useMovementControls(body)
 
     const targetBody = useGetBody('player')
@@ -133,6 +155,7 @@ export const MobBrain: React.FC<{
     useTransmitData(getMobDebugSyncKey(id), debugData)
 
     const {
+        goal,
         subGoal,
     } = goalHandler
 
@@ -148,15 +171,21 @@ export const MobBrain: React.FC<{
 
     const isSelectedTarget = useIsSelectedTarget(id)
 
+    const visible = useIsEntityVisible(collisionsState.visibilitySensors)
+
     useTransmitData(getMobStateSyncKey(id), useMemo(() => {
         return {
             attackState,
+            goal,
             subGoal,
             healthRemaining,
             isAlive,
             isSelectedTarget,
+            visible,
+            // currentTargetPosition: currentTargetPosition ? [currentTargetPosition.x, currentTargetPosition.y] : null,
+            // movementPath,
         }
-    }, [attackState, subGoal, healthRemaining, isAlive, isSelectedTarget]))
+    }, [attackState, goal, subGoal, healthRemaining, isAlive, isSelectedTarget, visible]))
 
     const bodyRef = useEffectRef(body)
 

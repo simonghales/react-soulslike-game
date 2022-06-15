@@ -1,5 +1,5 @@
 import React, {Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState} from "react"
-import {Box, Html, useTexture} from "@react-three/drei";
+import {Box, Html, Sphere, useTexture} from "@react-three/drei";
 import {usePhysicsSubscription, useSyncData} from "@simonghales/react-three-physics";
 import styled, {css} from "styled-components";
 import {getMobStateSyncKey, getMobSyncKey} from "../../data/keys";
@@ -12,14 +12,20 @@ import {useSetPlayerTargetRef} from "../../state/frontend/player";
 import {useFootstepsHandler} from "../../player/frontend/footstepsHandler";
 import {MobType} from "../../state/game";
 import {getMobConfig} from "../../data/mobs";
+import {DebugPath} from "./DebugPath";
 
 
 const cssSelected = css`
   box-shadow: 0 0 0 3px white;
 `
 
+const cssHidden = css`
+  visibility: hidden;
+`
+
 const StyledContainer = styled.div<{
     isSelectedTarget: boolean,
+    visible: boolean,
 }>`
   width: 70px;
   height: 10px;
@@ -28,8 +34,9 @@ const StyledContainer = styled.div<{
   position: relative;
   overflow: hidden;
   transform: translateY(-50px);
-  ${props => props.isSelectedTarget ? cssSelected : ''};
   border-radius: 2px;
+  ${props => props.isSelectedTarget ? cssSelected : ''};
+  ${props => props.visible ? '' : cssHidden};
 `
 
 const StyledBar = styled.div<{
@@ -53,7 +60,7 @@ const Visuals: React.FC<{
 }> = ({color, type}) => {
     const texture = useTexture("assets/mob-sword.png")
     return (
-        <sprite scale={type === MobType.BASIC ? baseScale as any : largeScale as any} position={[0.125, 0, 0.1]}>
+        <sprite scale={type === MobType.BASIC_RAT ? baseScale as any : largeScale as any} position={[0.125, 0, 0.1]}>
             <spriteMaterial color={color} map={texture} depthWrite={false} depthTest={false}/>
         </sprite>
     )
@@ -122,14 +129,22 @@ export const BasicMob: React.FC<{
 
     const {
         attackState,
+        goal,
         subGoal,
         healthRemaining,
         isSelectedTarget,
+        visible,
+        // currentTargetPosition,
+        // movementPath,
     } = useSyncData(getMobStateSyncKey(id), {
         attackState: null,
+        goal: null,
         subGoal: null,
         healthRemaining: getMobConfig(type).health,
         isSelectedTarget: false,
+        visible: true,
+        // currentTargetPosition: null,
+        // movementPath: [],
     })
 
     useSetPlayerTargetRef(isSelectedTarget && isAlive, ref)
@@ -172,7 +187,7 @@ export const BasicMob: React.FC<{
 
     return (
         <>
-            <group ref={ref}>
+            <group ref={ref} visible={visible}>
                 <group ref={rotateRef}>
                     {/*<Circle args={[0.6, 32]}>*/}
                     {/*    <meshBasicMaterial color={"orange"} transparent opacity={0.75}/>*/}
@@ -184,9 +199,12 @@ export const BasicMob: React.FC<{
                                               isDamageSubGoal={isDamageSubGoal}
                                               isAttacking={isAttacking} type={type}/>
                                 <Html center position={[0, 0, 0]}>
-                                    <StyledContainer isSelectedTarget={isSelectedTarget}>
+                                    <StyledContainer isSelectedTarget={isSelectedTarget} visible={visible}>
                                         <StyledBar healthPercent={healthPercent}/>
                                     </StyledContainer>
+                                    {/*<div>*/}
+                                    {/*    Goal: {goal?.type}*/}
+                                    {/*</div>*/}
                                 </Html>
                             </>
                         )
@@ -203,10 +221,11 @@ export const BasicMob: React.FC<{
                 </Suspense>
             </group>
             {/*{*/}
-            {/*    (targetPosition && isAlive) && (*/}
-            {/*        <Sphere args={[0.2]} position={[targetPosition[0], targetPosition[1], 0]}/>*/}
+            {/*    (currentTargetPosition && isAlive) && (*/}
+            {/*        <Sphere args={[0.2]} position={[currentTargetPosition[0], currentTargetPosition[1], 0]}/>*/}
             {/*    )*/}
             {/*}*/}
+            {/*<DebugPath path={movementPath}/>*/}
         </>
     )
 }

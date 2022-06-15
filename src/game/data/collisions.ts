@@ -21,6 +21,7 @@ export const COLLISION_FILTER_GROUPS = {
 export enum CollisionTypes {
     BARRIER = 'BARRIER',
     SENSOR = 'SENSOR',
+    VISIBILITY_SENSOR = 'VISIBILITY_SENSOR',
 }
 
 export enum MobCollisionTypes {

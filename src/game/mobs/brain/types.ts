@@ -38,6 +38,7 @@ export type CollisionsState = {
     enemiesInAttackRange: boolean,
     attackRangeEnemies: string[],
     collidedSensors: string[],
+    visibilitySensors: string[],
 }
 
 export enum AttackStateType {

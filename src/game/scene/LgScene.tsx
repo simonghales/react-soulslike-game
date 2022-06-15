@@ -1,21 +1,144 @@
-import React from "react"
+import React, {useEffect, useMemo, useState} from "react"
 import {LgWall} from "./layout/LgWall";
-import {LgSensor} from "./layout/LgSensor";
-import {LgNavMeshHandler} from "./layout/navmesh/LgNavMeshHandler";
+import {LgNavMeshHandler, WalkableAreaData} from "./layout/navmesh/LgNavMeshHandler";
+import { useSceneData } from "@simonghales/react-three-scene-editor";
+import {useOnCustomMessage, useSendCustomMessage} from "@simonghales/react-three-physics";
+import {messageKeys} from "../data/keys";
+import {
+    basicRatConfig,
+    sceneWallConfig,
+    sensorConfig,
+    sensorPolygonConfig,
+    visibilityZoneConfig,
+    walkableAreaConfig
+} from "./layout/types";
+import {LgWallsHandler, WallData} from "./layout/LgWallsHandler";
+import {LgSensorsHandler, SensorData} from "./layout/LgSensorsHandler";
+import {LgMobsHandler, MobData} from "./mobs/LgMobsHandler";
+import {MobType} from "../state/game";
+import {LgVisibilityZonesHandler, VisibilityZoneData} from "./layout/LgVisibilityZonesHandler";
+import {LgSensorZonesHandler, SensorZoneData} from "./layout/LgSensorZonesHandler";
 
 export const LgScene: React.FC = () => {
+
+    const sendCustomMessage = useSendCustomMessage()
+
+    useEffect(() => {
+        sendCustomMessage(messageKeys.sceneDataReady, null)
+    }, [])
+
+    const [instances, setInstances] = useState({} as Record<string, any>)
+
+    useOnCustomMessage(messageKeys.sceneData, (data: any) => {
+        setInstances(data?.instances ?? {})
+    })
+
+    const {
+        walls,
+        sensors,
+        mobs,
+        walkableAreas,
+        visibilityZones,
+        sensorZones,
+    } = useMemo(() => {
+
+        const walls: WallData[] = []
+        const sensors: SensorData[] = []
+        const mobs: MobData[] = []
+        const walkableAreas: WalkableAreaData[] = []
+        const visibilityZones: VisibilityZoneData[] = []
+        const sensorZones: SensorZoneData[] = []
+
+        Object.entries(instances).forEach(([id, instance]) => {
+
+            if (instance._disabled) return
+
+            switch (instance._type) {
+                case sceneWallConfig.id:
+                    walls.push({
+                        id,
+                        x: instance._position[0],
+                        y: instance._position[1],
+                        w: instance._width,
+                        h: instance._depth,
+                    })
+                    break;
+                case sensorConfig.id:
+                    sensors.push({
+                        id,
+                        x: instance._position[0],
+                        y: instance._position[1],
+                        w: instance._width,
+                        h: instance._depth,
+                        sensorId: instance.sensorId,
+                    })
+                    break;
+                case basicRatConfig.id:
+                    mobs.push({
+                        id,
+                        x: instance._position[0],
+                        y: instance._position[1],
+                        type: instance.mobType ?? MobType.BASIC_RAT,
+                    })
+                    break;
+                case walkableAreaConfig.id:
+                    walkableAreas.push({
+                        id,
+                        x: instance._position[0],
+                        y: instance._position[1],
+                        w: instance._width,
+                        h: instance._depth,
+                    })
+                    break;
+                case visibilityZoneConfig.id:
+                    const hiddenZones: string[] = []
+                    if (instance.hiddenZones) {
+                        hiddenZones.push(instance.hiddenZones)
+                    }
+                    if (instance.hiddenZonesList) {
+                        hiddenZones.push(...instance.hiddenZonesList.split(','))
+                    }
+                    visibilityZones.push({
+                        id,
+                        x: instance._position[0],
+                        y: instance._position[1],
+                        polygons: instance._polygons,
+                        hiddenZones: hiddenZones,
+                    })
+                    break;
+                case sensorPolygonConfig.id:
+                    sensorZones.push({
+                        id,
+                        sensorId: instance.zoneId,
+                        x: instance._position[0],
+                        y: instance._position[1],
+                        polygons: instance._polygons,
+                    })
+                    break;
+            }
+
+        })
+
+        return {
+            walls,
+            sensors,
+            mobs,
+            walkableAreas,
+            visibilityZones,
+            sensorZones,
+        }
+    }, [instances])
+
     return (
         <>
-            <LgNavMeshHandler/>
-            <LgWall x={-3} y={-6} w={2} h={12}/>
-            <LgWall x={3} y={-6} w={2} h={12}/>
-            <LgWall x={0} y={-12} w={8} h={2}/>
-            <LgWall x={-8} y={-1} w={10} h={2}/>
-            <LgWall x={8} y={-1} w={10} h={2}/>
-            <LgWall x={12} y={7} w={2} h={18}/>
-            <LgWall x={-12} y={7} w={2} h={18}/>
-            <LgWall x={0} y={15} w={22} h={2}/>
-            <LgSensor x={0} y={8} w={22} h={16} sensorId={'room'}/>
+            <LgNavMeshHandler walkableAreas={walkableAreas}/>
+            <LgWallsHandler walls={walls}/>
+            <LgSensorsHandler sensors={sensors}/>
+            <LgMobsHandler mobs={mobs}/>
+            <LgVisibilityZonesHandler data={visibilityZones}/>
+            <LgSensorZonesHandler zones={sensorZones}/>
         </>
     )
 }
+
+// -5.897269730308776,-12.362094879863545

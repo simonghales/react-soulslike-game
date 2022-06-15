@@ -5,6 +5,7 @@ import {Fixture} from "planck";
 import {getFixtureCollisionId, getFixtureCollisionType} from "../../../utils/physics";
 import {useMobBrainContext} from "../mobBrainContext";
 import {CollisionTypes, MobCollisionTypes, PlayerRangeCollisionTypes} from "../../data/collisions";
+import {useIsEntityVisible} from "../../state/backend/scene";
 
 export const CollisionsHandler: React.FC = () => {
 
@@ -22,6 +23,8 @@ export const CollisionsHandler: React.FC = () => {
         let isInMediumCombatRange = false
         let isInSmallCombatRange = false
         let isInExtraSmallCombatRange = false
+        const visibilitySensors: string[] = []
+        const collidedSensors: string[] = []
 
         if (collisions[MobCollisionTypes.BODY]) {
             if (collisions[MobCollisionTypes.BODY].player) {
@@ -29,6 +32,14 @@ export const CollisionsHandler: React.FC = () => {
                     isInExtraLargeCombatRange = true
                 }
             }
+            Object.entries(collisions[MobCollisionTypes.BODY]).forEach(([id, data]) => {
+                const bodyData = data.body.getUserData() as any
+                if (bodyData?.collisionType === CollisionTypes.VISIBILITY_SENSOR) {
+                    visibilitySensors.push(bodyData.sensorId)
+                } else if (bodyData?.collisionType === CollisionTypes.SENSOR) {
+                    collidedSensors.push(bodyData.sensorId)
+                }
+            })
         }
 
         if (collisions[MobCollisionTypes.BODY]) {
@@ -67,14 +78,6 @@ export const CollisionsHandler: React.FC = () => {
 
         let enemiesInAttackRange = attackRangeEnemies.length > 0
 
-        const collidedSensors: string[] = []
-
-        Object.entries(collisions[MobCollisionTypes.BODY] ?? {}).forEach(([id, {fixtureTypes}]) => {
-            if (fixtureTypes[CollisionTypes.SENSOR]) {
-                collidedSensors.push(id)
-            }
-        })
-
         return {
             isInExtraSmallCombatRange,
             isInSmallCombatRange,
@@ -84,6 +87,7 @@ export const CollisionsHandler: React.FC = () => {
             enemiesInAttackRange,
             attackRangeEnemies,
             collidedSensors,
+            visibilitySensors,
         }
 
     }, [collisions])

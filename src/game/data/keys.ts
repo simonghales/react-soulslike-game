@@ -6,6 +6,8 @@ export const syncKeys = {
 }
 
 export const messageKeys = {
+    sceneData: 'SCENE_DATA',
+    sceneDataReady: 'SCENE_DATA_READY',
     playerInventoryChange: 'playerInventoryChange',
 }
 
@@ -44,7 +46,9 @@ export enum PlayerAttackStateType {
 
 export const componentSyncKeys = {
     wall: 'wall',
+    walkableArea: 'walkableArea',
     player: 'player',
     basicMob: 'basicMob',
     basicMobDead: 'basicMobDead',
+    visibilityZone: 'visibilityZone',
 }

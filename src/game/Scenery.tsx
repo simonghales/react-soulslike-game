@@ -21,7 +21,7 @@ const Floor: React.FC = () => {
     }, [texture])
 
     return (
-        <Plane args={[size, size]}>
+        <Plane args={[size, size]} position={[0, 0, -0.01]}>
             <meshBasicMaterial map={texture}/>
         </Plane>
     )

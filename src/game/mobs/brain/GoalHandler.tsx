@@ -15,6 +15,8 @@ import {useIsPlayerInsideSensor} from "../../state/backend/player";
 import {IdleGoalHandler} from "./IdleGoalHandler";
 import {Vec2} from "planck";
 import {normalize} from "../../../utils/numbers";
+import {sensorIds} from "../../data/sensors";
+import {SensorId} from "../../data/ids";
 
 export const useMobBrainGoalHandler = () => {
 
@@ -180,13 +182,15 @@ const useAggroHandler = () => {
         setGoal,
     } = useMobBrainContext()
 
-    const playerInDangerZone = useIsPlayerInsideSensor('room')
+    const sensorId = SensorId.MOB_ROOM
+
+    const playerInDangerZone = useIsPlayerInsideSensor(sensorId)
 
     const outOfRange = !collisionsState.isInLargeCombatRange
     const inAwakeRange = collisionsState.isInMediumCombatRange
     const inCloseRange = collisionsState.isInSmallCombatRange
 
-    const isAtHome = collisionsState.collidedSensors.includes('room')
+    const isAtHome = collisionsState.collidedSensors.includes(sensorId)
 
     const [isAggro, setIsAggro] = useState(false)
     const [inAwakeRangeAwhile, setInAwakeRangeAwhile] = useState(false)
@@ -261,7 +265,6 @@ const useAggroHandler = () => {
     useEffect(() => {
         if (isAtHome) {
             const timeout = setTimeout(() => {
-                console.log('setAwayFromHome !')
                 setAwayFromHome(false)
             }, 500)
             return () => {
@@ -269,9 +272,8 @@ const useAggroHandler = () => {
             }
         } else {
             const timeout = setTimeout(() => {
-                console.log('setAwayFromHome')
                 setAwayFromHome(true)
-            }, 1000)
+            }, lerp(5000, 10000, Math.random()))
             return () => {
                 clearTimeout(timeout)
             }
@@ -293,8 +295,6 @@ const useAggroHandler = () => {
 
         const normalized = normalize(v2.lengthSquared(), 150, 20)
         const delay = lerp(250, 1500, normalized)
-
-        console.log('delay', delay)
 
         const timeout = setTimeout(() => {
 
@@ -347,7 +347,7 @@ const useAggroHandler = () => {
 
         const timeout = setTimeout(() => {
             setLeaveAggroTimeout(true)
-        }, lerp(5000, 10000, Math.random()))
+        }, lerp(10000, 20000, Math.random()))
 
         return () => {
             clearTimeout(timeout)
@@ -355,7 +355,7 @@ const useAggroHandler = () => {
         }
     }, [shouldLeaveAggro])
 
-    const stopAggro = isAggro && (leaveAggroTimeout || awayFromHome) && !inCloseRange && !recentlyBecameAggroCooldown
+    const stopAggro = isAggro && (leaveAggroTimeout || (awayFromHome && !inAwakeRange)) && !inCloseRange && !recentlyBecameAggroCooldown
 
     useEffect(() => {
         if (!stopAggro) return
