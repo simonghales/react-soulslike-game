@@ -1,4 +1,5 @@
 import {createGlobalStyle} from "styled-components";
+import {cssModal} from "./modal";
 
 export const GlobalStyle = createGlobalStyle`
   
@@ -10,4 +11,7 @@ export const GlobalStyle = createGlobalStyle`
     color: white;
     font-family: 'Lato', sans-serif;
   }
+  
+  ${cssModal};
+  
 `
