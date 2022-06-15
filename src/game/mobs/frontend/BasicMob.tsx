@@ -187,8 +187,8 @@ export const BasicMob: React.FC<{
 
     return (
         <>
-            <group ref={ref} visible={visible}>
-                <group ref={rotateRef}>
+            <group ref={ref as any} visible={visible}>
+                <group ref={rotateRef as any}>
                     {/*<Circle args={[0.6, 32]}>*/}
                     {/*    <meshBasicMaterial color={"orange"} transparent opacity={0.75}/>*/}
                     {/*</Circle>*/}

@@ -170,9 +170,9 @@ export const DustParticles: React.FC = () => {
 
     return (
         <>
-            <instancedMesh ref={footStepsRef} args={[null, null, particleCount] as any} matrixAutoUpdate={false}>
+            <instancedMesh ref={footStepsRef as any} args={[null, null, particleCount] as any} matrixAutoUpdate={false}>
                 <planeBufferGeometry attach="geometry" args={[1, 1]}>
-                    <instancedBufferAttribute ref={alphaRef} attach="attributes-instanceOpacity" args={[data.attributes.footstepsAlpha, 1]} />
+                    <instancedBufferAttribute ref={alphaRef as any} attach="attributes-instanceOpacity" args={[data.attributes.footstepsAlpha, 1]} />
                 </planeBufferGeometry>
                 <shaderMaterial attach="material" uniforms={uniforms} vertexShader={vertShader}
                                 fragmentShader={fragShader} transparent depthWrite={false} depthTest={false}/>

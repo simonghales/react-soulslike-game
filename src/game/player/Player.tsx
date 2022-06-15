@@ -147,8 +147,8 @@ export const Player: React.FC<{
 
     return (
         <>
-            <group ref={ref}>
-                <group ref={rotateRef}>
+            <group ref={ref as any}>
+                <group ref={rotateRef as any}>
                     {/*<Circle args={[0.5, 32]}>*/}
                     {/*    <meshBasicMaterial color={'orange'} transparent opacity={0.5}/>*/}
                     {/*</Circle>*/}

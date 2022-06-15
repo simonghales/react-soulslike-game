@@ -1,4 +1,5 @@
 import React from 'react';
+// @ts-ignore
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
