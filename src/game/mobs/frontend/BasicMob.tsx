@@ -19,8 +19,13 @@ const cssSelected = css`
   box-shadow: 0 0 0 3px white;
 `
 
+const cssHidden = css`
+  visibility: hidden;
+`
+
 const StyledContainer = styled.div<{
     isSelectedTarget: boolean,
+    visible: boolean,
 }>`
   width: 70px;
   height: 10px;
@@ -29,8 +34,9 @@ const StyledContainer = styled.div<{
   position: relative;
   overflow: hidden;
   transform: translateY(-50px);
-  ${props => props.isSelectedTarget ? cssSelected : ''};
   border-radius: 2px;
+  ${props => props.isSelectedTarget ? cssSelected : ''};
+  ${props => props.visible ? '' : cssHidden};
 `
 
 const StyledBar = styled.div<{
@@ -127,6 +133,7 @@ export const BasicMob: React.FC<{
         subGoal,
         healthRemaining,
         isSelectedTarget,
+        visible,
         // currentTargetPosition,
         // movementPath,
     } = useSyncData(getMobStateSyncKey(id), {
@@ -135,6 +142,7 @@ export const BasicMob: React.FC<{
         subGoal: null,
         healthRemaining: getMobConfig(type).health,
         isSelectedTarget: false,
+        visible: true,
         // currentTargetPosition: null,
         // movementPath: [],
     })
@@ -179,7 +187,7 @@ export const BasicMob: React.FC<{
 
     return (
         <>
-            <group ref={ref}>
+            <group ref={ref} visible={visible}>
                 <group ref={rotateRef}>
                     {/*<Circle args={[0.6, 32]}>*/}
                     {/*    <meshBasicMaterial color={"orange"} transparent opacity={0.75}/>*/}
@@ -191,7 +199,7 @@ export const BasicMob: React.FC<{
                                               isDamageSubGoal={isDamageSubGoal}
                                               isAttacking={isAttacking} type={type}/>
                                 <Html center position={[0, 0, 0]}>
-                                    <StyledContainer isSelectedTarget={isSelectedTarget}>
+                                    <StyledContainer isSelectedTarget={isSelectedTarget} visible={visible}>
                                         <StyledBar healthPercent={healthPercent}/>
                                     </StyledContainer>
                                     {/*<div>*/}

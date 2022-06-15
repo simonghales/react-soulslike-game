@@ -1799,9 +1799,24 @@
     hotkeys-js "^3.8.7"
     react-nil "^0.0.3"
 
-"@simonghales/react-three-scene-editor@link:.yalc/@simonghales/react-three-scene-editor":
-  version "0.0.0"
-  uid ""
+"@simonghales/react-three-scene-editor@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@simonghales/react-three-scene-editor/-/react-three-scene-editor-0.0.1.tgz#b5d8b911adfdca67840c1cbad0a8ce8ee7f89ecc"
+  integrity sha512-pWOOP5ehN8aWmXKYFhEoPxUzWCydhr7WdMS+wLqcz4fpEg6PFDhtWtrg/9kxT4Jtp8xAhlySMRGfYrNF/8k8aA==
+  dependencies:
+    hotkeys-js "^3.8.7"
+    leva "^0.9.21"
+    local-storage "^2.0.0"
+    lodash "^4.17.21"
+    react-detect-click-outside "^1.1.2"
+    react-hotkeys-hook "^3.4.6"
+    react-icons "^4.3.1"
+    react-use-keypress "^1.3.1"
+    styled-components "^5.3.3"
+    styled-reset "^4.3.4"
+    three-stdlib "^2.8.6"
+    uniqid "^5.4.0"
+    valtio "^1.2.12"
 
 "@sinonjs/commons@^1.7.0":
   version "1.8.3"

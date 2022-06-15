@@ -16,6 +16,7 @@ import {DamageHandler} from "./brain/DamageHandler";
 import {useIsSelectedTarget} from "../state/backend/player";
 import {getMobDebugSyncKey, getMobStateSyncKey} from "../data/keys";
 import {getNavMeshPath} from "../scene/layout/navmesh/handler";
+import {useIsEntityVisible} from "../state/backend/scene";
 
 const useMovementControls = (body: Body) => {
 
@@ -121,6 +122,7 @@ export const MobBrain: React.FC<{
         isInMediumCombatRange: false,
         attackRangeEnemies: [],
         collidedSensors: [],
+        visibilitySensors: [],
     })
 
     const collisionsStateRef = useEffectRef(collisionsState)
@@ -169,6 +171,8 @@ export const MobBrain: React.FC<{
 
     const isSelectedTarget = useIsSelectedTarget(id)
 
+    const visible = useIsEntityVisible(collisionsState.visibilitySensors)
+
     useTransmitData(getMobStateSyncKey(id), useMemo(() => {
         return {
             attackState,
@@ -177,10 +181,11 @@ export const MobBrain: React.FC<{
             healthRemaining,
             isAlive,
             isSelectedTarget,
+            visible,
             // currentTargetPosition: currentTargetPosition ? [currentTargetPosition.x, currentTargetPosition.y] : null,
             // movementPath,
         }
-    }, [attackState, goal, subGoal, healthRemaining, isAlive, isSelectedTarget]))
+    }, [attackState, goal, subGoal, healthRemaining, isAlive, isSelectedTarget, visible]))
 
     const bodyRef = useEffectRef(body)
 
