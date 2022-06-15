@@ -1,4 +1,4 @@
-import React, {useEffect} from "react"
+import React, {useEffect, useState} from "react"
 import {SyncComponent} from "@simonghales/react-three-physics";
 import {componentSyncKeys} from "../../data/keys";
 import {useIsPlayerInsideSensors} from "../../state/backend/player";
@@ -87,12 +87,19 @@ const LgVisibilityZone: React.FC<{
     const isHidden = useIsPlayerInsideSensors(data.hiddenZones)
     const occluded = !isHidden
 
+    const [previouslyVisible, setPreviouslyVisible] = useState(isHidden)
+
     useEffect(() => {
         setVisibilityZoneOccluded(sensorId, occluded)
+        if (!occluded) {
+            setPreviouslyVisible(true)
+        }
     }, [occluded])
 
+    const partiallyVisible = previouslyVisible && occluded
+
     return (
-        <SyncComponent isHidden={isHidden} data={data} id={data.id} componentId={componentSyncKeys.visibilityZone}/>
+        <SyncComponent partiallyVisible={partiallyVisible} isHidden={isHidden} data={data} id={data.id} componentId={componentSyncKeys.visibilityZone}/>
     )
 }
 
