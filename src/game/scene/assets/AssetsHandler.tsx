@@ -8,12 +8,13 @@ import {
     basicRatConfig,
     sceneWallConfig,
     sensorConfig,
-    sensorPolygonConfig,
+    sensorPolygonConfig, spawnPointConfig,
     visibilityZoneConfig,
     walkableAreaConfig
 } from "../layout/types";
 import {VisibilityZoneAsset, visibilityZoneInputsConfig} from "../layout/VisibilityZone";
 import {SensorPolygonAsset, sensorZoneInputsConfig} from "../layout/SensorPolygon";
+import {SpawnPointPreview} from "./SpawnPoint";
 
 registerAsset({
     ...boxLikeAssetConfig,
@@ -37,6 +38,11 @@ registerAsset({
     ...mobInputsConfig,
     ...basicRatConfig,
     component: BasicRatPreview,
+})
+
+registerAsset({
+    ...spawnPointConfig,
+    component: SpawnPointPreview,
 })
 
 registerAsset({

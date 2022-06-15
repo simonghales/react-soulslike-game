@@ -16,6 +16,7 @@ export type PolygonData = {
 export type VisibilityZoneData = {
     id: string,
     hiddenZones: string[],
+    partialVisibilityZones: string[],
     polygons: PolygonData[],
     x: number,
     y: number,
@@ -84,10 +85,13 @@ const LgVisibilityZone: React.FC<{
 
     useVisibilityZoneBody(sensorId, data)
 
-    const isHidden = useIsPlayerInsideSensors(data.hiddenZones)
-    const occluded = !isHidden
+    const {
+        inside,
+        partial,
+    } = useIsPlayerInsideSensors(data.hiddenZones, data.partialVisibilityZones)
+    const occluded = !inside
 
-    const [previouslyVisible, setPreviouslyVisible] = useState(isHidden)
+    const [previouslyVisible, setPreviouslyVisible] = useState(inside)
 
     useEffect(() => {
         setVisibilityZoneOccluded(sensorId, occluded)
@@ -96,10 +100,10 @@ const LgVisibilityZone: React.FC<{
         }
     }, [occluded])
 
-    const partiallyVisible = previouslyVisible && occluded
+    const partiallyVisible = (previouslyVisible || partial) && occluded
 
     return (
-        <SyncComponent partiallyVisible={partiallyVisible} isHidden={isHidden} data={data} id={data.id} componentId={componentSyncKeys.visibilityZone}/>
+        <SyncComponent partiallyVisible={partiallyVisible} isHidden={inside} data={data} id={data.id} componentId={componentSyncKeys.visibilityZone}/>
     )
 }
 

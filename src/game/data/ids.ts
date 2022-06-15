@@ -14,4 +14,5 @@ export enum SensorId {
     MOB_ROOM_ENTRANCE = 'MOB_ROOM_ENTRANCE',
     MOB_ROOM = 'MOB_ROOM',
     HALLWAY = 'HALLWAY',
+    SPAWN_HALLWAY = 'SPAWN_HALLWAY',
 }

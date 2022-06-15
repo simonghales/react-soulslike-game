@@ -37,6 +37,7 @@ import {PlayerStateHandler} from "./PlayerStateHandler";
 import {PlayerMovementState} from "./types";
 import {useCollisionsHandler, useCollisionsState} from "./controller/collisionsHandler";
 import {setBackendSelectedTarget, setBackendTargetItem} from "../state/backend/player";
+import {getStartingPosition} from "../state/backend/scene";
 
 let moveRight = false
 let moveLeft = false
@@ -901,8 +902,10 @@ const Controller: React.FC<{
 
 export const LgPlayer: React.FC = () => {
 
-    const x = -15.5
-    const y = 14
+    const startingPosition = getStartingPosition()
+
+    const x = startingPosition.x
+    const y = startingPosition.y
 
     const world = useWorld()
 

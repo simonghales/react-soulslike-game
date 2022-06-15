@@ -27,6 +27,11 @@ export const visibilityZoneInputsConfig = {
             label: 'Hidden Zones List',
             defaultValue: '',
         },
+        partialVisibilityZonesList: {
+            key: 'partialVisibilityZonesList',
+            label: 'Partial Visibility Zones List',
+            defaultValue: '',
+        },
     }
 }
 

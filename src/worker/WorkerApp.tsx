@@ -30,7 +30,6 @@ export const WorkerApp: React.FC<{
                             <CollisionsChecker/>
                             <LgScene/>
                             <LgStateSync/>
-                            <LgPlayer/>
                             <MobsHandler/>
                             <DeadBodiesHandler/>
                         </SyncableComponents>

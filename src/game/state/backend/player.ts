@@ -2,6 +2,7 @@ import {proxy, ref, useSnapshot} from "valtio";
 import uniqid from 'uniqid';
 import {ItemType} from "../../data/types";
 import {emitPlayerItemReceived} from "../../events/player";
+import {useMemo} from "react";
 
 export type PlayerInventoryItem = {
     type: ItemType,
@@ -34,11 +35,16 @@ export const useIsPlayerInsideSensor = (id: string) => {
 
 }
 
-export const useIsPlayerInsideSensors = (ids: string[]) => {
+export const useIsPlayerInsideSensors = (ids: string[], partialVisibilityZones: string[]) => {
 
     const collidedSensors = useSnapshot(backendPlayerStateProxy.collidedSensors)
 
-    return collidedSensors.some(id => ids.includes(id))
+    return useMemo(() => {
+        return {
+            inside: collidedSensors.some(id => ids.includes(id)),
+            partial: collidedSensors.some(id => partialVisibilityZones.includes(id)),
+        }
+    }, [ids, collidedSensors])
 
 }
 

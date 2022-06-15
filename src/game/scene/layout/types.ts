@@ -19,6 +19,11 @@ export const basicRatConfig = {
     name: 'Basic Rat',
 }
 
+export const spawnPointConfig = {
+    id: '_spawnPoint',
+    name: 'Spawn Point',
+}
+
 export const visibilityZoneConfig = {
     id: '_visibilityZone',
     name: 'Visibility Zone',
