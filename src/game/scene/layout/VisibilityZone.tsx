@@ -2,7 +2,7 @@ import React, {useEffect, useMemo} from "react"
 import { PolygonPreview } from "@simonghales/react-three-scene-editor"
 import {VisibilityZoneData} from "./LgVisibilityZonesHandler";
 import { Shape } from "three";
-import {SensorId, VISIBILITY_IDS} from "../../data/ids";
+import {GameWorldStateIds, SensorId, VISIBILITY_IDS} from "../../data/ids";
 
 export const visibilityZoneInputsConfig = {
     inputs: {
@@ -27,6 +27,19 @@ export const visibilityZoneInputsConfig = {
             label: 'Hidden Zones List',
             defaultValue: '',
         },
+        partialVisibilityZonesList: {
+            key: 'partialVisibilityZonesList',
+            label: 'Partial Visibility Zones List',
+            defaultValue: '',
+        },
+        removeOnStateFlag: {
+            key: 'removeOnStateFlag',
+            label: 'Remove On State Flag',
+            defaultValue: '',
+            options: {
+                options: ['', ...Object.keys(GameWorldStateIds)],
+            },
+        }
     }
 }
 
@@ -39,7 +52,8 @@ const extrudeSettings = {
 export const VisibilityZone: React.FC<{
     data: VisibilityZoneData,
     isHidden: boolean,
-}> = ({data, isHidden}) => {
+    partiallyVisible: boolean,
+}> = ({data, isHidden, partiallyVisible}) => {
 
     const polygons = data.polygons
 
@@ -60,7 +74,7 @@ export const VisibilityZone: React.FC<{
     return (
         <mesh position={[data.x, data.y, 0]}>
             <extrudeBufferGeometry args={[shape, extrudeSettings]}/>
-            <meshBasicMaterial color={'black'} transparent opacity={isHidden ? 0 : 1} depthWrite={false} depthTest={false}/>
+            <meshBasicMaterial color={'black'} transparent opacity={isHidden ? 0 : partiallyVisible ? 0.5 : 1} depthWrite={false} depthTest={false}/>
         </mesh>
     )
 }

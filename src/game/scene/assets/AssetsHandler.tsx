@@ -1,22 +1,24 @@
 import {boxLikeAssetConfig, registerAsset } from "@simonghales/react-three-scene-editor"
 import React from "react"
-import {SceneWall} from "../layout/SceneWall";
+import {SceneWall, wallInputsConfig} from "../layout/SceneWall";
 import {WalkableArea} from "../layout/navmesh/WalkableArea";
 import {Sensor, sensorInputsConfig} from "../layout/Sensor";
 import {BasicRat, BasicRatPreview, mobInputsConfig} from "../mobs/BasicRat";
 import {
-    basicRatConfig,
+    basicRatConfig, interactionTriggerConfig,
     sceneWallConfig,
     sensorConfig,
-    sensorPolygonConfig,
+    sensorPolygonConfig, spawnPointConfig,
     visibilityZoneConfig,
     walkableAreaConfig
 } from "../layout/types";
 import {VisibilityZoneAsset, visibilityZoneInputsConfig} from "../layout/VisibilityZone";
 import {SensorPolygonAsset, sensorZoneInputsConfig} from "../layout/SensorPolygon";
+import {SpawnPointPreview} from "./SpawnPoint";
+import {interactionTriggerInputsConfig, InteractionTriggerPreview} from "./InteractionTrigger";
 
 registerAsset({
-    ...boxLikeAssetConfig,
+    ...wallInputsConfig,
     ...sceneWallConfig,
     component: SceneWall,
 })
@@ -37,6 +39,17 @@ registerAsset({
     ...mobInputsConfig,
     ...basicRatConfig,
     component: BasicRatPreview,
+})
+
+registerAsset({
+    ...spawnPointConfig,
+    component: SpawnPointPreview,
+})
+
+registerAsset({
+    ...interactionTriggerInputsConfig,
+    ...interactionTriggerConfig,
+    component: InteractionTriggerPreview,
 })
 
 registerAsset({

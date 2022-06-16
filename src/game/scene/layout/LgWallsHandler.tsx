@@ -1,5 +1,7 @@
 import React from "react"
 import {LgWall} from "./LgWall";
+import {useSnapshot} from "valtio";
+import {sceneStateProxy} from "../../state/backend/scene";
 
 export type WallData = {
     id: string,
@@ -7,17 +9,26 @@ export type WallData = {
     y: number,
     w: number,
     h: number,
+    breakable?: boolean,
+    onDestroyKey?: string,
+    removeOnStateFlag?: string,
 }
 
 export const LgWallsHandler: React.FC<{
     walls: WallData[],
 }> = ({walls}) => {
+
+    const destroyedWalls = useSnapshot(sceneStateProxy.destroyedWalls)
+
     return (
         <>
             {
-                walls.map(wall => (
-                    <LgWall key={wall.id} x={wall.x} y={wall.y} w={wall.w} h={wall.h}/>
-                ))
+                walls.map(wall => {
+                    if (destroyedWalls[wall.id]) return null
+                    return (
+                        <LgWall key={wall.id} data={wall}/>
+                    )
+                })
             }
         </>
     )

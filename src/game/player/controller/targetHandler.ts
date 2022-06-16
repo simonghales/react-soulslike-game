@@ -1,7 +1,7 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import {usePlayerContext} from "../PlayerContext";
 import {PlayerCollisionsData} from "./collisionsHandler";
-import {PlayerRangeCollisionTypes} from "../../data/collisions";
+import {CollisionTypes, PlayerRangeCollisionTypes} from "../../data/collisions";
 import {Body, Vec2} from "planck";
 import {MovementState, PlayerState} from "./types";
 import {KeysProcessedState} from "../keys";
@@ -29,6 +29,12 @@ export type SelectedTargetWithBody = {id: string, body: Body}
 
 export type SelectedTarget = null | SelectedTargetWithBody
 
+const filterValidTargets = (bodies: Record<string, Body>) => {
+    return Object.entries(bodies).filter(([, body]) => {
+        return (body.getUserData() as any)?.collisionType === CollisionTypes.MOB
+    })
+}
+
 const selectIdealTarget = (
     collisions: PlayerCollisionsData,
     body: Body,
@@ -40,9 +46,11 @@ const selectIdealTarget = (
     favourDistance: boolean = false,
 ) => {
 
-    const enemiesInRange = collisions[PlayerRangeCollisionTypes.PLAYER_LARGE_COMBAT_RANGE] ?? {}
+    const bodiesInRange = collisions[PlayerRangeCollisionTypes.PLAYER_LARGE_COMBAT_RANGE] ?? {}
 
-    if (Object.keys(enemiesInRange).length === 0) return null
+    const enemiesInRange = filterValidTargets(bodiesInRange)
+
+    if (enemiesInRange.length === 0) return null
 
     moveX = keysState.moveRightHeld ? 1 : keysState.moveLeftHeld ? -1 : 0
     moveY = keysState.moveUpHeld ? 1 : keysState.moveDownHeld ? -1 : 0
@@ -68,7 +76,7 @@ const selectIdealTarget = (
 
     now = performance.now()
 
-    Object.entries(enemiesInRange).forEach(([id, targetBody]) => {
+    enemiesInRange.forEach(([id, targetBody]) => {
 
         direction.set(targetBody.getPosition())
         direction.sub(v2)
@@ -105,7 +113,7 @@ const selectIdealTarget = (
 
     const target = {
         id: sortedEnemies[0][0],
-        body: enemiesInRange[sortedEnemies[0][0]],
+        body: bodiesInRange[sortedEnemies[0][0]],
     }
 
     return target

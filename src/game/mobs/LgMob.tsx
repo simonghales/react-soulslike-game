@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState} from "react"
 import {useWorld} from "../../worker/WorldProvider";
 import {SyncComponent, useAddBody, useTransmitData} from "@simonghales/react-three-physics";
 import {Body, Box, Circle, Vec2} from "planck";
-import {COLLISION_FILTER_GROUPS, MobCollisionTypes} from "../data/collisions";
+import {COLLISION_FILTER_GROUPS, CollisionTypes, MobCollisionTypes} from "../data/collisions";
 import {halve} from "../../utils/physics";
 import {getMobConfig} from "../data/mobs";
 import {componentSyncKeys, getMobSyncKey} from "../data/keys";
@@ -39,6 +39,7 @@ export const useMobBody = (id: string, x: number, y: number, type: MobType) => {
             allowSleep: false,
             fixedRotation: true,
             userData: {
+                collisionType: CollisionTypes.MOB,
                 mobType: type,
             }
         })

@@ -1,14 +1,12 @@
 import React, {useEffect, useMemo, useState} from "react"
-import {LgWall} from "./layout/LgWall";
 import {LgNavMeshHandler, WalkableAreaData} from "./layout/navmesh/LgNavMeshHandler";
-import { useSceneData } from "@simonghales/react-three-scene-editor";
 import {useOnCustomMessage, useSendCustomMessage} from "@simonghales/react-three-physics";
 import {messageKeys} from "../data/keys";
 import {
-    basicRatConfig,
+    basicRatConfig, interactionTriggerConfig,
     sceneWallConfig,
     sensorConfig,
-    sensorPolygonConfig,
+    sensorPolygonConfig, spawnPointConfig,
     visibilityZoneConfig,
     walkableAreaConfig
 } from "./layout/types";
@@ -18,6 +16,9 @@ import {LgMobsHandler, MobData} from "./mobs/LgMobsHandler";
 import {MobType} from "../state/game";
 import {LgVisibilityZonesHandler, VisibilityZoneData} from "./layout/LgVisibilityZonesHandler";
 import {LgSensorZonesHandler, SensorZoneData} from "./layout/LgSensorZonesHandler";
+import {MiscData, MiscDataHandler} from "./MiscDataHandler";
+import {LgPlayer} from "../player/LgPlayer";
+import {InteractionTriggerData, LgInteractionTriggersHandler} from "./assets/LgInteractionTriggersHandler";
 
 export const LgScene: React.FC = () => {
 
@@ -27,10 +28,12 @@ export const LgScene: React.FC = () => {
         sendCustomMessage(messageKeys.sceneDataReady, null)
     }, [])
 
+    const [loaded, setLoaded] = useState(false)
     const [instances, setInstances] = useState({} as Record<string, any>)
 
     useOnCustomMessage(messageKeys.sceneData, (data: any) => {
         setInstances(data?.instances ?? {})
+        setLoaded(true)
     })
 
     const {
@@ -40,6 +43,8 @@ export const LgScene: React.FC = () => {
         walkableAreas,
         visibilityZones,
         sensorZones,
+        miscData,
+        interactionTriggers,
     } = useMemo(() => {
 
         const walls: WallData[] = []
@@ -48,6 +53,10 @@ export const LgScene: React.FC = () => {
         const walkableAreas: WalkableAreaData[] = []
         const visibilityZones: VisibilityZoneData[] = []
         const sensorZones: SensorZoneData[] = []
+        const miscData: MiscData = {
+            spawnPoints: [],
+        }
+        const interactionTriggers: InteractionTriggerData[] = []
 
         Object.entries(instances).forEach(([id, instance]) => {
 
@@ -61,6 +70,9 @@ export const LgScene: React.FC = () => {
                         y: instance._position[1],
                         w: instance._width,
                         h: instance._depth,
+                        breakable: instance.breakable,
+                        onDestroyKey: instance.onDestroyKey,
+                        removeOnStateFlag: instance.removeOnStateFlag,
                     })
                     break;
                 case sensorConfig.id:
@@ -92,11 +104,15 @@ export const LgScene: React.FC = () => {
                     break;
                 case visibilityZoneConfig.id:
                     const hiddenZones: string[] = []
+                    const partialVisibilityZones: string[] = []
                     if (instance.hiddenZones) {
                         hiddenZones.push(instance.hiddenZones)
                     }
                     if (instance.hiddenZonesList) {
                         hiddenZones.push(...instance.hiddenZonesList.split(','))
+                    }
+                    if (instance.partialVisibilityZonesList) {
+                        partialVisibilityZones.push(...instance.partialVisibilityZonesList.split(','))
                     }
                     visibilityZones.push({
                         id,
@@ -104,6 +120,8 @@ export const LgScene: React.FC = () => {
                         y: instance._position[1],
                         polygons: instance._polygons,
                         hiddenZones: hiddenZones,
+                        partialVisibilityZones,
+                        removeOnStateFlag: instance.removeOnStateFlag,
                     })
                     break;
                 case sensorPolygonConfig.id:
@@ -113,6 +131,16 @@ export const LgScene: React.FC = () => {
                         x: instance._position[0],
                         y: instance._position[1],
                         polygons: instance._polygons,
+                    })
+                    break;
+                case spawnPointConfig.id:
+                    miscData.spawnPoints.push([instance._position[0], instance._position[1]])
+                    break;
+                case interactionTriggerConfig.id:
+                    interactionTriggers.push({
+                        id: instance.id,
+                        position: instance._position,
+                        onInteractionKey: instance.onInteractionKey,
                     })
                     break;
             }
@@ -126,6 +154,8 @@ export const LgScene: React.FC = () => {
             walkableAreas,
             visibilityZones,
             sensorZones,
+            miscData,
+            interactionTriggers,
         }
     }, [instances])
 
@@ -137,8 +167,13 @@ export const LgScene: React.FC = () => {
             <LgMobsHandler mobs={mobs}/>
             <LgVisibilityZonesHandler data={visibilityZones}/>
             <LgSensorZonesHandler zones={sensorZones}/>
+            <MiscDataHandler data={miscData}/>
+            <LgInteractionTriggersHandler data={interactionTriggers}/>
+            {
+                loaded && (
+                    <LgPlayer/>
+                )
+            }
         </>
     )
 }
-
-// -5.897269730308776,-12.362094879863545

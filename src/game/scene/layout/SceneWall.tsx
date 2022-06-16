@@ -2,6 +2,36 @@ import { Box } from "@react-three/drei";
 import React from "react"
 import {SyncComponent} from "@simonghales/react-three-physics";
 import {componentSyncKeys} from "../../data/keys";
+import {merge} from "lodash";
+import {sensorIds} from "../../data/sensors";
+import {boxLikeAssetConfig} from "@simonghales/react-three-scene-editor";
+import {GameWorldStateIds} from "../../data/ids";
+
+export const wallInputsConfig = merge({
+    inputs: {
+        breakable: {
+            key: 'breakable',
+            label: 'Breakable',
+            defaultValue: false,
+        },
+        onDestroyKey: {
+            key: 'onDestroyKey',
+            label: 'On Destroy Key',
+            defaultValue: '',
+            options: {
+                options: ['', ...Object.keys(GameWorldStateIds)],
+            }
+        },
+        removeOnStateFlag: {
+            key: 'removeOnStateFlag',
+            label: 'Remove On State Flag',
+            defaultValue: '',
+            options: {
+                options: ['', ...Object.keys(GameWorldStateIds)],
+            },
+        }
+    }
+}, boxLikeAssetConfig)
 
 export const SceneWall: React.FC = ({
                                            _width = 1,
