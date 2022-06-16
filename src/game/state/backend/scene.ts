@@ -4,10 +4,24 @@ import {Vec2} from "planck";
 export const sceneStateProxy = proxy({
     occludedVisibilityZones: {} as Record<string, boolean>,
     startingPosition: ref(new Vec2(-15.5, 14)),
+    destroyedWalls: {} as Record<string, boolean>,
+    stateFlags: {} as Record<string, number>,
+    disabledVisibilityZones: {} as Record<string, boolean>,
 })
 
+export const setStateFlag = (id: string) => {
+    sceneStateProxy.stateFlags[id] = Date.now()
+}
+
+export const setVisibilityZoneDisabled = (id: string, disabled: boolean = true) => {
+    sceneStateProxy.disabledVisibilityZones[id] = disabled
+}
+
+export const setWallDestroyed = (id: string) => {
+    sceneStateProxy.destroyedWalls[id] = true
+}
+
 export const setStartingPosition = (x: number, y: number) => {
-    console.log('set starting position?')
     sceneStateProxy.startingPosition.set(x, y)
 }
 

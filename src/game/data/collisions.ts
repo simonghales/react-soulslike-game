@@ -18,8 +18,12 @@ export const COLLISION_FILTER_GROUPS = {
     items: BIT_FLAGS["6"],
 }
 
+
 export enum CollisionTypes {
+    INTERACTIVE_ITEM = 'INTERACTIVE_ITEM',
+    MOB = 'MOB',
     BARRIER = 'BARRIER',
+    BREAKABLE_BARRIER = 'BREAKABLE_BARRIER',
     SENSOR = 'SENSOR',
     VISIBILITY_SENSOR = 'VISIBILITY_SENSOR',
 }

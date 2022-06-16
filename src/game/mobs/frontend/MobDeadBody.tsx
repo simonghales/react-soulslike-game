@@ -34,7 +34,7 @@ const cssCarving = css`
 
 const StyledPromptContainer = styled.div<{
     interacting?: boolean,
-    carving?: boolean,
+    hide?: boolean,
 }>`
   background-color: ${uiTheme.colors.faintOverlay};
   box-shadow: inset 0 0 0 4px rgba(255,255,255,0.3);
@@ -54,7 +54,7 @@ const StyledPromptContainer = styled.div<{
   transition: box-shadow 200ms ease, opacity 200ms 200ms ease;
   
   ${props => props.interacting ? cssInteracting : ''};
-  ${props => props.carving ? cssCarving : ''};
+  ${props => props.hide ? cssCarving : ''};
   
 `
 
@@ -78,6 +78,24 @@ const StyledBackShade = styled.div<{
   transition: opacity 200ms ease, transform 50ms ease;
   ${props => props.interacting ? cssBackInteracting : ''};
 `
+
+export const InteractionPrompt: React.FC<{
+    hidden: boolean,
+    interacting: boolean,
+}> = ({hidden, interacting}) => {
+
+    return (
+        <StyledContainer>
+            <StyledPromptContainer hide={hidden} interacting={interacting}>
+                <StyledBackShade interacting={interacting}/>
+                <span>
+                    C
+                </span>
+            </StyledPromptContainer>
+        </StyledContainer>
+    )
+
+}
 
 export const MobDeadBody: React.FC<{
     id: string,
@@ -122,14 +140,7 @@ export const MobDeadBody: React.FC<{
             {
                 (isTarget || engaged || carving) && (
                     <Html center>
-                        <StyledContainer>
-                            <StyledPromptContainer carving={carving} interacting={engaged || carving}>
-                                <StyledBackShade interacting={engaged || carving}/>
-                                <span>
-                                    C
-                                </span>
-                            </StyledPromptContainer>
-                        </StyledContainer>
+                        <InteractionPrompt interacting={engaged || carving} hidden={carving}/>
                     </Html>
                 )
             }

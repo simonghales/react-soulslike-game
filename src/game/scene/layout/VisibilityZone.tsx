@@ -2,7 +2,7 @@ import React, {useEffect, useMemo} from "react"
 import { PolygonPreview } from "@simonghales/react-three-scene-editor"
 import {VisibilityZoneData} from "./LgVisibilityZonesHandler";
 import { Shape } from "three";
-import {SensorId, VISIBILITY_IDS} from "../../data/ids";
+import {GameWorldStateIds, SensorId, VISIBILITY_IDS} from "../../data/ids";
 
 export const visibilityZoneInputsConfig = {
     inputs: {
@@ -32,6 +32,14 @@ export const visibilityZoneInputsConfig = {
             label: 'Partial Visibility Zones List',
             defaultValue: '',
         },
+        removeOnStateFlag: {
+            key: 'removeOnStateFlag',
+            label: 'Remove On State Flag',
+            defaultValue: '',
+            options: {
+                options: ['', ...Object.keys(GameWorldStateIds)],
+            },
+        }
     }
 }
 

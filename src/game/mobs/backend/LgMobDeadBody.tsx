@@ -144,6 +144,43 @@ const BodyHandler: React.FC<{
 
 }
 
+export const useInteractionStateHandler = (id: string, onInterrupted?: () => void) => {
+
+    const [interacting, setInteracting] = useState(false)
+    const [interactionBegan, setInteractionBegan] = useState(0)
+
+    const clearInteraction = () => {
+        setInteracting(false)
+        setInteractionBegan(0)
+    }
+
+    useOnInteractionEvents(id, useCallback((data: InteractionEvent) => {
+        switch (data.type) {
+            case InteractionEventType.INTERACTION_BEGIN:
+                setInteracting(true)
+                setInteractionBegan(performance.now())
+                break;
+            case InteractionEventType.INTERACTION_END:
+                setInteracting(false)
+                break;
+            case InteractionEventType.INTERACTION_INTERRUPTED:
+                setInteracting(false)
+                if (onInterrupted) {
+                    onInterrupted()
+                }
+                // setCarving(0)
+                break;
+        }
+    }, []))
+
+    return {
+        interacting,
+        interactionBegan,
+        clearInteraction,
+    }
+
+}
+
 export const LgMobDeadBody: React.FC<{
     id: string,
     x: number,
@@ -151,9 +188,18 @@ export const LgMobDeadBody: React.FC<{
     type: MobType,
 }> = ({id, x, y, type}) => {
 
-    const [interacting, setInteracting] = useState(false)
-    const [interactionBegan, setInteractionBegan] = useState(0)
+    // const [interacting, setInteracting] = useState(false)
+    // const [interactionBegan, setInteractionBegan] = useState(0)
     const [carving, setCarving] = useState(0)
+
+    const {
+        interacting,
+        interactionBegan,
+        clearInteraction,
+    } = useInteractionStateHandler(id, () => {
+        setCarving(0)
+    })
+
     const [inventory, setInventory] = useState(type === MobType.LARGE_RAT ? largeMobDefaultInventory : defaultInventory)
     const emptyInventory = inventory.length === 0
 
@@ -168,22 +214,6 @@ export const LgMobDeadBody: React.FC<{
             clearTimeout(timeout)
         }
     }, [emptyInventory])
-
-    useOnInteractionEvents(id, useCallback((data: InteractionEvent) => {
-        switch (data.type) {
-            case InteractionEventType.INTERACTION_BEGIN:
-                setInteracting(true)
-                setInteractionBegan(performance.now())
-                break;
-            case InteractionEventType.INTERACTION_END:
-                setInteracting(false)
-                break;
-            case InteractionEventType.INTERACTION_INTERRUPTED:
-                setInteracting(false)
-                setCarving(0)
-                break;
-        }
-    }, []))
 
     useEffect(() => {
         if (!interacting) return
@@ -208,8 +238,7 @@ export const LgMobDeadBody: React.FC<{
 
         const timeout = setTimeout(() => {
             setCarving(0)
-            setInteracting(false)
-            setInteractionBegan(0)
+            clearInteraction()
             emitPlayerCarvingEnd(id, performance.now())
             cleared = true
 

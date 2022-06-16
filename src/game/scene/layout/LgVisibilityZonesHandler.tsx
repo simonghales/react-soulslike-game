@@ -6,7 +6,8 @@ import {useWorld} from "../../../worker/WorldProvider";
 import decomp from "poly-decomp";
 import {Polygon, Vec2} from "planck";
 import {COLLISION_FILTER_GROUPS, CollisionTypes} from "../../data/collisions";
-import {setVisibilityZoneOccluded} from "../../state/backend/scene";
+import {sceneStateProxy, setVisibilityZoneDisabled, setVisibilityZoneOccluded} from "../../state/backend/scene";
+import {subscribe, useSnapshot} from "valtio";
 
 export type PolygonData = {
     x: number,
@@ -20,6 +21,7 @@ export type VisibilityZoneData = {
     polygons: PolygonData[],
     x: number,
     y: number,
+    removeOnStateFlag?: string,
 }
 
 const useVisibilityZoneBody = (sensorId: string, data: VisibilityZoneData) => {
@@ -102,6 +104,18 @@ const LgVisibilityZone: React.FC<{
 
     const partiallyVisible = (previouslyVisible || partial) && occluded
 
+    useEffect(() => {
+        if (!data.removeOnStateFlag) return
+        const unsub = subscribe(sceneStateProxy.stateFlags, () => {
+            if (sceneStateProxy.stateFlags[data.removeOnStateFlag as string]) {
+                setVisibilityZoneDisabled(sensorId)
+            }
+        })
+        return () => {
+            unsub()
+        }
+    }, [])
+
     return (
         <SyncComponent partiallyVisible={partiallyVisible} isHidden={inside} data={data} id={data.id} componentId={componentSyncKeys.visibilityZone}/>
     )
@@ -111,12 +125,17 @@ export const LgVisibilityZonesHandler: React.FC<{
     data: VisibilityZoneData[],
 }> = ({data}) => {
 
+    const disabledVisibilityZones = useSnapshot(sceneStateProxy.disabledVisibilityZones)
+
     return (
         <>
             {
-                data.map(zone => (
-                    <LgVisibilityZone data={zone} key={zone.id}/>
-                ))
+                data.map(zone => {
+                    if (disabledVisibilityZones[zone.id]) return null
+                    return (
+                        <LgVisibilityZone data={zone} key={zone.id}/>
+                    )
+                })
             }
         </>
     )

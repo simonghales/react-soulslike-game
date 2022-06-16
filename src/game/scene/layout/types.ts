@@ -24,6 +24,11 @@ export const spawnPointConfig = {
     name: 'Spawn Point',
 }
 
+export const interactionTriggerConfig = {
+    id: '_interactionTrigger',
+    name: 'Interaction Trigger',
+}
+
 export const visibilityZoneConfig = {
     id: '_visibilityZone',
     name: 'Visibility Zone',

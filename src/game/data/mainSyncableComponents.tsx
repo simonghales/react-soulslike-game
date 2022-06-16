@@ -4,6 +4,7 @@ import {MobDeadBody} from "../mobs/frontend/MobDeadBody";
 import {Player} from "../player/Player";
 import {Wall} from "../scene/layout/Wall";
 import {VisibilityZone} from "../scene/layout/VisibilityZone";
+import {InteractionTrigger} from "../scene/assets/InteractionTrigger";
 
 export const mainSyncableComponents = {
     [componentSyncKeys.wall]: Wall,
@@ -11,4 +12,5 @@ export const mainSyncableComponents = {
     [componentSyncKeys.basicMob]: BasicMob,
     [componentSyncKeys.basicMobDead]: MobDeadBody,
     [componentSyncKeys.visibilityZone]: VisibilityZone,
+    [componentSyncKeys.interactionTrigger]: InteractionTrigger,
 }

@@ -9,6 +9,7 @@ export enum PlayerEventType {
     DAMAGED = 'DAMAGED',
     CARVING_BEGAN = 'CARVING_BEGAN',
     CARVING_END = 'CARVING_END',
+    INTERACTION_END = 'INTERACTION_END',
     ITEM_RECEIVED = 'ITEM_RECEIVED',
 }
 
@@ -40,6 +41,16 @@ export const emitPlayerCarvingBegan = (id: string, time: number) => {
 export const emitPlayerCarvingEnd = (id: string, time: number) => {
     eventEmitter.emit(`player`, {
         type: PlayerEventType.CARVING_END,
+        data: {
+            id,
+            time,
+        }
+    })
+}
+
+export const emitPlayerInteractionEnd = (id: string, time: number) => {
+    eventEmitter.emit(`player`, {
+        type: PlayerEventType.INTERACTION_END,
         data: {
             id,
             time,
