@@ -5,7 +5,7 @@ import {componentSyncKeys} from "../../data/keys";
 import {merge} from "lodash";
 import {sensorIds} from "../../data/sensors";
 import {boxLikeAssetConfig} from "@simonghales/react-three-scene-editor";
-import {GameWorldStateIds} from "../../data/ids";
+import {BreakableWallStrength, GameWorldStateIds} from "../../data/ids";
 
 export const wallInputsConfig = merge({
     inputs: {
@@ -13,6 +13,14 @@ export const wallInputsConfig = merge({
             key: 'breakable',
             label: 'Breakable',
             defaultValue: false,
+        },
+        breakableHealth: {
+            key: 'breakableHealth',
+            label: 'Breakable Health',
+            defaultValue: BreakableWallStrength.DEFAULT,
+            options: {
+                options: Object.keys(BreakableWallStrength),
+            },
         },
         onDestroyKey: {
             key: 'onDestroyKey',

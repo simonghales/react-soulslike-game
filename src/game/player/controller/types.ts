@@ -1,3 +1,8 @@
+export const playerBodyConfig = {
+    linearDamping: 40,
+    linearDampingRolling: 2.5,
+}
+
 export type MovementState = {
     previousLookDirection: number,
     previousMovementDirection: number,
@@ -43,6 +48,7 @@ export type PlayerState = {
     targetItem: string,
     currentInteractionId: string,
     currentlyCarvingId: string,
+    stopRollingWeight: number,
 }
 
 export const defaultPlayerState: PlayerState = {
@@ -56,4 +62,5 @@ export const defaultPlayerState: PlayerState = {
     targetItem: '',
     currentInteractionId: '',
     currentlyCarvingId: '',
+    stopRollingWeight: 0,
 }

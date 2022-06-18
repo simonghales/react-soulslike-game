@@ -59,16 +59,23 @@ export const useCollisionsState = (collisions: PlayerCollisionsData, combatColli
         const enemiesInLongAttackSensor: string[] = []
         const enemiesInShortAttackSensor: string[] = []
         const collidedSensors: string[] = []
+        const breakableCollisions: string[] = []
 
         Object.entries(collisions[PlayerRangeCollisionTypes.PLAYER] ?? {}).forEach(([id, body]) => {
             const data = body.getUserData() as any
-            if (data?.collisionType === CollisionTypes.SENSOR) {
-                if (!data.sensorId) {
-                    throw new Error('No sensor id found.')
-                }
-                if (!collidedSensors.includes(data.sensorId)) {
-                    collidedSensors.push(data.sensorId)
-                }
+            const collisionType = data?.collisionType
+            switch (collisionType) {
+                case CollisionTypes.SENSOR:
+                    if (!data.sensorId) {
+                        throw new Error('No sensor id found.')
+                    }
+                    if (!collidedSensors.includes(data.sensorId)) {
+                        collidedSensors.push(data.sensorId)
+                    }
+                    break;
+                case CollisionTypes.BREAKABLE_BARRIER:
+                    breakableCollisions.push(data?.collisionId)
+                    break;
             }
         })
 
@@ -85,6 +92,7 @@ export const useCollisionsState = (collisions: PlayerCollisionsData, combatColli
             enemiesInLongAttackSensor,
             enemiesInShortAttackSensor,
             collidedSensors,
+            breakableCollisions,
         }
     }, [collisions, combatCollisions])
 

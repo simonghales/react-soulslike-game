@@ -28,6 +28,7 @@ import {getMobEventsKey, messageKeys, PLAYER_EVENTS_KEY} from "../../data/keys";
 import {MobEventType} from "../../mobs/brain/events";
 import {useInteractionHandler} from "./interactionHandler";
 import {emitInteractionBegan, emitInteractionEnded, emitInteractionInterrupted} from "../../events/interaction";
+import {RollingHandler} from "./RollingHandler";
 
 let pressed = false
 let held = false
@@ -94,6 +95,7 @@ export type ProcessedState = {
     canSpecialMove: boolean,
     canRun: boolean,
     isRolling: boolean,
+    isConstantRolling: boolean,
     isJumping: boolean,
     isBackStepping: boolean,
     isRunning: boolean,
@@ -110,6 +112,7 @@ const defaultProcessedState: ProcessedState = {
     canSpecialMove: false,
     canRun: false,
     isRolling: false,
+    isConstantRolling: false,
     isJumping: false,
     isBackStepping: false,
     isRunning: false,
@@ -121,6 +124,7 @@ const defaultProcessedState: ProcessedState = {
 export enum QueuedInputType {
     ATTACK = 'ATTACK',
     ROLL = 'ROLL',
+    CONSTANT_ROLL = 'CONSTANT_ROLL',
     JUMP = 'JUMP',
 }
 
@@ -163,15 +167,29 @@ const defaultInputsState: InputsState = {
 const PENDING_JUMP_THRESHOLD = 150
 const JUMP_THRESHOLD = PENDING_JUMP_THRESHOLD + 100
 
-const handleSpaceInput = (inputsState: InputsState, energyState: EnergyState) => {
+const handleSpaceInput = (
+    inputsState: InputsState,
+    energyState: EnergyState,
+    previousStateData: PreviousStateData,
+    ) => {
+
+    now = performance.now()
 
     timeElapsed = performance.now() - inputsState.spacePressed
 
     if (timeElapsed < JUMP_THRESHOLD) {
-        inputsState.queue.push({
-            time: now,
-            type: QueuedInputType.ROLL,
-        })
+        if (previousStateData.isRolling) {
+            inputsState.queue.length = 0
+            inputsState.queue.push({
+                time: now,
+                type: QueuedInputType.CONSTANT_ROLL,
+            })
+        } else {
+            inputsState.queue.push({
+                time: now,
+                type: QueuedInputType.ROLL,
+            })
+        }
         // inputsState.pendingAttack = 0
     } else {
         inputsState.queue.push({
@@ -383,6 +401,7 @@ const processInputs = (
     energyState: EnergyState,
     playerState: PlayerState,
     controllerActions: ControllerActions,
+    previousStateData: PreviousStateData,
 ) => {
 
     now = performance.now()
@@ -392,7 +411,7 @@ const processInputs = (
     }
 
     if (keysState.spaceReleased) {
-        handleSpaceInput(inputsState, energyState)
+        handleSpaceInput(inputsState, energyState, previousStateData)
     } else if (keysState.spaceHeld) {
         handleSpaceHeld(inputsState, energyState)
     } else {
@@ -457,6 +476,46 @@ const processJumpInput = (
 
     return true
 }
+
+const processConstantRollInput = (
+    queuedInput: QueuedInput,
+    processedState: ProcessedState,
+    actionState: PlayerActionState,
+    keysState: KeysProcessedState,
+) => {
+
+    if (actionState.currentAction?.type !== PlayerActionType.ROLL) {
+        return true
+    }
+
+    moveX = keysState.moveRightHeld ? 1 : keysState.moveLeftHeld ? -1 : 0
+    moveY = keysState.moveUpHeld ? 1 : keysState.moveDownHeld ? -1 : 0
+
+    wantsToMove = moveX !== 0 || moveY !== 0
+
+    if (!wantsToMove) {
+        moveX = actionState.currentAction.data.moveX
+        moveY = actionState.currentAction.data.moveY
+    }
+
+    v2.set(moveX, moveY)
+    v2.normalize()
+
+    actionState.currentAction = {
+        type: PlayerActionType.CONSTANT_ROLL,
+        time: performance.now(),
+        data: {
+            moveX: v2.x,
+            moveY: v2.y,
+        }
+    }
+
+    console.log('now constant roll...')
+
+    return true
+
+}
+
 
 const processRollInput = (
     queuedInput: QueuedInput,
@@ -596,6 +655,9 @@ const processInputsQueue = (
             case QueuedInputType.ATTACK:
                 shouldDelete = processAttackInput(queuedInput, inputsState, processedState, actionState, energyState, setCurrentAttack, selectedTarget, body)
                 break;
+            case QueuedInputType.CONSTANT_ROLL:
+                shouldDelete = processConstantRollInput(queuedInput, processedState, actionState, keysState)
+                break;
         }
         if (shouldDelete) {
             queue.splice(index, 1)
@@ -664,7 +726,46 @@ const processActionJump = (action: PlayerAction, actionState: PlayerActionState)
 
 }
 
-const processAction = (actionState: PlayerActionState, setCurrentAttack: any, fixtures: PlayerFixtures) => {
+const processActionConstantRoll = (
+    action: PlayerAction,
+    actionState: PlayerActionState,
+    inputsState: InputsState,
+    keysState: KeysProcessedState,
+    playerState: PlayerState,
+    delta: number,
+) => {
+
+
+    moveX = keysState.moveRightHeld ? 1 : keysState.moveLeftHeld ? -1 : 0
+    moveY = keysState.moveUpHeld ? 1 : keysState.moveDownHeld ? -1 : 0
+
+    wantsToMove = moveX !== 0 || moveY !== 0
+
+    if (!wantsToMove) {
+        playerState.stopRollingWeight += 5 * delta
+        if (playerState.stopRollingWeight >= 100) {
+            now = performance.now()
+            actionState.specialMoveCooldown = now + 500
+            actionState.currentAction = null
+        }
+    } else {
+        playerState.stopRollingWeight -= 30 * delta
+        if (playerState.stopRollingWeight < 0) {
+            playerState.stopRollingWeight = 0
+        }
+    }
+
+}
+
+const processAction = (
+    actionState: PlayerActionState,
+    setCurrentAttack: any,
+    fixtures: PlayerFixtures,
+    inputsState: InputsState,
+    keysState: KeysProcessedState,
+    playerState: PlayerState,
+    delta: number,
+) => {
 
     if (!actionState.currentAction) {
         return
@@ -683,6 +784,9 @@ const processAction = (actionState: PlayerActionState, setCurrentAttack: any, fi
         case PlayerActionType.JUMP:
             processActionJump(actionState.currentAction, actionState)
             break;
+        case PlayerActionType.CONSTANT_ROLL:
+            processActionConstantRoll(actionState.currentAction, actionState, inputsState, keysState, playerState, delta)
+            break;
     }
 
 }
@@ -694,8 +798,10 @@ let isInCooldown = false
 let isStunned = false
 let isInteracting = false
 let canMove = false
+let prevIsRolling = false
 
 const processState = (
+    initialProcess: boolean,
     processedState: ProcessedState,
     actionState: PlayerActionState,
     inputsState: InputsState,
@@ -739,6 +845,8 @@ const processState = (
     processedState.canRun = processedState.canMove && !hasCurrentAction && !isInCooldown && !inputsState.pendingJump && !inputsState.pendingAttack
 
     processedState.isRolling = actionState?.currentAction?.type === PlayerActionType.ROLL
+    processedState.isConstantRolling = actionState?.currentAction?.type === PlayerActionType.CONSTANT_ROLL
+
     processedState.isJumping = actionState?.currentAction?.type === PlayerActionType.JUMP
     processedState.isBackStepping = actionState?.currentAction?.type === PlayerActionType.BACK_STEP
     processedState.isAttacking = actionState?.currentAction?.type === PlayerActionType.ATTACK
@@ -773,6 +881,10 @@ const processRollingSpeed = (action: PlayerAction) => {
     return lerp(RUNNING_SPEED, CHARGING_SPEED, progress)
 }
 
+const processConstantRollingSpeed = (action: PlayerAction) => {
+    return RUNNING_SPEED
+}
+
 const processBackSteppingSpeed = (action: PlayerAction) => {
     now = performance.now()
     timeElapsed = now - action.time
@@ -802,6 +914,8 @@ const processSpeed = (
         speed = processBackJumpingSpeed(actionState.currentAction as PlayerAction)
     } else if (processedState.isBackStepping) {
         speed = processBackSteppingSpeed(actionState.currentAction as PlayerAction)
+    } else if (processedState.isConstantRolling) {
+        speed = processConstantRollingSpeed(actionState.currentAction as PlayerAction)
     } else if (processedState.isRolling) {
         speed = processRollingSpeed(actionState.currentAction as PlayerAction)
     } else if (actionState?.currentAction?.type === PlayerActionType.ATTACK) {
@@ -818,6 +932,7 @@ const processSpeed = (
 export enum PlayerActionType {
     ATTACK = 'ATTACK',
     ROLL = 'ROLL',
+    CONSTANT_ROLL = 'CONSTANT_ROLL',
     JUMP = 'JUMP',
     BACK_STEP = 'BACK_STEP',
 }
@@ -1022,6 +1137,17 @@ let hasPendingAttack = false
 let isAttacking = false
 let isRunning = false
 let isSpecialMove = false
+const spareV2 = new Vec2()
+
+const processConstantRollingMovement = (body: Body, v2: Vec2, action: PlayerAction) => {
+    v2.set(lerp(action.data.moveX, v2.x, 0.33), lerp(action.data.moveY, v2.y, 0.33))
+    action.data.moveX = v2.x
+    action.data.moveY = v2.y
+    spareV2.set(body.getLinearVelocity())
+    spareV2.normalize()
+    v2.set(lerp(v2.x, spareV2.x, 0.2), lerp(v2.y, spareV2.y, 0.2))
+    return v2
+}
 
 const processRollingMovement = (v2: Vec2, action: PlayerAction) => {
     v2.set(lerp(v2.x, action.data.moveX, 0.9), lerp(v2.y, action.data.moveY, 0.9))
@@ -1031,6 +1157,47 @@ const processRollingMovement = (v2: Vec2, action: PlayerAction) => {
 const processBackSteppingMovement = (v2: Vec2, action: PlayerAction) => {
     angleToV2(action.data.angle, v2)
     return v2
+}
+
+export type PreviousStateData = {
+    isRolling: boolean,
+    isConstantRolling: boolean,
+}
+
+const defaultPreviousStateData: PreviousStateData = {
+    isRolling: false,
+    isConstantRolling: false,
+}
+
+let isRolling = false
+let isConstantRolling = false
+let prevIsConstantRolling = false
+
+const processSyncState = (
+    processedState: ProcessedState,
+    previousStateData: PreviousStateData,
+    setPlayerRolling: (rolling: boolean) => void,
+    setPlayerConstantRolling: (rolling: boolean) => void,
+) => {
+    prevIsRolling = previousStateData.isRolling
+    isRolling = processedState.isRolling
+    if (prevIsRolling && !isRolling) {
+        setPlayerRolling(false)
+    } else if (!prevIsRolling && isRolling) {
+        setPlayerRolling(true)
+    }
+    previousStateData.isRolling = isRolling
+
+    prevIsConstantRolling = previousStateData.isConstantRolling
+    isConstantRolling = processedState.isConstantRolling
+
+    if (prevIsConstantRolling && !isConstantRolling) {
+        setPlayerConstantRolling(false)
+    } else if (!prevIsConstantRolling && isConstantRolling) {
+        setPlayerConstantRolling(true)
+    }
+    previousStateData.isConstantRolling = isConstantRolling
+
 }
 
 const processMovement = (
@@ -1072,7 +1239,9 @@ const processMovement = (
         v2.set(moveX, moveY)
         v2.normalize()
 
-        if (processedState.isRolling) {
+        if (processedState.isConstantRolling) {
+            processConstantRollingMovement(body, v2, actionState.currentAction as PlayerAction)
+        } else if (processedState.isRolling) {
             processRollingMovement(v2, actionState.currentAction as PlayerAction)
         } else if (processedState.isBackStepping) {
             processBackSteppingMovement(v2, actionState.currentAction as PlayerAction)
@@ -1169,6 +1338,7 @@ export const PlayerController: React.FC = () => {
         actionState: {...defaultPlayerActionState},
         energyState: {...defaultEnergyState},
         playerState: {...defaultPlayerState},
+        previousStateData: {...defaultPreviousStateData},
     })
 
     const keysState = localStateRef.current.keysState
@@ -1179,6 +1349,10 @@ export const PlayerController: React.FC = () => {
     const actionState = localStateRef.current.actionState
     const energyState = localStateRef.current.energyState
     const playerState = localStateRef.current.playerState
+    const previousStateData = localStateRef.current.previousStateData
+
+    const [playerRolling, setPlayerRolling] = useState(false)
+    const [playerConstantRolling, setPlayerConstantRolling] = useState(false)
 
     const {
         body,
@@ -1266,12 +1440,13 @@ export const PlayerController: React.FC = () => {
         const selectedTarget = selectedTargetRef.current
 
         processKeys(keysState, prevKeys, isKeyPressed)
-        processInputs(keysState, inputsState, energyState, playerState, controllerActions)
-        processAction(actionState, setCurrentAttack, fixtures)
-        processState(processedState, actionState, inputsState, playerState)
+        processInputs(keysState, inputsState, energyState, playerState, controllerActions, previousStateData)
+        processAction(actionState, setCurrentAttack, fixtures, inputsState, keysState, playerState, delta)
+        processState(true, processedState, actionState, inputsState, playerState)
         processInputsQueue(inputsState, processedState, actionState, energyState, keysState, playerState, body, setCurrentAttack, selectedTarget, controllerActions)
-        processState(processedState, actionState, inputsState, playerState) // process again...
+        processState(false, processedState, actionState, inputsState, playerState) // process again...
         processMovement(movementState, actionState, processedState, keysState, inputsState, energyState, body, combatBody, delta, selectedTarget)
+        processSyncState(processedState, previousStateData, setPlayerRolling, setPlayerConstantRolling)
 
         if (energyState.newUsage > 0) {
             increaseEnergyUsage(energyState.newUsage)
@@ -1298,7 +1473,7 @@ export const PlayerController: React.FC = () => {
             setMovementState(PlayerMovementState.JUMPING)
         } else if (processedState.isBackStepping) {
             setMovementState(PlayerMovementState.BACK_STEPPING)
-        } else if (processedState.isRolling) {
+        } else if (processedState.isRolling || processedState.isConstantRolling) {
             setMovementState(PlayerMovementState.ROLLING)
         } else if (inputsState.pendingJump) {
             setMovementState(PlayerMovementState.PENDING_JUMP)
@@ -1322,7 +1497,18 @@ export const PlayerController: React.FC = () => {
             return
         }
 
-        increasePlayerDamage(damage)
+        let damageMultiplier = 1
+
+        const isConstantRolling = actionState.currentAction?.type === PlayerActionType.CONSTANT_ROLL
+
+        if (isConstantRolling) {
+            actionState.currentAction = null
+            damageMultiplier = 2
+        }
+
+        let finalDamage = damage * damageMultiplier
+
+        increasePlayerDamage(finalDamage)
 
         v2.set(body.getPosition())
         v2.sub(from)
@@ -1334,7 +1520,7 @@ export const PlayerController: React.FC = () => {
         if ((performance.now() - localStateRef.current.playerState.lastStunned) > 1500) {
             localStateRef.current.inputsState.pendingAttack = 0
             localStateRef.current.playerState.lastStunned = performance.now()
-            localStateRef.current.playerState.stunnedCooldown = performance.now() + 750
+            localStateRef.current.playerState.stunnedCooldown = performance.now() + (isConstantRolling ? 1500 : 750)
         }
 
         if (playerState.currentInteractionId) {
@@ -1343,11 +1529,13 @@ export const PlayerController: React.FC = () => {
             playerState.currentlyCarvingId = ''
         }
 
+
+
         setMovementState(PlayerMovementState.STUNNED)
 
         sendEvent(PLAYER_EVENTS_KEY, {
             type: PlayerEventType.DAMAGED,
-            damage,
+            damage: finalDamage,
             x: v2.x,
             y: v2.y,
         })
@@ -1378,5 +1566,18 @@ export const PlayerController: React.FC = () => {
 
     useAttackHandler(currentAttack)
 
-    return null
+    return (
+        <>
+            {
+                playerRolling && (
+                    <RollingHandler/>
+                )
+            }
+            {
+                playerConstantRolling && (
+                    <RollingHandler constant/>
+                )
+            }
+        </>
+    )
 }

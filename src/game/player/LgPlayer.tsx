@@ -38,6 +38,7 @@ import {PlayerMovementState} from "./types";
 import {useCollisionsHandler, useCollisionsState} from "./controller/collisionsHandler";
 import {setBackendSelectedTarget, setBackendTargetItem} from "../state/backend/player";
 import {getStartingPosition} from "../state/backend/scene";
+import {playerBodyConfig} from "./controller/types";
 
 let moveRight = false
 let moveLeft = false
@@ -900,6 +901,8 @@ const Controller: React.FC<{
 
 }
 
+let count = 0
+
 export const LgPlayer: React.FC = () => {
 
     const startingPosition = getStartingPosition()
@@ -916,21 +919,20 @@ export const LgPlayer: React.FC = () => {
 
     useEffect(() => {
 
-        const bodyDef: any = {
-            type: "dynamic",
-            linearDamping: 40,
-            angularDamping: 0.1,
-            allowSleep: false,
-            fixedRotation: true,
-        }
-
         const combatBodyDef: any = {
             type: "dynamic",
             allowSleep: false,
             fixedRotation: true,
         }
 
-        const body = world.createBody(bodyDef)
+        const body = world.createBody({
+            type: "dynamic",
+            linearDamping: playerBodyConfig.linearDamping,
+            // linearDamping: 20,
+            angularDamping: 0.1,
+            allowSleep: false,
+            fixedRotation: true,
+        })
         const combatBody = world.createBody(combatBodyDef)
 
         body.setPosition(new Vec2(x, y))
@@ -1042,12 +1044,28 @@ export const LgPlayer: React.FC = () => {
 
         const fixture = body.createFixture({
             shape: circleShape,
+            // restitution: 0,
+            // density: 1.5,
             filterCategoryBits: COLLISION_FILTER_GROUPS.player,
             userData: {
                 collisionId: playerConfig.collisionIds.player,
                 collisionType: PlayerRangeCollisionTypes.PLAYER,
+                count: count++,
             },
-        } as any)
+        })
+
+        // const constantRollingFixture = body.createFixture({
+        //     shape: circleShape,
+        //     filterCategoryBits: COLLISION_FILTER_GROUPS.playerRolling,
+        // })
+
+        // constantRollingFixture.setSensor()
+
+
+
+        // body.setLinearDamping(20)
+        // fixture.setRestitution(1.5)
+        // fixture.setDensity(50)
 
         const rollingFixture = body.createFixture({
             shape: circleShape,

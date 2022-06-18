@@ -22,4 +22,5 @@ export type PlayerCollisionsState = {
     enemiesInLongAttackSensor: string[],
     enemiesInShortAttackSensor: string[],
     collidedSensors: string[],
+    breakableCollisions: string[],
 }

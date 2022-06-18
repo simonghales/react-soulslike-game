@@ -10,6 +10,7 @@ export type WallData = {
     w: number,
     h: number,
     breakable?: boolean,
+    breakableHealth?: string,
     onDestroyKey?: string,
     removeOnStateFlag?: string,
 }

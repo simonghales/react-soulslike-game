@@ -71,6 +71,7 @@ export const LgScene: React.FC = () => {
                         w: instance._width,
                         h: instance._depth,
                         breakable: instance.breakable,
+                        breakableHealth: instance.breakableHealth,
                         onDestroyKey: instance.onDestroyKey,
                         removeOnStateFlag: instance.removeOnStateFlag,
                     })

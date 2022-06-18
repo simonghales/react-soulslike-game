@@ -22,3 +22,9 @@ export enum GameWorldStateIds {
     MOB_ROOM_WALL_DESTROYED = 'MOB_ROOM_WALL_DESTROYED',
     MOB_ROOM_TRIGGER_RELEASED = 'MOB_ROOM_TRIGGER_RELEASED',
 }
+
+export enum BreakableWallStrength {
+    DEFAULT = 'DEFAULT',
+    WEAK = 'WEAK',
+    STRONG = 'STRONG',
+}

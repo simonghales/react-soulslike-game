@@ -11,6 +11,7 @@ import {MobEventType} from "../../mobs/brain/events";
 import {sceneStateProxy, setStateFlag, setVisibilityZoneDisabled, setWallDestroyed} from "../../state/backend/scene";
 import {WallData} from "./LgWallsHandler";
 import {subscribe} from "valtio";
+import {BreakableWallStrength} from "../../data/ids";
 
 const useWallBody = (id: string, x: number, y: number, w: number, h: number, breakable: boolean) => {
 
@@ -20,7 +21,10 @@ const useWallBody = (id: string, x: number, y: number, w: number, h: number, bre
 
         const body = world.createBody({
             type: "static",
-            position: new Vec2(x, y),
+            position: new Vec2(x, y),userData: {
+                collisionId: id,
+                collisionType: breakable ? CollisionTypes.BREAKABLE_BARRIER : CollisionTypes.BARRIER,
+            },
         })
 
         body.createFixture({
@@ -50,13 +54,25 @@ const useWallBody = (id: string, x: number, y: number, w: number, h: number, bre
 
 }
 
+const healthValues = {
+    [BreakableWallStrength.DEFAULT]: 10,
+    [BreakableWallStrength.WEAK]: 5,
+    [BreakableWallStrength.STRONG]: 20,
+}
+
+const getDefaultHealthValue = (health: string | undefined): number => {
+    const amount = (healthValues as any)[health ?? BreakableWallStrength.DEFAULT]
+    return amount ?? healthValues[BreakableWallStrength.DEFAULT]
+}
+
 const BreakableHandler: React.FC<{
     id: string,
+    health?: string,
     onDestroyKey?: string,
     onDamage: () => void,
-}> = ({id, onDestroyKey, onDamage}) => {
+}> = ({id, onDestroyKey, onDamage, health: healthString}) => {
 
-    const [health, setHealth] = useState(10)
+    const [health, setHealth] = useState(getDefaultHealthValue(healthString))
 
     useOnMobEvents(id, useCallback((event) => {
         switch (event.type) {
@@ -123,7 +139,7 @@ export const LgWall: React.FC<{
         <>
             {
                 breakable && (
-                    <BreakableHandler id={id} onDestroyKey={data.onDestroyKey} onDamage={() => {
+                    <BreakableHandler id={id} health={data.breakableHealth} onDestroyKey={data.onDestroyKey} onDamage={() => {
                         setWallState(WallCondition.DAMAGED)
                     }} />
                 )
