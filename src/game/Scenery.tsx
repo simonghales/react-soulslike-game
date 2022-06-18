@@ -4,7 +4,7 @@ import {degToRad} from "three/src/math/MathUtils";
 import {RepeatWrapping} from "three";
 import {NavMeshGuide} from "./scene/layout/navmesh/NavMeshGuide";
 
-const size = 64
+const size = 256
 const texture_size = 256
 // const repeat = size / texture_size
 const repeat = size / 4

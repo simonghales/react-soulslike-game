@@ -482,6 +482,7 @@ const processConstantRollInput = (
     processedState: ProcessedState,
     actionState: PlayerActionState,
     keysState: KeysProcessedState,
+    energyState: EnergyState,
 ) => {
 
     if (actionState.currentAction?.type !== PlayerActionType.ROLL) {
@@ -500,6 +501,8 @@ const processConstantRollInput = (
 
     v2.set(moveX, moveY)
     v2.normalize()
+
+    energyState.newUsage += 1000
 
     actionState.currentAction = {
         type: PlayerActionType.CONSTANT_ROLL,
@@ -656,7 +659,7 @@ const processInputsQueue = (
                 shouldDelete = processAttackInput(queuedInput, inputsState, processedState, actionState, energyState, setCurrentAttack, selectedTarget, body)
                 break;
             case QueuedInputType.CONSTANT_ROLL:
-                shouldDelete = processConstantRollInput(queuedInput, processedState, actionState, keysState)
+                shouldDelete = processConstantRollInput(queuedInput, processedState, actionState, keysState, energyState)
                 break;
         }
         if (shouldDelete) {
