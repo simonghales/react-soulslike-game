@@ -3,12 +3,12 @@ import {LgNavMeshHandler, WalkableAreaData} from "./layout/navmesh/LgNavMeshHand
 import {useOnCustomMessage, useSendCustomMessage} from "@simonghales/react-three-physics";
 import {messageKeys} from "../data/keys";
 import {
-    basicRatConfig, interactionTriggerConfig,
+    basicRatConfig, collectableItemConfig, interactionTriggerConfig,
     sceneWallConfig,
     sensorConfig,
     sensorPolygonConfig, spawnPointConfig,
     visibilityZoneConfig,
-    walkableAreaConfig
+    walkableAreaConfig, worldPositionConfig
 } from "./layout/types";
 import {LgWallsHandler, WallData} from "./layout/LgWallsHandler";
 import {LgSensorsHandler, SensorData} from "./layout/LgSensorsHandler";
@@ -19,6 +19,10 @@ import {LgSensorZonesHandler, SensorZoneData} from "./layout/LgSensorZonesHandle
 import {MiscData, MiscDataHandler} from "./MiscDataHandler";
 import {LgPlayer} from "../player/LgPlayer";
 import {InteractionTriggerData, LgInteractionTriggersHandler} from "./assets/LgInteractionTriggersHandler";
+import {SceneComponentsManager} from "./SceneComponentsManager";
+import {ItemData, ItemsData, ItemsManager} from "./items/ItemsManager";
+import {LgDynamicStateHandler} from "../state/backend/LgDynamicStateHandler";
+import {setMiscData, useIsSceneLoaded} from "../state/backend/scene";
 
 export const LgScene: React.FC = () => {
 
@@ -45,6 +49,7 @@ export const LgScene: React.FC = () => {
         sensorZones,
         miscData,
         interactionTriggers,
+        items,
     } = useMemo(() => {
 
         const walls: WallData[] = []
@@ -55,8 +60,10 @@ export const LgScene: React.FC = () => {
         const sensorZones: SensorZoneData[] = []
         const miscData: MiscData = {
             spawnPoints: [],
+            worldPositions: {},
         }
         const interactionTriggers: InteractionTriggerData[] = []
+        const items: ItemData[] = []
 
         Object.entries(instances).forEach(([id, instance]) => {
 
@@ -142,11 +149,25 @@ export const LgScene: React.FC = () => {
                         id: instance.id,
                         position: instance._position,
                         onInteractionKey: instance.onInteractionKey,
+                        enableOnTrigger: instance.enableOnTrigger,
+                        physical: instance.physical,
+                    })
+                    break;
+                case worldPositionConfig.id:
+                    miscData.worldPositions[instance.pointId] = [instance._position[0], instance._position[1]]
+                    break;
+                case collectableItemConfig.id:
+                    items.push({
+                        id: instance.id,
+                        position: [instance._position[0], instance._position[1]],
+                        itemType: instance.itemType,
                     })
                     break;
             }
 
         })
+
+        setMiscData(miscData)
 
         return {
             walls,
@@ -157,24 +178,31 @@ export const LgScene: React.FC = () => {
             sensorZones,
             miscData,
             interactionTriggers,
+            items,
         }
     }, [instances])
 
+    const sceneLoaded = useIsSceneLoaded()
+
+    if (!sceneLoaded) return null
+
     return (
-        <>
+        <MiscDataHandler data={miscData}>
+            <ItemsManager items={items}/>
             <LgNavMeshHandler walkableAreas={walkableAreas}/>
             <LgWallsHandler walls={walls}/>
             <LgSensorsHandler sensors={sensors}/>
             <LgMobsHandler mobs={mobs}/>
             <LgVisibilityZonesHandler data={visibilityZones}/>
             <LgSensorZonesHandler zones={sensorZones}/>
-            <MiscDataHandler data={miscData}/>
             <LgInteractionTriggersHandler data={interactionTriggers}/>
             {
                 loaded && (
                     <LgPlayer/>
                 )
             }
-        </>
+            <LgDynamicStateHandler/>
+            <SceneComponentsManager/>
+        </MiscDataHandler>
     )
 }

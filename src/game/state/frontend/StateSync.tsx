@@ -28,12 +28,12 @@ export const StateSync: React.FC = () => {
     })
 
     useLayoutEffect(() => {
-        setInstancesData(data)
+        setInstancesData('', data)
     }, [])
 
     useEffect(() => {
         if (!sceneDataReady) return
-        const scene = getSceneData()
+        const scene = getSceneData('')
         sendCustomMessage(messageKeys.sceneData, scene)
     }, [sceneDataReady])
 

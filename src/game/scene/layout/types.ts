@@ -24,6 +24,16 @@ export const spawnPointConfig = {
     name: 'Spawn Point',
 }
 
+export const worldPositionConfig = {
+    id: '_worldPosition',
+    name: 'World Point',
+}
+
+export const collectableItemConfig = {
+    id: '_collectableItem',
+    name: 'Collectable Item',
+}
+
 export const interactionTriggerConfig = {
     id: '_interactionTrigger',
     name: 'Interaction Trigger',
@@ -37,4 +47,9 @@ export const visibilityZoneConfig = {
 export const sensorPolygonConfig = {
     id: '_sensorPolygon',
     name: 'Sensor Polygon',
+}
+
+export const wallPolygonConfig = {
+    id: '_wallPolygon',
+    name: 'Wall Polygon',
 }

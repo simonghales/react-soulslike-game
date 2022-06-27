@@ -9,6 +9,7 @@ import {LgStateSync} from "../game/state/backend/LgStateSync";
 import {LgScene} from "../game/scene/LgScene";
 import {CollisionsChecker} from "../game/physics/CollisionsChecker";
 import {logicSyncableComponents} from "../game/data/logicSyncableComponents";
+import {LgSaveHandler} from "../game/state/backend/LgSaveHandler";
 
 export const WorkerApp: React.FC<{
     worker: Worker
@@ -30,6 +31,7 @@ export const WorkerApp: React.FC<{
                             <CollisionsChecker/>
                             <LgScene/>
                             <LgStateSync/>
+                            <LgSaveHandler/>
                             <MobsHandler/>
                             <DeadBodiesHandler/>
                         </SyncableComponents>

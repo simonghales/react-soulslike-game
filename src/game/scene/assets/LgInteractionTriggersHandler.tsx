@@ -9,12 +9,16 @@ import {interactionObjectRadius, interactionTriggerRadius} from "./InteractionTr
 import {useIsTargetedItem} from "../../state/backend/player";
 import {useInteractionStateHandler} from "../../mobs/backend/LgMobDeadBody";
 import {emitPlayerCarvingBegan, emitPlayerInteractionEnd} from "../../events/player";
-import {setStateFlag} from "../../state/backend/scene";
+import {sceneStateProxy, setStateFlag} from "../../state/backend/scene";
+import {subscribe} from "valtio";
+import {sceneStateFlags} from "../dialogue/data";
 
 export type InteractionTriggerData = {
     id: string,
     position: [number, number, number],
     onInteractionKey: string,
+    enableOnTrigger?: string,
+    physical?: boolean,
 }
 
 const useInteractionTriggerBody = (data: InteractionTriggerData, interactable: boolean) => {
@@ -35,10 +39,12 @@ const useInteractionTriggerBody = (data: InteractionTriggerData, interactable: b
             }
         })
 
-        body.createFixture({
-            shape: Circle(interactionObjectRadius),
-            filterCategoryBits: COLLISION_FILTER_GROUPS.environment,
-        })
+        if (data.physical) {
+            body.createFixture({
+                shape: Circle(interactionObjectRadius),
+                filterCategoryBits: COLLISION_FILTER_GROUPS.environment,
+            })
+        }
 
         body.createFixture({
             shape: Circle(interactionTriggerRadius),
@@ -79,16 +85,21 @@ const useInteractionTriggerBody = (data: InteractionTriggerData, interactable: b
     }, [])
 
     useEffect(() => {
-        if (interactable || !body) return
 
-        for (let fixture = body.getFixtureList(); fixture; fixture = fixture.getNext()) {
-            const fixtureData = fixture.getUserData() as any
-            if (fixtureData?.collisionType === CollisionTypes.INTERACTIVE_ITEM) {
-                body.destroyFixture(fixture)
-                // fixture.setFilterCategoryBits(0)
-                // fixture.setFilterMaskBits(0)
-            }
-        }
+        if (!body) return
+
+        body.setActive(interactable)
+
+        // if (interactable || !body) return
+        //
+        // for (let fixture = body.getFixtureList(); fixture; fixture = fixture.getNext()) {
+        //     const fixtureData = fixture.getUserData() as any
+        //     if (fixtureData?.collisionType === CollisionTypes.INTERACTIVE_ITEM) {
+        //         // body.destroyFixture(fixture)
+        //         fixture.setFilterCategoryBits(-1)
+        //         fixture.setFilterMaskBits(-1)
+        //     }
+        // }
 
     }, [body, interactable])
 
@@ -103,9 +114,41 @@ export const LgInteractionTrigger: React.FC<{
 
     const [interacted, setInteracted] = useState(false)
 
-    const interactable = !interacted
+    const [active, setActive] = useState(false)
+
+    const triggerActive = data?.enableOnTrigger ? active : true
+
+    const interactable = !interacted && triggerActive
 
     useInteractionTriggerBody(data, interactable)
+
+    useEffect(() => {
+        if (!data.enableOnTrigger) return
+
+        const checkState = () => {
+            setActive(!!sceneStateProxy.stateFlags[(data.enableOnTrigger as any)])
+        }
+
+        checkState()
+
+        return subscribe(sceneStateProxy.stateFlags, checkState)
+    }, [])
+
+    useEffect(() => {
+        if (!data.onInteractionKey) return
+
+
+        const checkState = () => {
+            if (sceneStateProxy.stateFlags[data.onInteractionKey]) {
+                setInteracted(true)
+            }
+        }
+
+        checkState()
+
+        return subscribe(sceneStateProxy.stateFlags, checkState)
+
+    }, [])
 
     const {
         interacting,

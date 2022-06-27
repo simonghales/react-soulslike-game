@@ -1,7 +1,4 @@
-export enum ItemType {
-    MEDIUM_MEAT = 'MEDIUM_MEAT',
-    MEDIUM_BRAIN = 'MEDIUM_BRAIN',
-}
+import {ItemType} from "./ids";
 
 export type ChestInventoryItem = {
     type: ItemType,

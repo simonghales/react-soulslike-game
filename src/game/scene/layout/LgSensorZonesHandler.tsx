@@ -5,6 +5,7 @@ import {useWorld} from "../../../worker/WorldProvider";
 import {Box, Polygon, Vec2} from "planck";
 import {COLLISION_FILTER_GROUPS, CollisionTypes} from "../../data/collisions";
 import {halve} from "../../../utils/physics";
+import {removeWorldBody} from "../items/LgItem";
 
 export type SensorZoneData = {
     id: string,
@@ -49,22 +50,7 @@ export const useSensorZoneBody = (data: SensorZoneData) => {
             })
         })
 
-
-
-        return () => {
-            const cleanup = () => {
-                if (world.isLocked()) {
-                    throw new Error('World is still locked, failed to remove body.')
-                }
-                world.destroyBody(body)
-            }
-            if (world.isLocked()) {
-                setTimeout(cleanup, 0)
-            } else {
-                cleanup()
-            }
-
-        }
+        return removeWorldBody(world, body)
     }, [])
 
 }

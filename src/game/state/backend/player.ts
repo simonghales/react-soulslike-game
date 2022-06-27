@@ -1,8 +1,8 @@
 import {proxy, ref, useSnapshot} from "valtio";
 import uniqid from 'uniqid';
-import {ItemType} from "../../data/types";
 import {emitPlayerItemReceived} from "../../events/player";
 import {useMemo} from "react";
+import {ItemType} from "../../data/ids";
 
 export type PlayerInventoryItem = {
     type: ItemType,
@@ -14,6 +14,10 @@ const COUNT_LIMIT = 64
 
 export type PlayerInventory = Record<string, PlayerInventoryItem>
 
+const getInventoryItemOrder = () => {
+    return performance.now()
+}
+
 export const backendPlayerStateProxy = proxy({
     selectedTarget: '',
     targetItem: '',
@@ -21,11 +25,19 @@ export const backendPlayerStateProxy = proxy({
         ['0']: ref({
             type: ItemType.MEDIUM_MEAT,
             count: 1,
-            order: performance.now(),
+            order: getInventoryItemOrder(),
         }),
     } as PlayerInventory,
     collidedSensors: [] as string[],
 })
+
+export type StoredPlayerState = {
+    inventory: PlayerInventory,
+}
+
+export const usePlayerCollidedSensors = () => {
+    return useSnapshot(backendPlayerStateProxy.collidedSensors)
+}
 
 export const useIsPlayerInsideSensor = (id: string) => {
 
@@ -97,7 +109,7 @@ export const addItemToPlayerInventory = (type: ItemType, count: number) => {
         backendPlayerStateProxy.inventory[uniqid()] = ref({
             type,
             count: numberToAdd,
-            order: performance.now(),
+            order: getInventoryItemOrder(),
         })
     }
 

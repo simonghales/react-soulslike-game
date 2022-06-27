@@ -15,16 +15,39 @@ export enum SensorId {
     MOB_ROOM = 'MOB_ROOM',
     HALLWAY = 'HALLWAY',
     SPAWN_HALLWAY = 'SPAWN_HALLWAY',
+    L0_AI_INTERACTION = 'L0_AI_INTERACTION',
 }
 
 export enum GameWorldStateIds {
+    L0_AI_OPEN_DOOR = 'L0_AI_OPEN_DOOR',
+    L0_AI_ENABLE_HATCH = 'L0_AI_ENABLE_HATCH',
+    L0_AI_OPEN_HATCH = 'L0_AI_OPEN_HATCH',
     SPAWN_WALL_DESTROYED = 'SPAWN_WALL_DESTROYED',
     MOB_ROOM_WALL_DESTROYED = 'MOB_ROOM_WALL_DESTROYED',
     MOB_ROOM_TRIGGER_RELEASED = 'MOB_ROOM_TRIGGER_RELEASED',
+}
+
+export enum GameWorldDynamicStateIds {
+    L0_AI_ITEMS_OBTAINED = 'L0_AI_ITEMS_OBTAINED',
 }
 
 export enum BreakableWallStrength {
     DEFAULT = 'DEFAULT',
     WEAK = 'WEAK',
     STRONG = 'STRONG',
+}
+
+export enum WorldPositionId {
+    L0_AI_CHAT = 'L0_AI_CHAT',
+    L0_HATCH = 'L0_HATCH',
+}
+
+export enum ItemType {
+    SPARE_BATTERY = 'SPARE_BATTERY',
+    MELEE_WEAPON = 'MELEE_WEAPON',
+    MEDIUM_MEAT = 'MEDIUM_MEAT',
+    MEDIUM_BRAIN = 'MEDIUM_BRAIN',
+}
+
+export enum ItemId {
 }

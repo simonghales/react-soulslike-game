@@ -72,6 +72,7 @@ const WALKING_SPEED = 2
 const JUMPING_SPEED = WALKING_SPEED * 1.25
 const CHARGING_SPEED = WALKING_SPEED * 0.5
 const RUNNING_SPEED = WALKING_SPEED * 1.4
+const CONSTANT_ROLLING_SPEED = RUNNING_SPEED * 1.1
 const ROLLING_SPEED = RUNNING_SPEED * 0.95
 const ATTACKING_SPEED = WALKING_SPEED * 2.75
 
@@ -885,7 +886,7 @@ const processRollingSpeed = (action: PlayerAction) => {
 }
 
 const processConstantRollingSpeed = (action: PlayerAction) => {
-    return RUNNING_SPEED
+    return CONSTANT_ROLLING_SPEED
 }
 
 const processBackSteppingSpeed = (action: PlayerAction) => {
@@ -1143,12 +1144,14 @@ let isSpecialMove = false
 const spareV2 = new Vec2()
 
 const processConstantRollingMovement = (body: Body, v2: Vec2, action: PlayerAction) => {
-    v2.set(lerp(action.data.moveX, v2.x, 0.33), lerp(action.data.moveY, v2.y, 0.33))
+    v2.set(lerp(action.data.moveX, v2.x, 0.2), lerp(action.data.moveY, v2.y, 0.2))
+    v2.normalize()
     action.data.moveX = v2.x
     action.data.moveY = v2.y
     spareV2.set(body.getLinearVelocity())
     spareV2.normalize()
     v2.set(lerp(v2.x, spareV2.x, 0.2), lerp(v2.y, spareV2.y, 0.2))
+    v2.normalize()
     return v2
 }
 

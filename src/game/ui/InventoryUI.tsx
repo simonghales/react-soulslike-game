@@ -5,11 +5,11 @@ import styled, {css} from "styled-components";
 import {useSnapshot} from "valtio";
 import {playerStateProxy} from "../state/frontend/player";
 import {PlayerInventoryItem} from "../state/backend/player";
-import {ItemType} from "../data/types";
 import {useOnCustomMessage} from "@simonghales/react-three-physics";
 import {eventKeys, messageKeys} from "../data/keys";
 import {eventEmitter} from "../events/general";
 import {PlayerEventType} from "../events/player";
+import {ItemType} from "../data/ids";
 
 const StyledContainer = styled.div`
   position: fixed;
@@ -150,15 +150,38 @@ const numberOfSlots = 8
 const ICON_PATHS: Record<string, string> = {
     [ItemType.MEDIUM_BRAIN]: "/assets/icons/brain.svg",
     [ItemType.MEDIUM_MEAT]: "/assets/icons/ham-shank.svg",
+    [ItemType.SPARE_BATTERY]: "/assets/icons/battery-pack-alt.svg",
+    [ItemType.MELEE_WEAPON]: "/assets/icons/monkey-wrench.svg",
 }
 
-const itemsConfig = {
+const itemsConfig: Record<string, {
+    name: string,
+    countable?: boolean,
+}> = {
     [ItemType.MEDIUM_MEAT]: {
         name: 'Meat Portion',
     },
     [ItemType.MEDIUM_BRAIN]: {
         name: 'Brain Portion',
     },
+    [ItemType.SPARE_BATTERY]: {
+        name: 'Spare Battery',
+        countable: false,
+    },
+    [ItemType.MELEE_WEAPON]: {
+        name: 'Melee Weapon',
+        countable: false,
+    },
+}
+
+const isItemCountable = (itemType: ItemType) => {
+
+    const config = itemsConfig[itemType]
+
+    const countable = config?.countable ?? true
+
+    return countable
+
 }
 
 const getIcon = (itemType: ItemType) => {
@@ -192,6 +215,8 @@ const InventorySlot: React.FC<{
     item: PlayerInventoryItem,
 }> = ({item}) => {
 
+    const countable = isItemCountable(item.type)
+
     return (
         <StyledSlot>
             <StyledItem>
@@ -200,9 +225,13 @@ const InventorySlot: React.FC<{
                         getIcon(item.type)
                     }
                 </StyledImageWrapper>
-                <StyledItemCount>
-                    {item.count}
-                </StyledItemCount>
+                {
+                    countable && (
+                        <StyledItemCount>
+                            {item.count}
+                        </StyledItemCount>
+                    )
+                }
             </StyledItem>
         </StyledSlot>
     )

@@ -64,8 +64,18 @@ const cssBackInteracting = css`
   transition: opacity 200ms ease, transform 300ms ease-in;
 `
 
+const cssQuick = css`
+  transform: translateX(0);
+`
+
+const cssBackInteractingQuick = css`
+  opacity: 1;
+  transition: opacity 75ms ease;
+`
+
 const StyledBackShade = styled.div<{
     interacting: boolean,
+    quickPrompt?: boolean,
 }>`
   position: absolute;
   top: 0;
@@ -76,18 +86,20 @@ const StyledBackShade = styled.div<{
   transform: translateX(-100%);
   opacity: 0;
   transition: opacity 200ms ease, transform 50ms ease;
-  ${props => props.interacting ? cssBackInteracting : ''};
+  ${props => props.quickPrompt ? cssQuick : ''};
+  ${props => props.interacting ? props.quickPrompt ? cssBackInteractingQuick : cssBackInteracting : ''};
 `
 
 export const InteractionPrompt: React.FC<{
     hidden: boolean,
     interacting: boolean,
-}> = ({hidden, interacting}) => {
+    quickPrompt?: boolean,
+}> = ({hidden, interacting, quickPrompt = false}) => {
 
     return (
         <StyledContainer>
             <StyledPromptContainer hide={hidden} interacting={interacting}>
-                <StyledBackShade interacting={interacting}/>
+                <StyledBackShade interacting={interacting} quickPrompt={quickPrompt}/>
                 <span>
                     C
                 </span>

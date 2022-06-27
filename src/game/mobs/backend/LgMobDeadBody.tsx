@@ -8,7 +8,8 @@ import {addItemToPlayerInventory, useIsTargetedItem} from "../../state/backend/p
 import {InteractionEvent, InteractionEventType, useOnInteractionEvents} from "../../events/interaction";
 import {emitPlayerCarvingBegan, emitPlayerCarvingEnd} from "../../events/player";
 import {MobType, removeDeadBody} from "../../state/game";
-import {ChestInventoryItem, ItemType} from "../../data/types";
+import {ChestInventoryItem} from "../../data/types";
+import {ItemType} from "../../data/ids";
 
 const deadBodyConfig = {
     [MobType.BASIC_RAT]: {

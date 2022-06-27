@@ -2,8 +2,8 @@ import {Vec2} from "planck";
 import {eventEmitter} from "./general";
 import {useEffectRef} from "../../utils/hooks";
 import {useEffect} from "react";
-import {ItemType} from "../data/types";
 import {eventKeys} from "../data/keys";
+import {ItemType} from "../data/ids";
 
 export enum PlayerEventType {
     DAMAGED = 'DAMAGED',

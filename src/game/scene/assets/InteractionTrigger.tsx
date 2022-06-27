@@ -14,6 +14,19 @@ export const interactionTriggerInputsConfig = {
                 options: ['', ...Object.keys(GameWorldStateIds)],
             },
         },
+        physical: {
+            key: 'physical',
+            label: 'Is Physical',
+            defaultValue: true,
+        },
+        enableOnTrigger: {
+            key: 'enableOnTrigger',
+            label: 'Enable On Trigger',
+            defaultValue: '',
+            options: {
+                options: ['', ...Object.keys(GameWorldStateIds)],
+            },
+        },
     },
 }
 
@@ -37,7 +50,7 @@ export const InteractionTrigger: React.FC<{
 }> = ({position, isTarget, interactable, interacting}) => {
     return (
         <group position={position}>
-            <Cylinder args={[interactionObjectRadius, interactionObjectRadius]} rotation={[degToRad(90), 0, 0]}/>
+            {/*<Cylinder args={[interactionObjectRadius, interactionObjectRadius]} rotation={[degToRad(90), 0, 0]}/>*/}
             {
                 interactable && (
                     <Circle args={[interactionTriggerRadius * 1.5, 32]}>

@@ -1,5 +1,5 @@
 import React, {useMemo} from "react"
-import {useSnapshot} from "valtio";
+import {snapshot, useSnapshot} from "valtio";
 import {backendPlayerStateProxy} from "./player";
 import {useTransmitData} from "@simonghales/react-three-physics";
 import {syncKeys} from "../../data/keys";

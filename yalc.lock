@@ -1,0 +1,10 @@
+{
+  "version": "v1",
+  "packages": {
+    "@simonghales/react-three-physics": {
+      "signature": "c212257951e9a0475cd39a1e337c4deb",
+      "link": true,
+      "replaced": "^0.1.6"
+    }
+  }
+}

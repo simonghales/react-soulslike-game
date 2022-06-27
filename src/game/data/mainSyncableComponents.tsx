@@ -5,6 +5,9 @@ import {Player} from "../player/Player";
 import {Wall} from "../scene/layout/Wall";
 import {VisibilityZone} from "../scene/layout/VisibilityZone";
 import {InteractionTrigger} from "../scene/assets/InteractionTrigger";
+import {ActiveDialogue} from "../scene/dialogue/ActiveDialogue";
+import {CollectableItem} from "../scene/items/CollectableItem";
+import {Hatch} from "../scene/assets/niche/Hatch";
 
 export const mainSyncableComponents = {
     [componentSyncKeys.wall]: Wall,
@@ -13,4 +16,7 @@ export const mainSyncableComponents = {
     [componentSyncKeys.basicMobDead]: MobDeadBody,
     [componentSyncKeys.visibilityZone]: VisibilityZone,
     [componentSyncKeys.interactionTrigger]: InteractionTrigger,
+    [componentSyncKeys.activeDialogue]: ActiveDialogue,
+    [componentSyncKeys.item]: CollectableItem,
+    [componentSyncKeys.hatch]: Hatch,
 }

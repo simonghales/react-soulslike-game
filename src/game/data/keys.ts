@@ -52,4 +52,7 @@ export const componentSyncKeys = {
     basicMobDead: 'basicMobDead',
     visibilityZone: 'visibilityZone',
     interactionTrigger: 'interactionTrigger',
+    activeDialogue: 'activeDialogue',
+    item: 'item',
+    hatch: 'hatch',
 }
