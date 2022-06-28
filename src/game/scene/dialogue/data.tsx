@@ -138,15 +138,32 @@ export const l1IntroNextStepDialogueSceneComponent: SceneComponent = {
     render: (props: SceneComponentRenderProps) => <DialogueChunkWrapper data={l1IntroNextStepDialogue} {...props}/>,
 }
 
+enum HatchId {
+    L0_HATCH_ENTRY = 'L0_HATCH_ENTRY',
+    L0_HATCH_EXIT = 'L0_HATCH_EXIT',
+}
+
 export const l1IntroHatchComponent: SceneComponent = {
     id: 'l1_intro_hatch_sc',
-    render: () => <LgHatch/>,
+    render: () => <LgHatch id={HatchId.L0_HATCH_ENTRY} exit={HatchId.L0_HATCH_EXIT} positionId={WorldPositionId.L0_HATCH} activeFlag={GameWorldStateIds.L0_AI_OPEN_HATCH}/>,
+}
+
+const onHatchExit = () => {
+    console.log('onHatchExit!')
+}
+
+export const l1IntroHatchExitComponent: SceneComponent = {
+    id: 'l1_intro_hatch_exit_sc',
+    render: () => <LgHatch id={HatchId.L0_HATCH_EXIT}
+                           exit={HatchId.L0_HATCH_ENTRY} height={10} exitOnly
+                           positionId={WorldPositionId.L0_HATCH_DESTINATION} onExit={onHatchExit}/>,
 }
 
 export const l0SceneComponents: SceneComponents = {
     [l1IntroDialogueSceneComponent.id]: l1IntroDialogueSceneComponent,
     [l1IntroNextStepDialogueSceneComponent.id]: l1IntroNextStepDialogueSceneComponent,
     [l1IntroHatchComponent.id]: l1IntroHatchComponent,
+    [l1IntroHatchExitComponent.id]: l1IntroHatchExitComponent,
 }
 
 export const sceneStateFlags: SceneStateFlags = {}

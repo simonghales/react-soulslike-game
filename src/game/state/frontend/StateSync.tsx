@@ -3,8 +3,8 @@ import {useOnCustomMessage, useSendCustomMessage, useSyncData} from "@simonghale
 import {messageKeys, syncKeys} from "../../data/keys";
 import {updatePlayerInventory} from "./player";
 import {emitPlayerInventoryItemReceived} from "../../events/player";
-import data from "../../scene/data.json"
 import {getSceneData, setInstancesData} from "@simonghales/react-three-scene-editor";
+import {gameScenes, SceneIds} from "../../data/scenes";
 
 export const StateSync: React.FC = () => {
 
@@ -28,12 +28,20 @@ export const StateSync: React.FC = () => {
     })
 
     useLayoutEffect(() => {
-        setInstancesData('', data)
+        Object.values(gameScenes).forEach((scene) => {
+            setInstancesData(scene.id, scene.data)
+        })
     }, [])
 
     useEffect(() => {
         if (!sceneDataReady) return
-        const scene = getSceneData('')
+        const scenes: Record<string, any> = {}
+        Object.keys(gameScenes).forEach(id => {
+            const scene = getSceneData(id)
+            scenes[id] = scene
+        })
+        console.log('scenes', scenes)
+        const scene = getSceneData(SceneIds.l0)
         sendCustomMessage(messageKeys.sceneData, scene)
     }, [sceneDataReady])
 

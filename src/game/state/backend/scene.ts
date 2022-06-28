@@ -5,6 +5,29 @@ import {get, set} from "local-storage";
 import {backendPlayerStateProxy, StoredPlayerState} from "./player";
 import {merge} from "lodash";
 
+export type HatchData = {
+    position: [number, number],
+    height?: number,
+}
+
+export const staticLevelData = {
+    hatches: new Map<string, HatchData>()
+}
+
+export const setHatchPosition = (id: string, position: [number, number], height?: number) => {
+    staticLevelData.hatches.set(id, {
+        position,
+        height,
+    })
+    return () => {
+        staticLevelData.hatches.delete(id)
+    }
+}
+
+export const getHatchPosition = (id: string) => {
+    return staticLevelData.hatches.get(id)
+}
+
 export type SceneState = {
     sceneLoaded: boolean,
     occludedVisibilityZones: Record<string, boolean>,
@@ -62,9 +85,9 @@ export const setDialogueCompleted = (id: string) => {
     sceneStateProxy.completedDialogue[id] = true
 }
 
-export const useIsFlag = (flag: string) => {
+export const useIsFlag = (flag?: string) => {
     const flags = useSnapshot(sceneStateProxy).stateFlags
-    return !!flags[flag]
+    return flag ? !!flags[flag] : true
 }
 
 export const setSceneState = (state: StoredSceneState & StoredPlayerState) => {

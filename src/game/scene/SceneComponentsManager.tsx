@@ -1,13 +1,29 @@
-import React, {Fragment, useEffect, useState} from "react"
+import React, {Fragment, useEffect, useMemo, useState} from "react"
 import {l0SceneComponents} from "./dialogue/data";
 import {SensorId} from "../data/ids";
 import {usePlayerCollidedSensors} from "../state/backend/player";
 import {useSnapshot} from "valtio";
 import {sceneStateProxy} from "../state/backend/scene";
+import {SceneComponents} from "./dialogue/types";
+import {merge} from "lodash";
+import {SceneIds} from "../data/scenes";
+
+const allSceneComponents: Record<string, SceneComponents> = {
+    ['']: l0SceneComponents,
+    ['_restorePower']: {},
+}
 
 export const SceneComponentsManager: React.FC = () => {
 
-    const sceneComponents = l0SceneComponents
+    const activeScenes = [SceneIds.l0]
+
+    const sceneComponents = useMemo(() => {
+        const components: SceneComponents = {}
+        activeScenes.forEach(sceneId => {
+            merge(components, allSceneComponents[sceneId] ?? {})
+        })
+        return components
+    }, [activeScenes])
 
     const [renderedComponents, setRenderedComponents] = useState({} as Record<string, any>)
 

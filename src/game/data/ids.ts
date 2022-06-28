@@ -40,6 +40,7 @@ export enum BreakableWallStrength {
 export enum WorldPositionId {
     L0_AI_CHAT = 'L0_AI_CHAT',
     L0_HATCH = 'L0_HATCH',
+    L0_HATCH_DESTINATION = 'L0_HATCH_DESTINATION',
 }
 
 export enum ItemType {

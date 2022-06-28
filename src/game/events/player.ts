@@ -4,10 +4,12 @@ import {useEffectRef} from "../../utils/hooks";
 import {useEffect} from "react";
 import {eventKeys} from "../data/keys";
 import {ItemType} from "../data/ids";
+import {HatchData} from "../state/backend/scene";
 
 export enum PlayerEventType {
     DAMAGED = 'DAMAGED',
     CARVING_BEGAN = 'CARVING_BEGAN',
+    ENTER_LADDER = 'ENTER_LADDER',
     CARVING_END = 'CARVING_END',
     INTERACTION_END = 'INTERACTION_END',
     ITEM_RECEIVED = 'ITEM_RECEIVED',
@@ -34,6 +36,19 @@ export const emitPlayerCarvingBegan = (id: string, time: number) => {
         data: {
             id,
             time,
+        }
+    })
+}
+
+export const emitPlayerEnterLadder = (id: string, position: [number, number], destination: HatchData, direction: number, height?: number) => {
+    eventEmitter.emit(`player`, {
+        type: PlayerEventType.ENTER_LADDER,
+        data: {
+            id,
+            position,
+            destination,
+            direction,
+            height,
         }
     })
 }

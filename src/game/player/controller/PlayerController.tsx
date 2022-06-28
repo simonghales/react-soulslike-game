@@ -29,6 +29,7 @@ import {MobEventType} from "../../mobs/brain/events";
 import {useInteractionHandler} from "./interactionHandler";
 import {emitInteractionBegan, emitInteractionEnded, emitInteractionInterrupted} from "../../events/interaction";
 import {RollingHandler} from "./RollingHandler";
+import {HatchData} from "../../state/backend/scene";
 
 let pressed = false
 let held = false
@@ -939,6 +940,8 @@ export enum PlayerActionType {
     CONSTANT_ROLL = 'CONSTANT_ROLL',
     JUMP = 'JUMP',
     BACK_STEP = 'BACK_STEP',
+    CLIMBING_LADDER = 'CLIMBING_LADDER',
+    FALLING = 'FALLING',
 }
 
 export type PlayerAction = {
@@ -1206,6 +1209,65 @@ const processSyncState = (
 
 }
 
+let movementAmount = 0
+let distanceToMove = 0
+let remainingHeight = 0
+
+const processFalling = (action: PlayerAction, body: Body, delta: number, controllerActions: ControllerActions) => {
+    distanceToMove = 0.2 * delta
+    remainingHeight = action.data.height - distanceToMove
+    if (remainingHeight <= 0) {
+        controllerActions.stopFalling()
+    } else {
+        action.data.height = remainingHeight
+    }
+    v2.set(body.getPosition().x, body.getPosition().y - distanceToMove * 0.5)
+    body.setPosition(v2)
+}
+
+const processLadderMovement = (action: PlayerAction, moveX: number, moveY: number, delta: number, controllerActions: ControllerActions) => {
+    if (moveY !== 0) {
+        movementAmount = moveY * 0.025 * delta
+        action.data.yPosition += movementAmount
+        if (action.data.direction === 1) {
+            if (action.data.yPosition > action.data.destination.position[1]) {
+                controllerActions.exitLadder()
+                return
+            } else if (action.data.yPosition < action.data.position[1]) {
+                controllerActions.exitLadder()
+                return
+            }
+        } else {
+            if (action.data.yPosition > action.data.position[1]) {
+                controllerActions.exitLadder()
+                return
+            } else if (action.data.yPosition < action.data.destination.position[1]) {
+                controllerActions.exitLadder()
+                return
+            }
+        }
+    }
+    if (moveX !== 0) {
+        if (action.data.direction === 1) {
+            if (action.data.yPosition > action.data.destination.position[1] - 0.25) {
+                controllerActions.exitLadder()
+                return
+            } else if (action.data.yPosition < action.data.position[1] + 0.25) {
+                controllerActions.exitLadder()
+                return
+            }
+        } else {
+            if (action.data.yPosition > action.data.position[1] - 0.25) {
+                controllerActions.exitLadder()
+                return
+            } else if (action.data.yPosition < action.data.destination.position[1] + 0.25) {
+                controllerActions.exitLadder()
+                return
+            }
+        }
+    }
+}
+
 const processMovement = (
     movementState: MovementState,
     actionState: PlayerActionState,
@@ -1217,6 +1279,7 @@ const processMovement = (
     combatBody: Body,
     delta: number,
     selectedTarget: SelectedTarget,
+    controllerActions: ControllerActions,
 ) => {
 
 
@@ -1235,7 +1298,11 @@ const processMovement = (
 
     speed = processSpeed(keysState, delta, actionState, inputsState, processedState)
 
-    if (actionState?.currentAction?.type === PlayerActionType.ATTACK) {
+    if (actionState?.currentAction?.type === PlayerActionType.FALLING) {
+        processFalling(actionState.currentAction, body, delta, controllerActions)
+    } else if (actionState?.currentAction?.type === PlayerActionType.CLIMBING_LADDER) {
+        processLadderMovement(actionState.currentAction, moveX, moveY, delta, controllerActions)
+    } else if (actionState?.currentAction?.type === PlayerActionType.ATTACK) {
         v2.set(actionState?.currentAction.data.attackX, actionState?.currentAction.data.attackY)
         v2.normalize()
         movementVector.set(v2)
@@ -1327,6 +1394,9 @@ export type ControllerActions = {
     onInteractEnd: (id: string) => void,
     onCarvingBegin: (id: string, time: number) => void,
     onCarvingEnd: (id: string, time: number) => void,
+    enterLadder: (id: string, position: [number, number], destination: HatchData, direction: number, height: number) => void,
+    exitLadder: () => void,
+    stopFalling: () => void,
 }
 
 let xPos = 0
@@ -1397,7 +1467,20 @@ export const PlayerController: React.FC = () => {
         localStateRef.current.playerState.inTargetMode = isInTargetMode
     }, [isInTargetMode])
 
+    const [climbingLadder, setClimbingLadder] = useState(false)
+
     const controllerActions = useMemo<ControllerActions>(() => {
+
+        const setFalling = (height: number) => {
+            actionState.currentAction = {
+                type: PlayerActionType.FALLING,
+                time: Date.now(),
+                data: {
+                    height,
+                },
+            }
+        }
+
         return {
             enterTargetMode: () => {
                 const target = targetControls.selectIdealTarget()
@@ -1435,8 +1518,53 @@ export const PlayerController: React.FC = () => {
                 localStateRef.current.playerState.currentlyCarvingId = ''
                 setCanInteract(true)
             },
+            enterLadder: (id: string, position: [number, number], destination: HatchData, direction: number, height: number) => {
+                actionState.currentAction = null
+                inputsState.queue.length = 0
+                v2.set(position[0], position[1])
+                body.setPosition(v2)
+                actionState.currentAction = {
+                    type: PlayerActionType.CLIMBING_LADDER,
+                    time: performance.now(),
+                    data: {
+                        position,
+                        destination,
+                        direction,
+                        height,
+                        yPosition: position[1],
+                    }
+                }
+                setClimbingLadder(true)
+            },
+            exitLadder: () => {
+                const action = actionState.currentAction
+                actionState.currentAction = null
+                inputsState.queue.length = 0
+                setClimbingLadder(false)
+                if (action?.data?.direction === 1) {
+                    if (action?.data?.yPosition <= action?.data?.position[1]) {
+                        if (action?.data?.height) {
+                            setFalling(action?.data?.height)
+                        }
+                    }
+                } else {
+                    if (action?.data?.yPosition <= action?.data?.destination.position[1]) {
+                        if (action?.data?.destination.height) {
+                            setFalling(action?.data?.destination.height)
+                        }
+                    }
+                }
+            },
+            stopFalling: () => {
+                actionState.currentAction = null
+                inputsState.queue.length = 0
+            }
         }
     }, [targetControls])
+
+    useEffect(() => {
+        body.setActive(!climbingLadder)
+    }, [climbingLadder])
 
     useOnPhysicsUpdate(useCallback((delta) => {
 
@@ -1451,7 +1579,19 @@ export const PlayerController: React.FC = () => {
         processState(true, processedState, actionState, inputsState, playerState)
         processInputsQueue(inputsState, processedState, actionState, energyState, keysState, playerState, body, setCurrentAttack, selectedTarget, controllerActions)
         processState(false, processedState, actionState, inputsState, playerState) // process again...
-        processMovement(movementState, actionState, processedState, keysState, inputsState, energyState, body, combatBody, delta, selectedTarget)
+        processMovement(
+            movementState,
+            actionState,
+            processedState,
+            keysState,
+            inputsState,
+            energyState,
+            body,
+            combatBody,
+            delta,
+            selectedTarget,
+            controllerActions,
+        )
         processSyncState(processedState, previousStateData, setPlayerRolling, setPlayerConstantRolling)
 
         if (energyState.newUsage > 0) {
@@ -1460,6 +1600,11 @@ export const PlayerController: React.FC = () => {
 
         xPos = body.getPosition().x
         yPos = body.getPosition().y
+
+        if (actionState?.currentAction?.type === PlayerActionType.CLIMBING_LADDER) {
+            v2.set(xPos, actionState.currentAction.data.yPosition)
+            body.setPosition(v2)
+        }
 
         currentlyAtRest = (xPos === playerState.previousX && yPos === playerState.previousY)
 
@@ -1560,6 +1705,9 @@ export const PlayerController: React.FC = () => {
                 break;
             case PlayerEventType.CARVING_END:
                 controllerActions.onCarvingEnd(event.data.id, event.data.time)
+                break;
+            case PlayerEventType.ENTER_LADDER:
+                controllerActions.enterLadder(event.data.id, event.data.position, event.data.destination, event.data.direction, event.data.height)
                 break;
             case PlayerEventType.ITEM_RECEIVED:
                 sendCustomMessage(messageKeys.playerInventoryChange, {

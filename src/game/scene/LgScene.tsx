@@ -23,8 +23,25 @@ import {SceneComponentsManager} from "./SceneComponentsManager";
 import {ItemData, ItemsData, ItemsManager} from "./items/ItemsManager";
 import {LgDynamicStateHandler} from "../state/backend/LgDynamicStateHandler";
 import {setMiscData, useIsSceneLoaded} from "../state/backend/scene";
+import {SceneIds} from "../data/scenes";
+
+const useSceneManager = () => {
+
+    const activeScenes = useMemo(() => {
+        return [SceneIds.l0, SceneIds.l1]
+    }, [])
+
+    return {
+        activeScenes,
+    }
+
+}
 
 export const LgScene: React.FC = () => {
+
+    const {
+        activeScenes,
+    } = useSceneManager()
 
     const sendCustomMessage = useSendCustomMessage()
 

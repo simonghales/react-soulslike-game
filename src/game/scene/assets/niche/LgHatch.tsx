@@ -1,13 +1,15 @@
-import React, {useEffect, useMemo, useState} from "react"
-import {sceneStateProxy, useIsFlag} from "../../../state/backend/scene";
+import React, {useCallback, useEffect, useMemo, useState} from "react"
+import {getHatchPosition, sceneStateProxy, setHatchPosition, useIsFlag} from "../../../state/backend/scene";
 import {GameWorldStateIds, WorldPositionId} from "../../../data/ids";
-import {SyncComponent} from "@simonghales/react-three-physics";
+import {SyncComponent, useOnKeyDown} from "@simonghales/react-three-physics";
 import {componentSyncKeys} from "../../../data/keys";
 import {useWorld} from "../../../../worker/WorldProvider";
 import {Body, Circle, Vec2} from "planck";
 import {removeWorldBody} from "../../items/LgItem";
 import {COLLISION_FILTER_GROUPS, CollisionTypes} from "../../../data/collisions";
 import {useIsTargetedItem} from "../../../state/backend/player";
+import {INPUT_KEYS} from "../../../input/INPUT_KEYS";
+import {emitPlayerEnterLadder} from "../../../events/player";
 
 const useHatchBody = (id: string, position: [number, number], activated: boolean) => {
 
@@ -43,13 +45,23 @@ const useHatchBody = (id: string, position: [number, number], activated: boolean
 
 }
 
-export const LgHatch: React.FC = () => {
+export const LgHatch: React.FC<{
+    id: string,
+    exit: string,
+    positionId: string,
+    activeFlag?: string,
+    exitOnly?: boolean,
+    height?: number,
+    onExit?: () => void,
+}> = ({id, exit, positionId, activeFlag, exitOnly, height, onExit}) => {
 
-    const id = 'hatch'
+    const position = sceneStateProxy.miscData.worldPositions[positionId]
 
-    const position = sceneStateProxy.miscData.worldPositions[WorldPositionId.L0_HATCH]
+    useEffect(() => {
+        setHatchPosition(id, position, height)
+    }, [])
 
-    const activated = useIsFlag(GameWorldStateIds.L0_AI_OPEN_HATCH)
+    const activated = useIsFlag(activeFlag) && !exitOnly
 
     if (!position) throw new Error(`No position...`)
 
@@ -57,5 +69,37 @@ export const LgHatch: React.FC = () => {
 
     const isTarget = useIsTargetedItem(id)
 
-    return <SyncComponent isTarget={isTarget} activated={activated} componentId={componentSyncKeys.hatch} id={id} position={position}/>
+    const [enteringHatch, setEnteringHatch] = useState(0)
+
+    const canInteract = isTarget && !exitOnly
+
+    const canEnter = canInteract && !enteringHatch
+
+    useOnKeyDown(INPUT_KEYS.C[0], useCallback(() => {
+        if (!canEnter) return
+        const destination = getHatchPosition(exit)
+        if (!destination) {
+            throw new Error(`No destination found.`)
+        }
+        let direction = (destination.position[1] < position[1]) ? -1 : 1
+        emitPlayerEnterLadder(id, position, destination, direction, height)
+        setEnteringHatch(Date.now())
+    }, [canEnter]))
+
+    useEffect(() => {
+        if (!enteringHatch) return
+        const timeout = setTimeout(() => {
+            setEnteringHatch(0)
+        }, 1000)
+        return () => {
+            clearTimeout(timeout)
+        }
+    }, [enteringHatch])
+
+    useEffect(() => {
+        if (!onExit) return
+        // todo - listen for exit event, and then trigger this function...
+    }, [onExit])
+
+    return <SyncComponent entering={enteringHatch} isTarget={canInteract} activated={activated} componentId={componentSyncKeys.hatch} id={id} position={position}/>
 }
