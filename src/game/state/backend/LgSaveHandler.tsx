@@ -43,7 +43,8 @@ const DatabaseHandler: React.FC<{
             leading: true,
             trailing: true,
             maxWait: 5000,
-        })
+            maxChonk: 2,
+        } as any)
 
         const unsub: any[] = []
 

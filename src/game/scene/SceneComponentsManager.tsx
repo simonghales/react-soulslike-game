@@ -15,15 +15,14 @@ const allSceneComponents: Record<string, SceneComponents> = {
 
 export const SceneComponentsManager: React.FC = () => {
 
-    const activeScenes = [SceneIds.l0]
-
     const sceneComponents = useMemo(() => {
+        const activeScenes = [SceneIds.l0]
         const components: SceneComponents = {}
         activeScenes.forEach(sceneId => {
             merge(components, allSceneComponents[sceneId] ?? {})
         })
         return components
-    }, [activeScenes])
+    }, [])
 
     const [renderedComponents, setRenderedComponents] = useState({} as Record<string, any>)
 

@@ -65,6 +65,10 @@ const getInitialSceneState = (): SceneState => {
 
 export const sceneStateProxy = proxy(getInitialSceneState())
 
+export const getWorldPosition = (id: string) => {
+    return sceneStateProxy.miscData.worldPositions[id]
+}
+
 export const setSceneLoaded = () => {
     sceneStateProxy.sceneLoaded = true
 }

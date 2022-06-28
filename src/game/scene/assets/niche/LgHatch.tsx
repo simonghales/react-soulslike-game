@@ -1,5 +1,11 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react"
-import {getHatchPosition, sceneStateProxy, setHatchPosition, useIsFlag} from "../../../state/backend/scene";
+import {
+    getHatchPosition,
+    getWorldPosition,
+    sceneStateProxy,
+    setHatchPosition,
+    useIsFlag
+} from "../../../state/backend/scene";
 import {GameWorldStateIds, WorldPositionId} from "../../../data/ids";
 import {SyncComponent, useOnKeyDown} from "@simonghales/react-three-physics";
 import {componentSyncKeys} from "../../../data/keys";
@@ -55,7 +61,7 @@ export const LgHatch: React.FC<{
     onExit?: () => void,
 }> = ({id, exit, positionId, activeFlag, exitOnly, height, onExit}) => {
 
-    const position = sceneStateProxy.miscData.worldPositions[positionId]
+    const position = getWorldPosition(positionId)
 
     useEffect(() => {
         setHatchPosition(id, position, height)

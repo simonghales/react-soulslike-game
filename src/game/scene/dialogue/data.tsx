@@ -18,6 +18,7 @@ import {
 import {subscribe} from "valtio";
 import {backendPlayerStateProxy} from "../../state/backend/player";
 import {LgHatch} from "../assets/niche/LgHatch";
+import {LgAiCharacter} from "../assets/niche/LgAiCharacter";
 
 
 const subscribeDynamicFlag = (flag: string, setResult: (result: boolean) => void) => {
@@ -159,11 +160,17 @@ export const l1IntroHatchExitComponent: SceneComponent = {
                            positionId={WorldPositionId.L0_HATCH_DESTINATION} onExit={onHatchExit}/>,
 }
 
+export const l1AiCharacter: SceneComponent = {
+    id: 'l1_ai_character',
+    render: () => <LgAiCharacter/>,
+}
+
 export const l0SceneComponents: SceneComponents = {
     [l1IntroDialogueSceneComponent.id]: l1IntroDialogueSceneComponent,
     [l1IntroNextStepDialogueSceneComponent.id]: l1IntroNextStepDialogueSceneComponent,
     [l1IntroHatchComponent.id]: l1IntroHatchComponent,
     [l1IntroHatchExitComponent.id]: l1IntroHatchExitComponent,
+    [l1AiCharacter.id]: l1AiCharacter,
 }
 
 export const sceneStateFlags: SceneStateFlags = {}

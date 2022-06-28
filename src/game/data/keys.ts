@@ -55,4 +55,5 @@ export const componentSyncKeys = {
     activeDialogue: 'activeDialogue',
     item: 'item',
     hatch: 'hatch',
+    aiCharacter: 'aiCharacter',
 }

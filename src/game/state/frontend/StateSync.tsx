@@ -42,6 +42,7 @@ export const StateSync: React.FC = () => {
         })
         console.log('scenes', scenes)
         const scene = getSceneData(SceneIds.l0)
+        console.log('scene', scene)
         sendCustomMessage(messageKeys.sceneData, scene)
     }, [sceneDataReady])
 

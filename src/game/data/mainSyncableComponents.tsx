@@ -8,6 +8,7 @@ import {InteractionTrigger} from "../scene/assets/InteractionTrigger";
 import {ActiveDialogue} from "../scene/dialogue/ActiveDialogue";
 import {CollectableItem} from "../scene/items/CollectableItem";
 import {Hatch} from "../scene/assets/niche/Hatch";
+import {AiCharacter} from "../scene/assets/niche/AiCharacter";
 
 export const mainSyncableComponents = {
     [componentSyncKeys.wall]: Wall,
@@ -19,4 +20,5 @@ export const mainSyncableComponents = {
     [componentSyncKeys.activeDialogue]: ActiveDialogue,
     [componentSyncKeys.item]: CollectableItem,
     [componentSyncKeys.hatch]: Hatch,
+    [componentSyncKeys.aiCharacter]: AiCharacter,
 }
