@@ -27,7 +27,9 @@ const DatabaseHandler: React.FC<{
 
         const loadInit = async () => {
             const value = await fetchStoredGameState(database)
-            setSceneState(value)
+            if (value) {
+                setSceneState(value)
+            }
             setSceneLoaded()
         }
 
