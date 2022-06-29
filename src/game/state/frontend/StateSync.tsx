@@ -27,23 +27,23 @@ export const StateSync: React.FC = () => {
         setSceneDataReady(true)
     })
 
-    useLayoutEffect(() => {
-        Object.values(gameScenes).forEach((scene) => {
-            setInstancesData(scene.id, scene.data)
-        })
-    }, [])
+    // useLayoutEffect(() => {
+    //     Object.values(gameScenes).forEach((scene) => {
+    //         setInstancesData(scene.id, scene.data)
+    //         console.log('setInstancesData', scene.data)
+    //     })
+    // }, [])
 
     useEffect(() => {
         if (!sceneDataReady) return
         const scenes: Record<string, any> = {}
-        Object.keys(gameScenes).forEach(id => {
-            const scene = getSceneData(id)
+        Object.entries(gameScenes).forEach(([id, data]) => {
+            const scene = getSceneData(id, data.data)
             scenes[id] = scene
+            if (id === SceneIds.l0) {
+                sendCustomMessage(messageKeys.sceneData, scene)
+            }
         })
-        console.log('scenes', scenes)
-        const scene = getSceneData(SceneIds.l0)
-        console.log('scene', scene)
-        sendCustomMessage(messageKeys.sceneData, scene)
     }, [sceneDataReady])
 
     return null

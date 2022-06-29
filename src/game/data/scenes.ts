@@ -26,5 +26,5 @@ export const l1Scene: GameScene = {
 
 export const gameScenes: Record<string, GameScene> = {
     [l0Scene.id]: l0Scene,
-    [l1Scene.id]: l1Scene,
+    // [l1Scene.id]: l1Scene,
 }

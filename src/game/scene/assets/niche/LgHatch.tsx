@@ -51,7 +51,7 @@ const useHatchBody = (id: string, position: [number, number], activated: boolean
 
 }
 
-export const LgHatch: React.FC<{
+export type HatchConfig = {
     id: string,
     exit: string,
     positionId: string,
@@ -59,7 +59,15 @@ export const LgHatch: React.FC<{
     exitOnly?: boolean,
     height?: number,
     onExit?: () => void,
-}> = ({id, exit, positionId, activeFlag, exitOnly, height, onExit}) => {
+    noReturnDistance?: number,
+    triggerThreshold?: number,
+}
+
+export const LgHatch: React.FC<{
+    data: HatchConfig,
+}> = ({data}) => {
+
+    const {id, exit, positionId, activeFlag, exitOnly, height, onExit} = data
 
     const position = getWorldPosition(positionId)
 
@@ -88,7 +96,7 @@ export const LgHatch: React.FC<{
             throw new Error(`No destination found.`)
         }
         let direction = (destination.position[1] < position[1]) ? -1 : 1
-        emitPlayerEnterLadder(id, position, destination, direction, height)
+        emitPlayerEnterLadder(id, position, destination, direction, height, data)
         setEnteringHatch(Date.now())
     }, [canEnter]))
 

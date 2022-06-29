@@ -5,6 +5,7 @@ import {useEffect} from "react";
 import {eventKeys} from "../data/keys";
 import {ItemType} from "../data/ids";
 import {HatchData} from "../state/backend/scene";
+import {HatchConfig} from "../scene/assets/niche/LgHatch";
 
 export enum PlayerEventType {
     DAMAGED = 'DAMAGED',
@@ -40,7 +41,7 @@ export const emitPlayerCarvingBegan = (id: string, time: number) => {
     })
 }
 
-export const emitPlayerEnterLadder = (id: string, position: [number, number], destination: HatchData, direction: number, height?: number) => {
+export const emitPlayerEnterLadder = (id: string, position: [number, number], destination: HatchData, direction: number, height: number | undefined, hatchData: HatchConfig) => {
     eventEmitter.emit(`player`, {
         type: PlayerEventType.ENTER_LADDER,
         data: {
@@ -49,6 +50,7 @@ export const emitPlayerEnterLadder = (id: string, position: [number, number], de
             destination,
             direction,
             height,
+            hatchData,
         }
     })
 }

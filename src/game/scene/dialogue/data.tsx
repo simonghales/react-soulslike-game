@@ -17,7 +17,7 @@ import {
 } from "../../state/backend/scene";
 import {subscribe} from "valtio";
 import {backendPlayerStateProxy} from "../../state/backend/player";
-import {LgHatch} from "../assets/niche/LgHatch";
+import {HatchConfig, LgHatch} from "../assets/niche/LgHatch";
 import {LgAiCharacter} from "../assets/niche/LgAiCharacter";
 import {LgSceneTextures} from "../assets/niche/LgSceneTextures";
 
@@ -151,20 +151,36 @@ enum HatchId {
     L0_HATCH_EXIT = 'L0_HATCH_EXIT',
 }
 
-export const l1IntroHatchComponent: SceneComponent = {
-    id: 'l1_intro_hatch_sc',
-    render: () => <LgHatch id={HatchId.L0_HATCH_ENTRY} exit={HatchId.L0_HATCH_EXIT} positionId={WorldPositionId.L0_HATCH} activeFlag={GameWorldStateIds.L0_AI_OPEN_HATCH}/>,
-}
-
 const onHatchExit = () => {
     console.log('onHatchExit!')
 }
 
+const introHatch: HatchConfig = {
+    id: HatchId.L0_HATCH_ENTRY,
+    exit: HatchId.L0_HATCH_EXIT,
+    positionId: WorldPositionId.L0_HATCH,
+    activeFlag: GameWorldStateIds.L0_AI_OPEN_HATCH,
+    noReturnDistance: 1,
+    triggerThreshold: 1.5,
+}
+
+const introHatchExit: HatchConfig = {
+    id: HatchId.L0_HATCH_EXIT,
+    exit: HatchId.L0_HATCH_ENTRY,
+    height: 10,
+    exitOnly: true,
+    positionId: WorldPositionId.L0_HATCH_DESTINATION,
+    onExit: onHatchExit,
+}
+
+export const l1IntroHatchComponent: SceneComponent = {
+    id: 'l1_intro_hatch_sc',
+    render: () => <LgHatch data={introHatch}/>,
+}
+
 export const l1IntroHatchExitComponent: SceneComponent = {
     id: 'l1_intro_hatch_exit_sc',
-    render: () => <LgHatch id={HatchId.L0_HATCH_EXIT}
-                           exit={HatchId.L0_HATCH_ENTRY} height={10} exitOnly
-                           positionId={WorldPositionId.L0_HATCH_DESTINATION} onExit={onHatchExit}/>,
+    render: () => <LgHatch data={introHatchExit}/>,
 }
 
 export const l1AiCharacter: SceneComponent = {

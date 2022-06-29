@@ -30,6 +30,7 @@ import {useInteractionHandler} from "./interactionHandler";
 import {emitInteractionBegan, emitInteractionEnded, emitInteractionInterrupted} from "../../events/interaction";
 import {RollingHandler} from "./RollingHandler";
 import {HatchData} from "../../state/backend/scene";
+import {HatchConfig} from "../../scene/assets/niche/LgHatch";
 
 let pressed = false
 let held = false
@@ -941,6 +942,7 @@ export enum PlayerActionType {
     JUMP = 'JUMP',
     BACK_STEP = 'BACK_STEP',
     CLIMBING_LADDER = 'CLIMBING_LADDER',
+    ENTER_LADDER = 'ENTER_LADDER',
     FALLING = 'FALLING',
 }
 
@@ -1225,10 +1227,46 @@ const processFalling = (action: PlayerAction, body: Body, delta: number, control
     body.setPosition(v2)
 }
 
+const processEnterLadder = (actionState: PlayerActionState, body: Body, delta: number) => {
+    v2.set((actionState.currentAction as any).data.position[0], (actionState.currentAction as any).data.position[1])
+    v2.sub(body.getPosition())
+    if (v2.lengthSquared() > 1) {
+        v2.normalize()
+    }
+    if (v2.lengthSquared() <= 0.1) {
+        v2.set((actionState.currentAction as any).data.position[0], (actionState.currentAction as any).data.position[1])
+        body.setPosition(v2);
+        (actionState.currentAction as any).type = PlayerActionType.CLIMBING_LADDER
+        return
+    }
+    v2.mul(0.125 * delta)
+    v2.add(body.getPosition())
+    body.setPosition(v2)
+}
+
+let threshold = 0
+let triggerThreshold = 0
+
 const processLadderMovement = (action: PlayerAction, moveX: number, moveY: number, delta: number, controllerActions: ControllerActions) => {
     if (moveY !== 0) {
         movementAmount = moveY * 0.025 * delta
+
         action.data.yPosition += movementAmount
+
+        if (action.data.hatchData.noReturnDistance && action.data.direction === -1) {
+            threshold = action.data.position[1] - action.data.hatchData.noReturnDistance
+            triggerThreshold = action.data.position[1] - action.data.hatchData.triggerThreshold
+            if (moveY === 1 && action.data.passedThreshold) {
+                if (action.data.yPosition > threshold) {
+                    action.data.yPosition = threshold
+                }
+            } else if (moveY === -1) {
+                if (action.data.yPosition < triggerThreshold) {
+                    action.data.passedThreshold = true
+                }
+            }
+        }
+
         if (action.data.direction === 1) {
             if (action.data.yPosition > action.data.destination.position[1]) {
                 controllerActions.exitLadder()
@@ -1300,6 +1338,8 @@ const processMovement = (
 
     if (actionState?.currentAction?.type === PlayerActionType.FALLING) {
         processFalling(actionState.currentAction, body, delta, controllerActions)
+    } else if (actionState?.currentAction?.type === PlayerActionType.ENTER_LADDER) {
+        processEnterLadder(actionState, body, delta)
     } else if (actionState?.currentAction?.type === PlayerActionType.CLIMBING_LADDER) {
         processLadderMovement(actionState.currentAction, moveX, moveY, delta, controllerActions)
     } else if (actionState?.currentAction?.type === PlayerActionType.ATTACK) {
@@ -1394,7 +1434,7 @@ export type ControllerActions = {
     onInteractEnd: (id: string) => void,
     onCarvingBegin: (id: string, time: number) => void,
     onCarvingEnd: (id: string, time: number) => void,
-    enterLadder: (id: string, position: [number, number], destination: HatchData, direction: number, height: number) => void,
+    enterLadder: (id: string, position: [number, number], destination: HatchData, direction: number, height: number, hatchData: HatchConfig) => void,
     exitLadder: () => void,
     stopFalling: () => void,
 }
@@ -1518,19 +1558,20 @@ export const PlayerController: React.FC = () => {
                 localStateRef.current.playerState.currentlyCarvingId = ''
                 setCanInteract(true)
             },
-            enterLadder: (id: string, position: [number, number], destination: HatchData, direction: number, height: number) => {
+            enterLadder: (id: string, position: [number, number], destination: HatchData, direction: number, height: number, hatchData: HatchConfig) => {
                 actionState.currentAction = null
                 inputsState.queue.length = 0
-                v2.set(position[0], position[1])
-                body.setPosition(v2)
+                // v2.set(position[0], position[1])
+                // body.setPosition(v2)
                 actionState.currentAction = {
-                    type: PlayerActionType.CLIMBING_LADDER,
+                    type: PlayerActionType.ENTER_LADDER,
                     time: performance.now(),
                     data: {
                         position,
                         destination,
                         direction,
                         height,
+                        hatchData,
                         yPosition: position[1],
                     }
                 }
@@ -1680,8 +1721,6 @@ export const PlayerController: React.FC = () => {
             playerState.currentlyCarvingId = ''
         }
 
-
-
         setMovementState(PlayerMovementState.STUNNED)
 
         sendEvent(PLAYER_EVENTS_KEY, {
@@ -1707,7 +1746,7 @@ export const PlayerController: React.FC = () => {
                 controllerActions.onCarvingEnd(event.data.id, event.data.time)
                 break;
             case PlayerEventType.ENTER_LADDER:
-                controllerActions.enterLadder(event.data.id, event.data.position, event.data.destination, event.data.direction, event.data.height)
+                controllerActions.enterLadder(event.data.id, event.data.position, event.data.destination, event.data.direction, event.data.height, event.data.hatchData)
                 break;
             case PlayerEventType.ITEM_RECEIVED:
                 sendCustomMessage(messageKeys.playerInventoryChange, {
