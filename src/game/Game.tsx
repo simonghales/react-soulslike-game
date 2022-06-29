@@ -21,6 +21,7 @@ const StyledContainer = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
+  overflow: hidden;
 `
 
 export const Game: React.FC<{

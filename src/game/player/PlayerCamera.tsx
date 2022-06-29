@@ -102,7 +102,22 @@ const addRecentHitsImpact = (recentHits: RecentHitData[], impactVelocity: Impact
 
 }
 
-export const useCameraController = (groupRef: MutableRefObject<Object3D | undefined>, x: number, y: number) => {
+let focusWeight = 0
+const FOCUS_CHANGE_DURATION = 750
+
+const calculateFocusWeight = (startTime: number) => {
+    now = performance.now()
+    timeElapsed = now - startTime
+    progress = normalize(timeElapsed, FOCUS_CHANGE_DURATION, 0)
+    return easeInQuad(progress)
+}
+
+export const useCameraController = (
+    groupRef: MutableRefObject<Object3D | undefined>,
+    x: number,
+    y: number,
+    focusPointPosition?: [number, number],
+    ) => {
 
     const recentHits = useSnapshot(playerMiscProxy).recentHits
 
@@ -144,6 +159,45 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
             isMovingWeight: 0,
         }
     })
+
+    const [focusState] = useState({
+        noFocus: 0,
+        focusStart: 0,
+        focusChanged: 0,
+        previousFocusLost: 0,
+        previousX: 0,
+        previousY: 0,
+        targetX: 0,
+        targetY: 0,
+        currentX: 0,
+        currentY: 0,
+        prevX: 0,
+        prevY: 0,
+    })
+
+    useEffect(() => {
+        if (focusPointPosition) {
+            if (!focusState.focusStart) {
+                focusState.focusStart = performance.now()
+            }
+            if (!focusState.noFocus && !focusState.focusChanged) {
+                focusState.currentX = groupRef?.current?.position?.x ?? 0
+                focusState.currentY = groupRef?.current?.position?.y ?? 0
+                console.log('set to group position?')
+            }
+            focusState.focusChanged = performance.now()
+            focusState.targetX = focusPointPosition[0]
+            focusState.targetY = focusPointPosition[1]
+            return () => {
+                focusState.previousFocusLost = performance.now()
+            }
+        } else {
+            focusState.focusStart = 0
+            focusState.focusChanged = 0
+            if (!focusState.previousFocusLost) return
+            focusState.noFocus = performance.now()
+        }
+    }, [focusPointPosition])
 
     const hasTarget = !!targetRef
 
@@ -190,27 +244,6 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
         playerVelocityX = playerX - localStateRef.current.cameraData.prevPlayerX
         playerVelocityY = playerY - localStateRef.current.cameraData.prevPlayerY
 
-        // if (playerVelocityX !== 0 || playerVelocityY !== 0) {
-        //     localStateRef.current.cameraData.offsetX = lerp(localStateRef.current.cameraData.offsetX, (playerVelocityX), 0.05)
-        //     localStateRef.current.cameraData.offsetY = lerp(localStateRef.current.cameraData.offsetY, (playerVelocityY), 0.05)
-        //     offsetV2.set(lerp(localStateRef.current.cameraData.offsetX, playerVelocityX, 0.25), lerp(localStateRef.current.cameraData.offsetY, playerVelocityY, 0.25))
-        // } else {
-        //     offsetV2.set(localStateRef.current.cameraData.offsetX, localStateRef.current.cameraData.offsetY)
-        // }
-
-        // offsetV2.normalize()
-        // offsetV2.mul(10)
-        // offsetV2.clamp(2.5)
-        // offsetV2.normalize()
-        // offsetV2.set(-0.5, 0.5)
-        // console.log('offsetV2', offsetV2.lengthSquared() >= 0.9)
-
-        // localStateRef.current.cameraData.cameraVelocityX = lerp(localStateRef.current.cameraData.cameraVelocityX, offsetV2.x, 0.015)
-        // localStateRef.current.cameraData.cameraVelocityY = lerp(localStateRef.current.cameraData.cameraVelocityY, offsetV2.y, 0.015)
-
-        // cameraVelocityX = lerp(localStateRef.current.cameraData.cameraVelocityX, offsetV2.x, 0.015)
-        // cameraVelocityY = lerp(localStateRef.current.cameraData.cameraVelocityY, offsetV2.y, 0.015)
-
         lerpedVelocityX = lerp(localStateRef.current.cameraData.prevPlayerVelocityX, playerVelocityX, 0.5)
         lerpedVelocityY = lerp(localStateRef.current.cameraData.prevPlayerVelocityY, playerVelocityY, 0.5)
 
@@ -244,7 +277,56 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
             lerpAmount = calculateTargetUnlockedLerpAmount(localStateRef.current.cameraData.targetUnlocked)
             lerpedX = lerp(lerpedX, localStateRef.current.cameraData.previousTargetPosition.x, lerpAmount)
             lerpedY = lerp(lerpedY, localStateRef.current.cameraData.previousTargetPosition.y, lerpAmount)
+        } else {
+
+            if (focusPointPosition) {
+                focusWeight = calculateFocusWeight(focusState.focusChanged)
+                focusState.currentX = lerp(focusState.currentX, focusState.targetX, focusWeight)
+                focusState.currentY = lerp(focusState.currentY, focusState.targetY, focusWeight)
+                focusWeight = calculateFocusWeight(focusState.focusStart)
+                lerpedX = lerp(lerpedX, focusState.currentX, focusWeight)
+                lerpedY = lerp(lerpedY, focusState.currentY, focusWeight)
+                focusState.prevX = lerpedX
+                focusState.prevY = lerpedY
+            } else {
+                if (focusState.noFocus) {
+                    focusWeight = calculateFocusWeight(focusState.noFocus)
+                    if (focusWeight >= 1) {
+                        focusState.noFocus = 0
+                    }
+                    focusState.currentX = lerp(focusState.prevX, lerpedX, focusWeight)
+                    focusState.currentY = lerp(focusState.prevY, lerpedY, focusWeight)
+                    lerpedX = lerp(focusState.currentX, lerpedX, focusWeight)
+                    lerpedY = lerp(focusState.currentY, lerpedY, focusWeight)
+                }
+            }
+
+            /*
+
+            if current focus point, update focus weight
+
+             */
+
         }
+
+
+        // else if (focusPointPosition) {
+        //
+        //     if (focusState.previousFocusLost) {
+        //         focusWeight = calculateFocusWeight(focusState.previousFocusLost)
+        //         if (focusWeight >= 1) {
+        //             focusState.previousFocusLost = 0
+        //         }
+        //         lerpedX = lerp(focusState.previousX, lerpedX, focusWeight)
+        //         lerpedY = lerp(focusState.previousY, lerpedY, focusWeight)
+        //     }
+        //
+        //     focusWeight = calculateFocusWeight(focusState.focusChanged)
+        //     lerpedX = lerp(lerpedX, focusPointPosition[0], focusWeight)
+        //     lerpedY = lerp(lerpedY, focusPointPosition[1], focusWeight)
+        //     focusState.previousX = lerpedX
+        //     focusState.previousY = lerpedY
+        // }
 
         if (recentHits.length) {
             addRecentHitsImpact(recentHits as RecentHitData[], impactVelocity, localStateRef.current.cameraData.previousImpactVelocity)
@@ -354,7 +436,8 @@ export const useCameraController = (groupRef: MutableRefObject<Object3D | undefi
 export const PlayerCamera: React.FC<{
     x: number,
     y: number,
-}> = ({x, y}) => {
+    focusPointPosition?: [number, number],
+}> = ({x, y, focusPointPosition}) => {
 
     const groupRef = useRef<Object3D>()
     const cameraRef = useRef<PerspectiveCameraImpl>()
@@ -372,7 +455,7 @@ export const PlayerCamera: React.FC<{
         cameraRef.current.lookAt(new Vector3(x, y, 0))
     }, [])
 
-    useCameraController(groupRef, x, y)
+    useCameraController(groupRef, x, y, focusPointPosition)
 
     return (
         <group ref={groupRef as any}>

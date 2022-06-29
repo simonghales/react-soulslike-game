@@ -21,15 +21,17 @@ const getInventoryItemOrder = () => {
 export const backendPlayerStateProxy = proxy({
     selectedTarget: '',
     targetItem: '',
-    inventory: {
-        ['0']: ref({
-            type: ItemType.MEDIUM_MEAT,
-            count: 1,
-            order: getInventoryItemOrder(),
-        }),
-    } as PlayerInventory,
+    inventory: {} as PlayerInventory,
     collidedSensors: [] as string[],
+    focusPoint: '',
 })
+
+export const setPlayerFocusPoint = (point: string) => {
+    backendPlayerStateProxy.focusPoint = point
+    return () => {
+        backendPlayerStateProxy.focusPoint = ''
+    }
+}
 
 export type StoredPlayerState = {
     inventory: PlayerInventory,

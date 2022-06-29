@@ -19,6 +19,7 @@ import {subscribe} from "valtio";
 import {backendPlayerStateProxy} from "../../state/backend/player";
 import {LgHatch} from "../assets/niche/LgHatch";
 import {LgAiCharacter} from "../assets/niche/LgAiCharacter";
+import {LgSceneTextures} from "../assets/niche/LgSceneTextures";
 
 
 const subscribeDynamicFlag = (flag: string, setResult: (result: boolean) => void) => {
@@ -68,16 +69,19 @@ export const l1IntroNextStepDialogue: DialogueChunkData = {
             onShown: () => {
                 setStateFlag(GameWorldStateIds.L0_AI_ENABLE_HATCH)
             },
+            focusPoint: WorldPositionId.L0_HATCH,
         },
         {
             text: {
                 text: `Head down the ladder and you should be able to find your way.`,
             },
+            focusPoint: WorldPositionId.L0_HATCH,
         },
     ],
     isActiveListener: (setIsActive: (active: boolean) => void) => {
         return subscribeDynamicFlag(GameWorldDynamicStateIds.L0_AI_ITEMS_OBTAINED, setIsActive)
     },
+    defaultFocusPoint: WorldPositionId.L0_AI_FOCUS,
 }
 
 export const l1IntroDialogue: DialogueChunkData = {
@@ -101,11 +105,13 @@ export const l1IntroDialogue: DialogueChunkData = {
             onShown: () => {
                 setStateFlag(GameWorldStateIds.L0_AI_OPEN_DOOR)
             },
+            focusPoint: WorldPositionId.L0_AI_DOOR,
         },
         {
             text: {
                 text: `Come back here once you have the battery and weapon.`,
             },
+            focusPoint: WorldPositionId.L0_AI_DOOR,
         },
     ],
     onComplete: (sceneStateFlags: SceneStateFlags) => {
@@ -121,6 +127,7 @@ export const l1IntroDialogue: DialogueChunkData = {
         })
 
     },
+    defaultFocusPoint: WorldPositionId.L0_AI_FOCUS,
 }
 
 export const l1IntroDialogueSceneComponent: SceneComponent = {
@@ -165,12 +172,18 @@ export const l1AiCharacter: SceneComponent = {
     render: () => <LgAiCharacter/>,
 }
 
+export const l1Textures: SceneComponent = {
+    id: 'l1_textures',
+    render: () => <LgSceneTextures/>,
+}
+
 export const l0SceneComponents: SceneComponents = {
     [l1IntroDialogueSceneComponent.id]: l1IntroDialogueSceneComponent,
     [l1IntroNextStepDialogueSceneComponent.id]: l1IntroNextStepDialogueSceneComponent,
     [l1IntroHatchComponent.id]: l1IntroHatchComponent,
     [l1IntroHatchExitComponent.id]: l1IntroHatchExitComponent,
     [l1AiCharacter.id]: l1AiCharacter,
+    [l1Textures.id]: l1Textures,
 }
 
 export const sceneStateFlags: SceneStateFlags = {}

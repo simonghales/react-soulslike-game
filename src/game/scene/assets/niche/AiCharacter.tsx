@@ -7,7 +7,7 @@ const Visuals: React.FC = () => {
 
     return (
         <>
-            <sprite scale={[3, 3, 3]} position={[0, 0, 0.10001]}>
+            <sprite scale={[3, 3, 3]} position={[0, 0, 0.0002]}>
                 <spriteMaterial map={texture} depthWrite={false} depthTest={false}/>
             </sprite>
         </>

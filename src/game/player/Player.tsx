@@ -36,7 +36,8 @@ const Visuals: React.FC<{
 export const Player: React.FC<{
     x: number,
     y: number,
-}> = ({x, y}) => {
+    focusPointPosition?: [number, number],
+}> = ({x, y, focusPointPosition}) => {
 
     const combatBodyRef = usePhysicsRef('combatBody')
 
@@ -203,7 +204,7 @@ export const Player: React.FC<{
                     <meshBasicMaterial color={'orange'} transparent opacity={0.15}/>
                 </Box>
             </group>
-            <PlayerCamera x={x} y={y}/>
+            <PlayerCamera x={x} y={y} focusPointPosition={focusPointPosition}/>
         </>
     )
 }

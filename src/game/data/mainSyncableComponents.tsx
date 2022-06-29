@@ -9,6 +9,7 @@ import {ActiveDialogue} from "../scene/dialogue/ActiveDialogue";
 import {CollectableItem} from "../scene/items/CollectableItem";
 import {Hatch} from "../scene/assets/niche/Hatch";
 import {AiCharacter} from "../scene/assets/niche/AiCharacter";
+import {SceneTextures} from "../scene/assets/niche/SceneTextures";
 
 export const mainSyncableComponents = {
     [componentSyncKeys.wall]: Wall,
@@ -21,4 +22,5 @@ export const mainSyncableComponents = {
     [componentSyncKeys.item]: CollectableItem,
     [componentSyncKeys.hatch]: Hatch,
     [componentSyncKeys.aiCharacter]: AiCharacter,
+    [componentSyncKeys.sceneTextures]: SceneTextures,
 }

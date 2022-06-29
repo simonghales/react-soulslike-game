@@ -59,16 +59,17 @@ export const CollectableItem: React.FC<{
 }> = ({data, isTarget, interacting}) => {
     return (
         <group position={[data.position[0], data.position[1], 0]}>
-            <Circle args={[0.5]}>
-                <meshBasicMaterial color={interacting ? 'orange' : isTarget ? 'red' : 'green'} transparent opacity={0.15} depthTest={false} depthWrite={false}/>
-                {
-                    isTarget && (
-                        <Html center>
-                            <InteractionPrompt quickPrompt interacting={interacting} hidden={false}/>
-                        </Html>
-                    )
-                }
-            </Circle>
+            {/*<Circle args={[0.5]}>*/}
+            {/*    <meshBasicMaterial color={interacting ? 'orange' : isTarget ? 'red' : 'green'} transparent opacity={0.15} depthTest={false} depthWrite={false}/>*/}
+            {/*    */}
+            {/*</Circle>*/}
+            {
+                isTarget && (
+                    <Html center>
+                        <InteractionPrompt quickPrompt interacting={interacting} hidden={false}/>
+                    </Html>
+                )
+            }
             <Suspense fallback={null}>
                 <ItemVisuals data={data}/>
             </Suspense>

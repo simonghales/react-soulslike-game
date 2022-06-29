@@ -36,9 +36,10 @@ import {PlayerController} from "./controller/PlayerController";
 import {PlayerStateHandler} from "./PlayerStateHandler";
 import {PlayerMovementState} from "./types";
 import {useCollisionsHandler, useCollisionsState} from "./controller/collisionsHandler";
-import {setBackendSelectedTarget, setBackendTargetItem} from "../state/backend/player";
-import {getStartingPosition} from "../state/backend/scene";
+import {backendPlayerStateProxy, setBackendSelectedTarget, setBackendTargetItem} from "../state/backend/player";
+import {getStartingPosition, getWorldPosition} from "../state/backend/scene";
 import {playerBodyConfig} from "./controller/types";
+import {useSnapshot} from "valtio";
 
 let moveRight = false
 let moveLeft = false
@@ -1199,12 +1200,16 @@ export const LgPlayer: React.FC = () => {
     const collisionsState = useCollisionsState(collisions, combatCollisions)
     const collisionsRef = useEffectRef(collisions)
     const collisionsStateRef = useEffectRef(collisionsState)
-
-
+    const focusPoint = useSnapshot(backendPlayerStateProxy).focusPoint
 
     const isAlive = healthRemaining > 0
 
     const isActive = body && combatBody && fixtures
+
+    const focusPointPosition = useMemo(() => {
+        if (!focusPoint) return null
+        return getWorldPosition(focusPoint)
+    }, [focusPoint])
 
     return (
         <>
@@ -1248,7 +1253,7 @@ export const LgPlayer: React.FC = () => {
                     </>
                 )
             }
-            <SyncComponent id={'player'} componentId={componentSyncKeys.player} x={x} y={y}/>
+            <SyncComponent id={'player'} focusPointPosition={focusPointPosition} componentId={componentSyncKeys.player} x={x} y={y}/>
         </>
     )
 }

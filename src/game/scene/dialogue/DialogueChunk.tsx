@@ -11,6 +11,7 @@ import {componentSyncKeys} from "../../data/keys";
 import {sceneStateProxy} from "../../state/backend/scene";
 import {INPUT_KEYS} from "../../input/INPUT_KEYS";
 import {useEffectRef} from "../../../utils/hooks";
+import {setPlayerFocusPoint} from "../../state/backend/player";
 
 export const DialogueChunk: React.FC<SceneComponentRenderProps & {
     data: DialogueChunkData,
@@ -20,6 +21,8 @@ export const DialogueChunk: React.FC<SceneComponentRenderProps & {
     const [visibleIndex, setVisible] = useState(0)
 
     const conversationPoint = data.conversation[visibleIndex]
+
+    const focusPoint = conversationPoint?.focusPoint || data.defaultFocusPoint
 
     const hasNextPoint = visibleIndex < (data.conversation.length - 1)
     const hasPrevPoint = visibleIndex > 0
@@ -95,6 +98,11 @@ export const DialogueChunk: React.FC<SceneComponentRenderProps & {
         if (!data.completeListener) return
         return data.completeListener(componentId, data.id)
     }, [])
+
+    useEffect(() => {
+        if (!active || !focusPoint) return
+        return setPlayerFocusPoint(focusPoint)
+    }, [focusPoint, active])
 
     if (!active || !conversationPoint) return null
 

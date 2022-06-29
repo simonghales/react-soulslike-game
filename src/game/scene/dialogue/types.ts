@@ -7,6 +7,7 @@ export type ConversationPointTextData = {
 export type ConversationPointData = {
     text: ConversationPointTextData,
     onShown?: () => void,
+    focusPoint?: string,
 }
 
 export type DialogueChunkData = {
@@ -17,6 +18,7 @@ export type DialogueChunkData = {
     completeListener?: (componentId: string, id: string) => any,
     isActiveListener?: (setIsActive: (active: boolean) => void) => any,
     CompleteListenerComponent?: () => any,
+    defaultFocusPoint?: string,
 }
 
 export type SceneStateFlags = Record<string, boolean>

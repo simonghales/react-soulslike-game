@@ -56,4 +56,5 @@ export const componentSyncKeys = {
     item: 'item',
     hatch: 'hatch',
     aiCharacter: 'aiCharacter',
+    sceneTextures: 'sceneTextures',
 }
