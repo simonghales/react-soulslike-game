@@ -61,6 +61,7 @@ export type HatchConfig = {
     onExit?: () => void,
     noReturnDistance?: number,
     triggerThreshold?: number,
+    onThresholdPassed?: () => void,
 }
 
 export const LgHatch: React.FC<{
@@ -89,6 +90,8 @@ export const LgHatch: React.FC<{
 
     const canEnter = canInteract && !enteringHatch
 
+    const [climbing, setClimbing] = useState(false)
+
     useOnKeyDown(INPUT_KEYS.C[0], useCallback(() => {
         if (!canEnter) return
         const destination = getHatchPosition(exit)
@@ -96,8 +99,11 @@ export const LgHatch: React.FC<{
             throw new Error(`No destination found.`)
         }
         let direction = (destination.position[1] < position[1]) ? -1 : 1
-        emitPlayerEnterLadder(id, position, destination, direction, height, data)
+        emitPlayerEnterLadder(id, position, destination, direction, height, data, () => {
+            setClimbing(false)
+        })
         setEnteringHatch(Date.now())
+        setClimbing(true)
     }, [canEnter]))
 
     useEffect(() => {
@@ -115,5 +121,5 @@ export const LgHatch: React.FC<{
         // todo - listen for exit event, and then trigger this function...
     }, [onExit])
 
-    return <SyncComponent entering={enteringHatch} isTarget={canInteract} activated={activated} componentId={componentSyncKeys.hatch} id={id} position={position}/>
+    return <SyncComponent climbing={climbing} entering={enteringHatch} isTarget={canInteract} activated={activated} componentId={componentSyncKeys.hatch} id={id} position={position}/>
 }

@@ -1260,9 +1260,12 @@ const processLadderMovement = (action: PlayerAction, moveX: number, moveY: numbe
                 if (action.data.yPosition > threshold) {
                     action.data.yPosition = threshold
                 }
-            } else if (moveY === -1) {
+            } else if (moveY === -1 && !action.data.passedThreshold) {
                 if (action.data.yPosition < triggerThreshold) {
                     action.data.passedThreshold = true
+                    if (action.data.hatchData.onThresholdPassed) {
+                        action.data.hatchData.onThresholdPassed()
+                    }
                 }
             }
         }
@@ -1434,7 +1437,15 @@ export type ControllerActions = {
     onInteractEnd: (id: string) => void,
     onCarvingBegin: (id: string, time: number) => void,
     onCarvingEnd: (id: string, time: number) => void,
-    enterLadder: (id: string, position: [number, number], destination: HatchData, direction: number, height: number, hatchData: HatchConfig) => void,
+    enterLadder: (
+        id: string,
+        position: [number, number],
+        destination: HatchData,
+        direction: number,
+        height: number,
+        hatchData: HatchConfig,
+        onLadderExit: () => void,
+    ) => void,
     exitLadder: () => void,
     stopFalling: () => void,
 }
@@ -1558,7 +1569,7 @@ export const PlayerController: React.FC = () => {
                 localStateRef.current.playerState.currentlyCarvingId = ''
                 setCanInteract(true)
             },
-            enterLadder: (id: string, position: [number, number], destination: HatchData, direction: number, height: number, hatchData: HatchConfig) => {
+            enterLadder: (id: string, position: [number, number], destination: HatchData, direction: number, height: number, hatchData: HatchConfig, onLadderExit: () => void) => {
                 actionState.currentAction = null
                 inputsState.queue.length = 0
                 // v2.set(position[0], position[1])
@@ -1572,6 +1583,7 @@ export const PlayerController: React.FC = () => {
                         direction,
                         height,
                         hatchData,
+                        onLadderExit,
                         yPosition: position[1],
                     }
                 }
@@ -1582,6 +1594,9 @@ export const PlayerController: React.FC = () => {
                 actionState.currentAction = null
                 inputsState.queue.length = 0
                 setClimbingLadder(false)
+                if (action?.data.onLadderExit) {
+                    action.data.onLadderExit()
+                }
                 if (action?.data?.direction === 1) {
                     if (action?.data?.yPosition <= action?.data?.position[1]) {
                         if (action?.data?.height) {
@@ -1746,7 +1761,7 @@ export const PlayerController: React.FC = () => {
                 controllerActions.onCarvingEnd(event.data.id, event.data.time)
                 break;
             case PlayerEventType.ENTER_LADDER:
-                controllerActions.enterLadder(event.data.id, event.data.position, event.data.destination, event.data.direction, event.data.height, event.data.hatchData)
+                controllerActions.enterLadder(event.data.id, event.data.position, event.data.destination, event.data.direction, event.data.height, event.data.hatchData, event.data.onLadderExit)
                 break;
             case PlayerEventType.ITEM_RECEIVED:
                 sendCustomMessage(messageKeys.playerInventoryChange, {

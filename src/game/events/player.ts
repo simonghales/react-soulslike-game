@@ -41,7 +41,7 @@ export const emitPlayerCarvingBegan = (id: string, time: number) => {
     })
 }
 
-export const emitPlayerEnterLadder = (id: string, position: [number, number], destination: HatchData, direction: number, height: number | undefined, hatchData: HatchConfig) => {
+export const emitPlayerEnterLadder = (id: string, position: [number, number], destination: HatchData, direction: number, height: number | undefined, hatchData: HatchConfig, onLadderExit: () => void) => {
     eventEmitter.emit(`player`, {
         type: PlayerEventType.ENTER_LADDER,
         data: {
@@ -51,6 +51,7 @@ export const emitPlayerEnterLadder = (id: string, position: [number, number], de
             direction,
             height,
             hatchData,
+            onLadderExit,
         }
     })
 }

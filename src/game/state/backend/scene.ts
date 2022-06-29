@@ -56,6 +56,7 @@ const getInitialSceneState = (): SceneState => {
         miscData: {
             spawnPoints: [],
             worldPositions: {},
+            staticPolygons: {},
         } as MiscData,
         collectedItems: [] as string[],
         completedDialogue: {} as Record<string, boolean>,
@@ -67,6 +68,10 @@ export const sceneStateProxy = proxy(getInitialSceneState())
 
 export const getWorldPosition = (id: string) => {
     return sceneStateProxy.miscData.worldPositions[id]
+}
+
+export const getStaticPolygon = (id: string) => {
+    return sceneStateProxy.miscData.staticPolygons[id]
 }
 
 export const setSceneLoaded = () => {

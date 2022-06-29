@@ -10,6 +10,7 @@ import {CollectableItem} from "../scene/items/CollectableItem";
 import {Hatch} from "../scene/assets/niche/Hatch";
 import {AiCharacter} from "../scene/assets/niche/AiCharacter";
 import {SceneTextures} from "../scene/assets/niche/SceneTextures";
+import {VisibilityPolygon} from "../scene/assets/niche/VisibilityPolygon";
 
 export const mainSyncableComponents = {
     [componentSyncKeys.wall]: Wall,
@@ -23,4 +24,5 @@ export const mainSyncableComponents = {
     [componentSyncKeys.hatch]: Hatch,
     [componentSyncKeys.aiCharacter]: AiCharacter,
     [componentSyncKeys.sceneTextures]: SceneTextures,
+    [componentSyncKeys.visibilityPolygon]: VisibilityPolygon,
 }

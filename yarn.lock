@@ -1902,12 +1902,13 @@
     hotkeys-js "^3.8.7"
     react-nil "^0.0.3"
 
-"@simonghales/react-three-scene-editor@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@simonghales/react-three-scene-editor/-/react-three-scene-editor-0.0.3.tgz#8f05661223d69337400ecb8e9e07b65a5d2e31be"
-  integrity sha512-pyQfKGg7m/+QEcQph+wZ1Z/qf7wOvt0R13a9Z+iXCyrMgd1CAl9P92mPkGEDAdfC0iAO5QEKJ7iCcQhrTVbRdw==
+"@simonghales/react-three-scene-editor@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@simonghales/react-three-scene-editor/-/react-three-scene-editor-0.0.4.tgz#d684f1709f6005a2de183e3ffa8f47bb2923a9ae"
+  integrity sha512-7rIUozMdI/FWNCZZ31AXx4Eg+CNNchU7E/+QpBWEkjWN6kyQ7ec6rapYfLQJLhVMzpaBIwylG0bioc7Jf2KQcQ==
   dependencies:
     hotkeys-js "^3.8.7"
+    idb "^7.0.2"
     leva "^0.9.21"
     local-storage "^2.0.0"
     lodash "^4.17.21"

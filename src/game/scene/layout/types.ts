@@ -44,6 +44,11 @@ export const visibilityZoneConfig = {
     name: 'Visibility Zone',
 }
 
+export const staticPolygonConfig = {
+    id: '_staticPolygon',
+    name: 'Static Polygon',
+}
+
 export const sensorPolygonConfig = {
     id: '_sensorPolygon',
     name: 'Sensor Polygon',

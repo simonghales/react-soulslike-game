@@ -16,6 +16,7 @@ export enum SensorId {
     HALLWAY = 'HALLWAY',
     SPAWN_HALLWAY = 'SPAWN_HALLWAY',
     L0_AI_INTERACTION = 'L0_AI_INTERACTION',
+    L0_HIDE_SHADE = 'L0_HIDE_SHADE',
 }
 
 export enum GameWorldStateIds {

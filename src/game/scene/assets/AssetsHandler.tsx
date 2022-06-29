@@ -8,7 +8,7 @@ import {
     basicRatConfig, collectableItemConfig, interactionTriggerConfig,
     sceneWallConfig,
     sensorConfig,
-    sensorPolygonConfig, spawnPointConfig,
+    sensorPolygonConfig, spawnPointConfig, staticPolygonConfig,
     visibilityZoneConfig,
     walkableAreaConfig, wallPolygonConfig, worldPositionConfig
 } from "../layout/types";
@@ -19,6 +19,7 @@ import {interactionTriggerInputsConfig, InteractionTriggerPreview} from "./Inter
 import {WallPolygonAsset} from "../layout/WallPolygon";
 import {worldPositionInputsConfig, WorldPositionPreview} from "./WorldPosition";
 import {collectableItemInputsConfig, CollectableItemPreview} from "../items/CollectableItem";
+import {StaticPolygonAsset, staticPolygonInputsConfig} from "../layout/StaticPolygon";
 
 registerAsset({
     ...wallInputsConfig,
@@ -77,6 +78,12 @@ registerAsset({
     ...sensorZoneInputsConfig,
     ...sensorPolygonConfig,
     component: SensorPolygonAsset,
+})
+
+registerAsset({
+    ...staticPolygonInputsConfig,
+    ...staticPolygonConfig,
+    component: StaticPolygonAsset,
 })
 
 registerAsset({

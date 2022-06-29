@@ -6,7 +6,7 @@ import {
     basicRatConfig, collectableItemConfig, interactionTriggerConfig,
     sceneWallConfig,
     sensorConfig,
-    sensorPolygonConfig, spawnPointConfig,
+    sensorPolygonConfig, spawnPointConfig, staticPolygonConfig,
     visibilityZoneConfig,
     walkableAreaConfig, worldPositionConfig
 } from "./layout/types";
@@ -78,6 +78,7 @@ export const LgScene: React.FC = () => {
         const miscData: MiscData = {
             spawnPoints: [],
             worldPositions: {},
+            staticPolygons: {},
         }
         const interactionTriggers: InteractionTriggerData[] = []
         const items: ItemData[] = []
@@ -179,6 +180,13 @@ export const LgScene: React.FC = () => {
                         position: [instance._position[0], instance._position[1]],
                         itemType: instance.itemType,
                     })
+                    break;
+                case staticPolygonConfig.id:
+                    miscData.staticPolygons[instance.zoneId] = {
+                        id: instance.id,
+                        polygons: instance._polygons,
+                        position: [instance._position[0], instance._position[1]],
+                    }
                     break;
             }
 

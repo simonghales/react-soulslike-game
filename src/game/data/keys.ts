@@ -57,4 +57,5 @@ export const componentSyncKeys = {
     hatch: 'hatch',
     aiCharacter: 'aiCharacter',
     sceneTextures: 'sceneTextures',
+    visibilityPolygon: 'visibilityPolygon',
 }

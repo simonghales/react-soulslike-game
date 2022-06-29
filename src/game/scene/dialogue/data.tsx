@@ -20,6 +20,7 @@ import {backendPlayerStateProxy} from "../../state/backend/player";
 import {HatchConfig, LgHatch} from "../assets/niche/LgHatch";
 import {LgAiCharacter} from "../assets/niche/LgAiCharacter";
 import {LgSceneTextures} from "../assets/niche/LgSceneTextures";
+import {LgVisibilityPolygon} from "../assets/niche/LgVisibilityPolygon";
 
 
 const subscribeDynamicFlag = (flag: string, setResult: (result: boolean) => void) => {
@@ -160,14 +161,17 @@ const introHatch: HatchConfig = {
     exit: HatchId.L0_HATCH_EXIT,
     positionId: WorldPositionId.L0_HATCH,
     activeFlag: GameWorldStateIds.L0_AI_OPEN_HATCH,
-    noReturnDistance: 1,
-    triggerThreshold: 1.5,
+    noReturnDistance: 0.5,
+    triggerThreshold: 1,
+    onThresholdPassed: () => {
+        console.log('threshold passed!!!')
+    }
 }
 
 const introHatchExit: HatchConfig = {
     id: HatchId.L0_HATCH_EXIT,
     exit: HatchId.L0_HATCH_ENTRY,
-    height: 10,
+    height: 15,
     exitOnly: true,
     positionId: WorldPositionId.L0_HATCH_DESTINATION,
     onExit: onHatchExit,
@@ -193,6 +197,11 @@ export const l1Textures: SceneComponent = {
     render: () => <LgSceneTextures/>,
 }
 
+export const l1VisibilityBlocker: SceneComponent = {
+    id: 'l1_visibilityBlocker',
+    render: () => <LgVisibilityPolygon id={SensorId.L0_HIDE_SHADE}/>,
+}
+
 export const l0SceneComponents: SceneComponents = {
     [l1IntroDialogueSceneComponent.id]: l1IntroDialogueSceneComponent,
     [l1IntroNextStepDialogueSceneComponent.id]: l1IntroNextStepDialogueSceneComponent,
@@ -200,6 +209,7 @@ export const l0SceneComponents: SceneComponents = {
     [l1IntroHatchExitComponent.id]: l1IntroHatchExitComponent,
     [l1AiCharacter.id]: l1AiCharacter,
     [l1Textures.id]: l1Textures,
+    [l1VisibilityBlocker.id]: l1VisibilityBlocker,
 }
 
 export const sceneStateFlags: SceneStateFlags = {}
